@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CMSVS Internal System{% endblock %}</title>
+
+    <!-- Tailwind CSS -->
+    <link href="/static/css/style.css?v={{ cache_bust }}" rel="stylesheet">
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+    <!-- Alpine.js for interactive components -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- Arabic Font Support -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Enhanced Sidebar Styles -->
+    <style>
+        .enhanced-nav-link {
+            display: block;
+            padding: 12px 16px;
+            margin: 4px 0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+            text-decoration: none;
+            transition: all 0.2s ease-in-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .enhanced-nav-link:hover {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            color: #1f2937;
+            transform: translateX(-2px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .enhanced-nav-link:active {
+            transform: translateX(0);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .enhanced-nav-link.active {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            color: #1e40af;
+            border-right: 3px solid #3b82f6;
+        }
+
+        .enhanced-nav-link.active i {
+            color: #3b82f6 !important;
+        }
+
+        .enhanced-nav-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 0;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1));
+            transition: width 0.3s ease;
+        }
+
+        .enhanced-nav-link:hover::before {
+            width: 100%;
+        }
+
+        .enhanced-nav-link i {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Sidebar enhancements */
+        .sidebar-section {
+            margin-bottom: 24px;
+        }
+
+        .sidebar-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+            padding: 0 16px;
+        }
+
+        /* Active state detection */
+        .enhanced-nav-link[href*="/admin/dashboard"].active,
+        .enhanced-nav-link[href*="/admin/users"].active,
+        .enhanced-nav-link[href*="/admin/requests"].active,
+        .enhanced-nav-link[href*="/admin/activities"].active,
+        .enhanced-nav-link[href*="/admin/requests-records"].active,
+        .enhanced-nav-link[href*="/dashboard"].active,
+        .enhanced-nav-link[href*="/requests"].active,
+        .enhanced-nav-link[href*="/messages"].active,
+        .enhanced-nav-link[href*="/profile"].active,
+        .enhanced-nav-link[href*="/achievements"].active {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            color: #1e40af;
+            border-right: 3px solid #3b82f6;
+        }
+
+        /* Responsive sidebar */
+        @media (max-width: 768px) {
+            .enhanced-nav-link {
+                padding: 10px 12px;
+                font-size: 13px;
+            }
+
+            .enhanced-nav-link i {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-arabic">
+    <!-- Enhanced Header Component -->
+    {% include 'components/enhanced-header.html' %}
+
+    <!-- Main Content -->
+    <div class="flex min-h-screen">
+        {% if current_user %}
+        <!-- Enhanced Sidebar -->
+        <div class="w-64 bg-gradient-to-b from-gray-50 to-white shadow-lg border-l border-gray-200">
+            <div class="p-6">
+                {% block sidebar %}
+                <nav class="space-y-1">
+                    {% if current_user.role.value == 'admin' %}
+                    <a href="/admin/dashboard" class="enhanced-nav-link group">
+                        <div class="flex items-center">
+                            <i class="fas fa-tachometer-alt text-gray-500 group-hover:text-blue-600 transition-colors duration-200 ml-3"></i>
+                            <span>لوحة الإدارة</span>
+                        </div>
+                    </a>
+                    <a href="/admin/users" class="enhanced-nav-link group">
+                        <div class="flex items-center">
+                            <i class="fas fa-users text-gray-500 group-hover:text-blue-600 transition-colors duration-200 ml-3"></i>
+                            <span>المستخدمون</span>
+                        </div>
+                    </a>
+                    <a href="/admin/requests" class="enhanced-nav-link group">
+                        <div class="flex items-center">
+                            <i class="fas fa-file-alt text-gray-500 group-hover:text-blue-600 transition-colors duration-200 ml-3"></i>
+                            <span>الطلبات</span>
+                        </div>
+                    </a>
+                    <a href="/admin/activities" class="enhanced-nav-link group">
+                        <div class="flex items-center">
+                            <i class="fas fa-chart-line text-gray-500 group-hover:text-blue-600 transition-colors duration-200 ml-3"></i>
+                            <span>النشاطات</span>
+                        </div>
+                    </a>
+                    <a href="/admin/requests-records" class="enhanced-nav-link group">
+                        <div class="flex items-center">
+                            <i class="fas fa-clipboard-list text-gray-500 group-hover:text-blue-600 transition-colors duration-200 ml-3"></i>
+                            <span>سجل الطلبات</span>
+                        </div>
+                    </a>
+                    <a href="/admin/user-activity-report" class="enhanced-nav-link group">
+                        <div class="flex items-center">
+                            <i class="fas fa-chart-bar text-gray-500 group-hover:text-blue-600 transition-colors duration-200 ml-3"></i>
+                            <span>تقارير النشاط</span>
+                        </div>
+                    </a>
+                    {% else %}
+                    <a href="/dashboard" class="enhanced-nav-link group">
+                        <div class="flex items-center">
+                            <i class="fas fa-home text-gray-500 group-hover:text-blue-600 transition-colors duration-200 ml-3"></i>
+                            <span>الرئيسية</span>
+                        </div>
+                    </a>
+                    <a href="/dashboard/bento" class="enhanced-nav-link group">
+                        <div class="flex items-center">
+                            <i class="fas fa-th-large text-gray-500 group-hover:text-blue-600 transition-colors duration-200 ml-3"></i>
+                            <span>لوحة التحكم التفاعلية</span>
+                        </div>
+                    </a>
+                    <a href="/requests" class="enhanced-nav-link group">
+                        <div class="flex items-center">
+                            <i class="fas fa-folder text-gray-500 group-hover:text-blue-600 transition-colors duration-200 ml-3"></i>
+                            <span>طلباتي</span>
+                        </div>
+                    </a>
+                    <a href="/requests/new" class="enhanced-nav-link group">
+                        <div class="flex items-center">
+                            <i class="fas fa-plus-circle text-gray-500 group-hover:text-blue-600 transition-colors duration-200 ml-3"></i>
+                            <span>طلب جديد</span>
+                        </div>
+                    </a>
+                    <a href="/achievements" class="enhanced-nav-link group">
+                        <div class="flex items-center">
+                            <i class="fas fa-trophy text-gray-500 group-hover:text-blue-600 transition-colors duration-200 ml-3"></i>
+                            <span>الإنجازات والمسابقات</span>
+                        </div>
+                    </a>
+                    <a href="/profile" class="enhanced-nav-link group">
+                        <div class="flex items-center">
+                            <i class="fas fa-user text-gray-500 group-hover:text-blue-600 transition-colors duration-200 ml-3"></i>
+                            <span>الملف الشخصي</span>
+                        </div>
+                    </a>
+                    <a href="/my-profile" class="enhanced-nav-link group">
+                        <div class="flex items-center">
+                            <i class="fas fa-id-card text-gray-500 group-hover:text-blue-600 transition-colors duration-200 ml-3"></i>
+                            <span>ملفي الشخصي</span>
+                        </div>
+                    </a>
+                    <a href="/users/table/user-view" class="nav-link">
+                        <span>ملفي الشخصي - جدول</span>
+                    </a>
+                    {% endif %}
+                </nav>
+                {% endblock %}
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="flex-1">
+            <div class="p-6">
+        {% else %}
+        <!-- Full width for non-authenticated users -->
+        <div class="w-full">
+            <div class="p-6">
+        {% endif %}
+
+                <!-- Alerts -->
+                {% if error %}
+                <div class="alert-danger mb-6">
+                    {{ error }}
+                </div>
+                {% endif %}
+
+                {% if success %}
+                <div class="alert-success mb-6">
+                    {{ success }}
+                </div>
+                {% endif %}
+
+                <!-- Page Content -->
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Sidebar JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get current page URL
+            const currentPath = window.location.pathname;
+
+            // Get all navigation links
+            const navLinks = document.querySelectorAll('.enhanced-nav-link');
+
+            // Remove active class from all links
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+            });
+
+            // Add active class to current page link
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href && (currentPath === href || (href !== '/' && currentPath.startsWith(href)))) {
+                    link.classList.add('active');
+                }
+            });
+
+            // Special handling for exact matches
+            if (currentPath === '/admin/dashboard') {
+                document.querySelector('a[href="/admin/dashboard"]')?.classList.add('active');
+            } else if (currentPath === '/dashboard') {
+                document.querySelector('a[href="/dashboard"]')?.classList.add('active');
+            }
+
+            // Add hover effects and animations
+            navLinks.forEach(link => {
+                link.addEventListener('mouseenter', function() {
+                    if (!this.classList.contains('active')) {
+                        this.style.transform = 'translateX(-2px)';
+                    }
+                });
+
+                link.addEventListener('mouseleave', function() {
+                    if (!this.classList.contains('active')) {
+                        this.style.transform = 'translateX(0)';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

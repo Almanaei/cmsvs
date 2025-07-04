@@ -1,0 +1,27 @@
+{
+  "name": "cmsvs-frontend",
+  "version": "1.0.0",
+  "description": "Frontend build system for CMSVS Internal System with Tailwind CSS and RTL support",
+  "main": "index.js",
+  "scripts": {
+    "build-css": "tailwindcss -i ./src/input.css -o ./app/static/css/style.css --watch",
+    "build-css-prod": "tailwindcss -i ./src/input.css -o ./app/static/css/style.css --minify",
+    "dev": "npm run build-css",
+    "build": "npm run build-css-prod"
+  },
+  "keywords": [
+    "tailwindcss",
+    "rtl",
+    "arabic",
+    "fastapi",
+    "htmx"
+  ],
+  "author": "CMSVS Team",
+  "license": "MIT",
+  "devDependencies": {
+    "tailwindcss": "^3.4.0",
+    "@tailwindcss/forms": "^0.5.7",
+    "@tailwindcss/typography": "^0.5.10",
+    "tailwindcss-rtl": "^0.9.0"
+  }
+}

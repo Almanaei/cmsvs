@@ -1,0 +1,839 @@
+{% extends "base.html" %}
+
+{% block title %}سجل طلبات المستخدمين - لوحة التحكم{% endblock %}
+
+{% block content %}
+<style>
+/* Professional Admin Requests Records Styling */
+.page-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px;
+    background: #f8fafc;
+    min-height: 100vh;
+}
+
+.page-header {
+    text-align: right;
+    padding: 32px 24px;
+    margin-bottom: 32px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.page-title {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+    color: #1f2937;
+}
+
+.page-subtitle {
+    font-size: 16px;
+    color: #6b7280;
+    margin: 0;
+}
+
+.section {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-bottom: 24px;
+    overflow: hidden;
+}
+
+.section-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f9fafb;
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.section-content {
+    padding: 24px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 6px;
+}
+
+.form-control {
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    background: #ffffff;
+    transition: border-color 0.2s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.btn {
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: #3b82f6;
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: #2563eb;
+}
+
+.btn-secondary {
+    background: #6b7280;
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: #4b5563;
+}
+
+.btn-outline {
+    background: #ffffff;
+    color: #374151;
+    border: 1px solid #d1d5db;
+}
+
+.btn-outline:hover {
+    background: #f9fafb;
+}
+
+.activities-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.activities-table th,
+.activities-table td {
+    padding: 12px;
+    text-align: right;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.activities-table th {
+    background: #f9fafb;
+    font-weight: 600;
+    color: #374151;
+    font-size: 14px;
+}
+
+.activities-table td {
+    font-size: 14px;
+    color: #111827;
+}
+
+.activity-type {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.activity-type.request {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.activity-type.file {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.activity-type.user {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 24px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: #6b7280;
+}
+
+.empty-state i {
+    font-size: 48px;
+    margin-bottom: 16px;
+    color: #d1d5db;
+}
+
+@media (max-width: 768px) {
+    .page-container {
+        padding: 16px;
+    }
+    
+    .filters-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Active Users Toggle Styles */
+.active-users-toggle {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.active-users-toggle:hover {
+    opacity: 0.8;
+}
+
+.active-users-list {
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        max-height: 0;
+    }
+    to {
+        opacity: 1;
+        max-height: 150px;
+    }
+}
+</style>
+
+<div class="page-container">
+    <!-- Page Header -->
+    <header class="page-header">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px;">
+            <div style="flex: 1;">
+                <h1 class="page-title">سجل طلبات المستخدمين</h1>
+                <p class="page-subtitle">تتبع ومراقبة جميع تفاعلات المستخدمين مع الطلبات والنظام</p>
+            </div>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <a href="/admin/dashboard" class="btn btn-secondary">
+                    <i class="fas fa-arrow-right"></i>
+                    العودة للوحة التحكم
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Report Generation Section -->
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-file-chart-line" style="color: #10b981;"></i>
+                تقارير نشاط المستخدمين
+            </h2>
+        </div>
+        <div class="section-content">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start;">
+                <!-- Report Description -->
+                <div>
+                    <h3 style="font-size: 18px; font-weight: 600; color: #1f2937; margin: 0 0 12px 0;">
+                        <i class="fas fa-chart-bar" style="color: #10b981; margin-left: 8px;"></i>
+                        إنشاء تقارير شاملة
+                    </h3>
+                    <p style="color: #6b7280; margin: 0 0 16px 0; line-height: 1.6;">
+                        قم بإنشاء تقارير مفصلة لنشاط المستخدمين تتضمن إحصائيات شاملة حول الطلبات والتفاعلات خلال فترات زمنية مختلفة.
+                    </p>
+                    <div style="background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                        <h4 style="color: #0369a1; margin: 0 0 8px 0; font-size: 14px; font-weight: 600;">
+                            <i class="fas fa-info-circle" style="margin-left: 6px;"></i>
+                            ما يتضمنه التقرير:
+                        </h4>
+                        <ul style="margin: 0; padding-right: 20px; color: #0369a1; font-size: 13px;">
+                            <li>إجمالي عدد الطلبات لكل مستخدم</li>
+                            <li>متوسط الطلبات اليومية والأسبوعية والشهرية</li>
+                            <li>مستوى نشاط المستخدمين</li>
+                            <li>تفاصيل الطلبات الشهرية</li>
+                            <li>إحصائيات الفترة الزمنية المحددة</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Report Generation Options -->
+                <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px;">
+                    <h3 style="font-size: 16px; font-weight: 600; color: #1f2937; margin: 0 0 16px 0;">
+                        <i class="fas fa-cog" style="color: #6b7280; margin-left: 8px;"></i>
+                        خيارات التقرير
+                    </h3>
+
+                    <!-- Quick Report Buttons -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+                        <a href="/admin/user-activity-report?period=3&format=html" class="btn btn-primary" style="justify-content: center;">
+                            <i class="fas fa-chart-line"></i>
+                            تقرير 3 أشهر
+                        </a>
+                        <a href="/admin/user-activity-report?period=6&format=html" class="btn btn-primary" style="justify-content: center;">
+                            <i class="fas fa-chart-bar"></i>
+                            تقرير 6 أشهر
+                        </a>
+                        <a href="/admin/user-activity-report?period=12&format=html" class="btn btn-primary" style="justify-content: center;">
+                            <i class="fas fa-chart-area"></i>
+                            تقرير سنوي
+                        </a>
+                        <a href="/admin/user-activity-report" class="btn" style="background: #10b981; color: white; justify-content: center;">
+                            <i class="fas fa-tools"></i>
+                            خيارات متقدمة
+                        </a>
+                    </div>
+
+                    <!-- Export Options -->
+                    <div style="border-top: 1px solid #e5e7eb; padding-top: 16px;">
+                        <h4 style="font-size: 14px; font-weight: 600; color: #374151; margin: 0 0 12px 0;">
+                            <i class="fas fa-download" style="color: #6b7280; margin-left: 6px;"></i>
+                            تصدير سريع (آخر 3 أشهر):
+                        </h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+                            <a href="/admin/user-activity-report?period=3&format=csv" class="btn" style="background: #059669; color: white; font-size: 12px; padding: 8px 12px; justify-content: center;">
+                                <i class="fas fa-file-csv"></i>
+                                CSV
+                            </a>
+                            <a href="/admin/user-activity-report?period=3&format=pdf" class="btn" style="background: #dc2626; color: white; font-size: 12px; padding: 8px 12px; justify-content: center;">
+                                <i class="fas fa-file-pdf"></i>
+                                PDF
+                            </a>
+                            <a href="/admin/user-activity-report?period=3&format=arabic" class="btn" style="background: #7c3aed; color: white; font-size: 12px; padding: 8px 12px; justify-content: center;" target="_blank">
+                                <i class="fas fa-print"></i>
+                                طباعة
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Statistics Overview -->
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-chart-bar" style="color: #6b7280;"></i>
+                إحصائيات النظام الشاملة
+            </h2>
+        </div>
+        <div class="section-content">
+            <!-- Overall Stats -->
+            <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 24px;">
+                <div class="stat-card">
+                    <div class="stat-value" style="color: #1f2937;">{{ system_stats.total_users }}</div>
+                    <div class="stat-label">إجمالي المستخدمين</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: #1f2937;">{{ system_stats.active_users }}</div>
+                    <div class="stat-label">المستخدمين النشطين</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: #1f2937;">{{ system_stats.total_requests }}</div>
+                    <div class="stat-label">إجمالي الطلبات</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: #1f2937;">{{ activities|length }}</div>
+                    <div class="stat-label">الأنشطة المعروضة</div>
+                </div>
+            </div>
+
+            <!-- Time-based Statistics -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+                <!-- Daily Statistics -->
+                <div style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+                    <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                        <i class="fas fa-calendar-day" style="font-size: 24px; margin-left: 12px; color: #374151;"></i>
+                        <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #1f2937;">إحصائيات اليوم</h3>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div>
+                            <div style="font-size: 28px; font-weight: 700; margin-bottom: 4px; color: #1f2937;">{{ system_stats.daily.requests }}</div>
+                            <div style="font-size: 14px; color: #6b7280;">طلبات جديدة</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 28px; font-weight: 700; margin-bottom: 4px; cursor: pointer; color: #1f2937;" onclick="toggleActiveUsers('daily')" title="اضغط لعرض أسماء المستخدمين">
+                                {{ system_stats.daily.active_users_count }}
+                                <i class="fas fa-chevron-down" id="daily-icon" style="font-size: 14px; margin-right: 8px; transition: transform 0.3s; color: #6b7280;"></i>
+                            </div>
+                            <div style="font-size: 14px; color: #6b7280;">مستخدمين نشطين <span style="font-size: 10px; color: #9ca3af;">(اضغط للتفاصيل)</span></div>
+                            <div id="daily-users" style="display: none; margin-top: 12px; max-height: 150px; overflow-y: auto;">
+                                {% for user in system_stats.daily.active_users %}
+                                <div style="background: #f9fafb; border: 1px solid #e5e7eb; padding: 6px 8px; margin: 4px 0; border-radius: 6px; font-size: 12px;">
+                                    <div style="font-weight: 600; color: #374151;">{{ user.full_name }}</div>
+                                    <div style="color: #6b7280;">{{ user.email }}</div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Weekly Statistics -->
+                <div style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+                    <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                        <i class="fas fa-calendar-week" style="font-size: 24px; margin-left: 12px; color: #374151;"></i>
+                        <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #1f2937;">إحصائيات الأسبوع</h3>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div>
+                            <div style="font-size: 28px; font-weight: 700; margin-bottom: 4px; color: #1f2937;">{{ system_stats.weekly.requests }}</div>
+                            <div style="font-size: 14px; color: #6b7280;">طلبات جديدة</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 28px; font-weight: 700; margin-bottom: 4px; cursor: pointer; color: #1f2937;" onclick="toggleActiveUsers('weekly')" title="اضغط لعرض أسماء المستخدمين">
+                                {{ system_stats.weekly.active_users_count }}
+                                <i class="fas fa-chevron-down" id="weekly-icon" style="font-size: 14px; margin-right: 8px; transition: transform 0.3s; color: #6b7280;"></i>
+                            </div>
+                            <div style="font-size: 14px; color: #6b7280;">مستخدمين نشطين <span style="font-size: 10px; color: #9ca3af;">(اضغط للتفاصيل)</span></div>
+                            <div id="weekly-users" style="display: none; margin-top: 12px; max-height: 150px; overflow-y: auto;">
+                                {% for user in system_stats.weekly.active_users %}
+                                <div style="background: #f9fafb; border: 1px solid #e5e7eb; padding: 6px 8px; margin: 4px 0; border-radius: 6px; font-size: 12px;">
+                                    <div style="font-weight: 600; color: #374151;">{{ user.full_name }}</div>
+                                    <div style="color: #6b7280;">{{ user.email }}</div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monthly Statistics -->
+                <div style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+                    <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                        <i class="fas fa-calendar-alt" style="font-size: 24px; margin-left: 12px; color: #374151;"></i>
+                        <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #1f2937;">إحصائيات الشهر</h3>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div>
+                            <div style="font-size: 28px; font-weight: 700; margin-bottom: 4px; color: #1f2937;">{{ system_stats.monthly.requests }}</div>
+                            <div style="font-size: 14px; color: #6b7280;">طلبات جديدة</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 28px; font-weight: 700; margin-bottom: 4px; cursor: pointer; color: #1f2937;" onclick="toggleActiveUsers('monthly')" title="اضغط لعرض أسماء المستخدمين">
+                                {{ system_stats.monthly.active_users_count }}
+                                <i class="fas fa-chevron-down" id="monthly-icon" style="font-size: 14px; margin-right: 8px; transition: transform 0.3s; color: #6b7280;"></i>
+                            </div>
+                            <div style="font-size: 14px; color: #6b7280;">مستخدمين نشطين <span style="font-size: 10px; color: #9ca3af;">(اضغط للتفاصيل)</span></div>
+                            <div id="monthly-users" style="display: none; margin-top: 12px; max-height: 150px; overflow-y: auto;">
+                                {% for user in system_stats.monthly.active_users %}
+                                <div style="background: #f9fafb; border: 1px solid #e5e7eb; padding: 6px 8px; margin: 4px 0; border-radius: 6px; font-size: 12px;">
+                                    <div style="font-weight: 600; color: #374151;">{{ user.full_name }}</div>
+                                    <div style="color: #6b7280;">{{ user.email }}</div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-filter" style="color: #6b7280;"></i>
+                تصفية البيانات
+            </h2>
+        </div>
+        <div class="section-content">
+            <form method="get" action="/admin/requests-records">
+                <div class="filters-grid">
+                    <div class="form-group">
+                        <label for="user_id" class="form-label">المستخدم</label>
+                        <select id="user_id" name="user_id" class="form-control">
+                            <option value="">جميع المستخدمين</option>
+                            {% for user in all_users %}
+                            <option value="{{ user.id }}" {% if filters.user_id == user.id %}selected{% endif %}>
+                                {{ user.full_name }} ({{ user.email }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="activity_type" class="form-label">نوع النشاط</label>
+                        <select id="activity_type" name="activity_type" class="form-control">
+                            <option value="">جميع الأنشطة</option>
+                            {% for activity_type in activity_types %}
+                            <option value="{{ activity_type.value }}" {% if filters.activity_type == activity_type.value %}selected{% endif %}>
+                                {{ activity_type.label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="date_from" class="form-label">من تاريخ</label>
+                        <input type="date" id="date_from" name="date_from" value="{{ filters.date_from or '' }}" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="date_to" class="form-label">إلى تاريخ</label>
+                        <input type="date" id="date_to" name="date_to" value="{{ filters.date_to or '' }}" class="form-control">
+                    </div>
+                </div>
+                <div style="margin-top: 16px; display: flex; gap: 12px;">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i>
+                        تطبيق التصفية
+                    </button>
+                    <a href="/admin/requests-records" class="btn btn-outline">
+                        <i class="fas fa-times"></i>
+                        إزالة التصفية
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- User-Specific Statistics (if filtering by user) -->
+    {% if target_user and user_stats %}
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-user-chart" style="color: #6b7280;"></i>
+                إحصائيات {{ target_user.full_name }}
+            </h2>
+        </div>
+        <div class="section-content">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">{{ user_stats.total_activities }}</div>
+                    <div class="stat-label">إجمالي الأنشطة</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ user_stats.recent_activities }}</div>
+                    <div class="stat-label">الأنشطة الأخيرة (30 يوم)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ user_stats.weekly_activities }}</div>
+                    <div class="stat-label">هذا الأسبوع</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: {{ user_stats.activity_color.replace('text-', '') }};">{{ user_stats.activity_level }}</div>
+                    <div class="stat-label">مستوى النشاط</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Additional System Statistics -->
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-chart-pie" style="color: #6b7280;"></i>
+                تفاصيل إضافية
+            </h2>
+        </div>
+        <div class="section-content">
+            <!-- Request Status Breakdown -->
+            {% if system_stats.status_breakdown %}
+            <div style="margin-bottom: 24px;">
+                <h3 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: #374151;">
+                    <i class="fas fa-chart-pie" style="color: #6b7280; margin-left: 8px;"></i>
+                    توزيع حالات الطلبات
+                </h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
+                    {% for status, count in system_stats.status_breakdown.items() %}
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center;">
+                        <div style="font-size: 20px; font-weight: 600; margin-bottom: 4px;
+                            {% if status == 'pending' %}color: #f59e0b;
+                            {% elif status == 'in_progress' %}color: #3b82f6;
+                            {% elif status == 'completed' %}color: #10b981;
+                            {% elif status == 'rejected' %}color: #ef4444;
+                            {% else %}color: #6b7280;{% endif %}">
+                            {{ count }}
+                        </div>
+                        <div style="font-size: 12px; color: #6b7280; font-weight: 500;">
+                            {% if status == 'pending' %}قيد الانتظار
+                            {% elif status == 'in_progress' %}قيد المعالجة
+                            {% elif status == 'completed' %}مكتملة
+                            {% elif status == 'rejected' %}مرفوضة
+                            {% else %}{{ status }}{% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Most Active Users -->
+            {% if system_stats.most_active_users %}
+            <div>
+                <h3 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: #374151;">
+                    <i class="fas fa-trophy" style="color: #6b7280; margin-left: 8px;"></i>
+                    أكثر المستخدمين نشاطاً
+                </h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px;">
+                    {% for user in system_stats.most_active_users %}
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-weight: 600; color: #374151; margin-bottom: 2px;">{{ user.full_name }}</div>
+                                <div style="font-size: 12px; color: #6b7280;">{{ user.email }}</div>
+                            </div>
+                            <div style="background: #3b82f6; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                                {{ user.request_count }} طلب
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Activities Table -->
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-history" style="color: #6b7280;"></i>
+                سجل الأنشطة
+                {% if activities %}
+                <span style="background: #f3f4f6; color: #374151; font-size: 12px; font-weight: 500; padding: 4px 8px; border-radius: 12px; margin-right: 8px;">
+                    {{ activities|length }} نشاط
+                </span>
+                {% endif %}
+            </h2>
+        </div>
+        <div class="section-content">
+            {% if activities %}
+            <div style="overflow-x: auto;">
+                <table class="activities-table">
+                    <thead>
+                        <tr>
+                            <th>النوع</th>
+                            {% if not target_user %}
+                            <th>المستخدم</th>
+                            {% endif %}
+                            <th>الوصف</th>
+                            <th>التفاصيل</th>
+                            <th>التاريخ والوقت</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for activity in activities %}
+                        <tr>
+                            <td>
+                                {% if activity.type.startswith('request_') %}
+                                <span class="activity-type request">
+                                    <i class="fas fa-file-alt"></i>
+                                    {% if activity.type == 'request_created' %}إنشاء طلب
+                                    {% elif activity.type == 'request_updated' %}تحديث طلب
+                                    {% elif activity.type == 'request_completed' %}إكمال طلب
+                                    {% elif activity.type == 'request_rejected' %}رفض طلب
+                                    {% else %}{{ activity.type }}{% endif %}
+                                </span>
+                                {% elif activity.type.startswith('file_') %}
+                                <span class="activity-type file">
+                                    <i class="fas fa-file"></i>
+                                    {% if activity.type == 'file_uploaded' %}رفع ملف
+                                    {% elif activity.type == 'file_deleted' %}حذف ملف
+                                    {% else %}{{ activity.type }}{% endif %}
+                                </span>
+                                {% else %}
+                                <span class="activity-type user">
+                                    <i class="fas fa-user"></i>
+                                    {% if activity.type == 'login' %}تسجيل دخول
+                                    {% elif activity.type == 'profile_updated' %}تحديث الملف الشخصي
+                                    {% elif activity.type == 'avatar_uploaded' %}رفع صورة شخصية
+                                    {% else %}{{ activity.type }}{% endif %}
+                                </span>
+                                {% endif %}
+                            </td>
+                            {% if not target_user %}
+                            <td>
+                                <div class="user-info">
+                                    <div class="user-avatar">
+                                        {{ activity.user.full_name[:2].upper() if activity.user else '?' }}
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 500;">{{ activity.user.full_name if activity.user else 'غير معروف' }}</div>
+                                        <div style="font-size: 12px; color: #6b7280;">{{ activity.user.email if activity.user else '' }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            {% endif %}
+                            <td>{{ activity.description }}</td>
+                            <td>
+                                {% if activity.details %}
+                                <div style="font-size: 12px; color: #6b7280;">
+                                    {% if activity.details.request_number %}
+                                    رقم الطلب: {{ activity.details.request_number }}<br>
+                                    {% endif %}
+                                    {% if activity.details.file_name %}
+                                    الملف: {{ activity.details.file_name }}<br>
+                                    {% endif %}
+                                    {% if activity.details.building_name %}
+                                    المبنى: {{ activity.details.building_name }}<br>
+                                    {% endif %}
+                                </div>
+                                {% else %}
+                                <span style="color: #9ca3af;">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div style="font-size: 13px;">{{ activity.timestamp.strftime('%Y-%m-%d') }}</div>
+                                <div style="font-size: 11px; color: #6b7280;">{{ activity.timestamp.strftime('%H:%M:%S') }}</div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if pagination.has_prev or pagination.has_next %}
+            <div class="pagination">
+                {% if pagination.has_prev %}
+                <a href="?page={{ pagination.page - 1 }}{% if filters.user_id %}&user_id={{ filters.user_id }}{% endif %}{% if filters.activity_type %}&activity_type={{ filters.activity_type }}{% endif %}{% if filters.date_from %}&date_from={{ filters.date_from }}{% endif %}{% if filters.date_to %}&date_to={{ filters.date_to }}{% endif %}{% if filters.search %}&search={{ filters.search }}{% endif %}" class="btn btn-outline">
+                    <i class="fas fa-chevron-right"></i>
+                    السابق
+                </a>
+                {% endif %}
+
+                <span style="padding: 8px 16px; color: #6b7280; font-size: 14px;">
+                    صفحة {{ pagination.page }}
+                </span>
+
+                {% if pagination.has_next %}
+                <a href="?page={{ pagination.page + 1 }}{% if filters.user_id %}&user_id={{ filters.user_id }}{% endif %}{% if filters.activity_type %}&activity_type={{ filters.activity_type }}{% endif %}{% if filters.date_from %}&date_from={{ filters.date_from }}{% endif %}{% if filters.date_to %}&date_to={{ filters.date_to }}{% endif %}{% if filters.search %}&search={{ filters.search }}{% endif %}" class="btn btn-outline">
+                    التالي
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% else %}
+            <!-- Empty State -->
+            <div class="empty-state">
+                <i class="fas fa-history"></i>
+                <h3 style="margin: 0 0 8px 0; font-size: 18px; color: #374151;">لا توجد أنشطة</h3>
+                <p style="margin: 0; font-size: 14px;">لم يتم العثور على أنشطة تطابق المعايير المحددة</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+// Professional Admin Requests Records JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Admin requests records page loaded successfully');
+
+    // Auto-submit form when filters change (optional)
+    const filterSelects = document.querySelectorAll('#user_id, #activity_type');
+    filterSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            // Optional: Auto-submit on change
+            // this.form.submit();
+        });
+    });
+});
+
+// Toggle active users display
+function toggleActiveUsers(period) {
+    const usersDiv = document.getElementById(period + '-users');
+    const icon = document.getElementById(period + '-icon');
+
+    if (usersDiv.style.display === 'none' || usersDiv.style.display === '') {
+        usersDiv.style.display = 'block';
+        icon.style.transform = 'rotate(180deg)';
+    } else {
+        usersDiv.style.display = 'none';
+        icon.style.transform = 'rotate(0deg)';
+    }
+}
+</script>
+
+{% endblock %}

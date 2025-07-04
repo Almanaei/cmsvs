@@ -1,0 +1,1169 @@
+{% extends "base.html" %}
+
+{% block title %}تعديل الطلب {{ req.request_number }} - CMSVS{% endblock %}
+
+{% block content %}
+<style>
+/* Professional Edit Request Styling */
+.page-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #ffffff;
+    min-height: 100vh;
+}
+
+.page-header {
+    background: #ffffff;
+    border-bottom: 2px solid #e5e7eb;
+    padding: 24px 0;
+    margin-bottom: 32px;
+}
+
+.page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 8px 0;
+}
+
+.page-subtitle {
+    color: #6b7280;
+    font-size: 16px;
+    margin: 0;
+}
+
+.breadcrumb {
+    background: #f9fafb;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+    border: 1px solid #e5e7eb;
+}
+
+.breadcrumb a {
+    color: #3b82f6;
+    text-decoration: none;
+}
+
+.breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+.section {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    margin-bottom: 24px;
+}
+
+.section-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f9fafb;
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.section-content {
+    padding: 24px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 6px;
+    font-size: 14px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-help {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 4px;
+}
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.status-pending { background: #fef3c7; color: #92400e; }
+.status-in-progress { background: #dbeafe; color: #1e40af; }
+.status-completed { background: #d1fae5; color: #065f46; }
+.status-rejected { background: #fee2e2; color: #991b1b; }
+
+.btn {
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background-color: #3b82f6;
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background-color: #2563eb;
+}
+
+.btn-secondary {
+    background-color: #6b7280;
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background-color: #4b5563;
+}
+
+.btn-outline {
+    background-color: transparent;
+    border: 1px solid #d1d5db;
+    color: #374151;
+}
+
+.btn-outline:hover {
+    background-color: #f9fafb;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.info-label {
+    font-size: 12px;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.info-value {
+    font-size: 14px;
+    color: #111827;
+    font-weight: 500;
+}
+
+.upload-area {
+    border: 2px dashed #d1d5db;
+    border-radius: 8px;
+    padding: 24px;
+    text-align: center;
+    background: #f9fafb;
+    cursor: pointer;
+}
+
+.upload-area:hover {
+    border-color: #3b82f6;
+    background: #eff6ff;
+}
+
+.upload-icon {
+    width: 48px;
+    height: 48px;
+    background-color: #3b82f6;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    color: #ffffff;
+    font-size: 20px;
+}
+
+.file-preview {
+    margin-top: 16px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.file-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    margin-bottom: 8px;
+}
+
+.file-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.file-icon {
+    width: 32px;
+    height: 32px;
+    background-color: #dc2626;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 14px;
+}
+
+.file-details {
+    flex: 1;
+}
+
+.file-name {
+    font-weight: 500;
+    color: #111827;
+    font-size: 14px;
+    margin-bottom: 2px;
+}
+
+.file-size {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.existing-file {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+}
+
+.file-actions {
+    display: flex;
+    gap: 8px;
+}
+
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .page-container {
+        padding: 16px;
+    }
+}
+</style>
+
+<!-- Professional Page Container -->
+<div class="page-container">
+    <!-- Breadcrumb Navigation -->
+    <nav class="breadcrumb">
+        <a href="/dashboard">لوحة التحكم</a> /
+        <a href="/requests">الطلبات</a> /
+        <a href="/requests/{{ req.id }}">{{ req.request_number }}</a> /
+        <span>تعديل</span>
+    </nav>
+
+    <!-- Page Header -->
+    <header class="page-header">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px;">
+            <div style="flex: 1;">
+                <h1 class="page-title">تعديل الطلب {{ req.request_number }}</h1>
+                <p class="page-subtitle">تعديل بيانات الطلب - الدفاع المدني</p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                {% if req.status.value == 'PENDING' %}
+                    <span class="status-badge status-pending">
+                        <i class="fas fa-clock"></i>
+                        قيد المراجعة
+                    </span>
+                {% elif req.status.value == 'IN_PROGRESS' %}
+                    <span class="status-badge status-in-progress">
+                        <i class="fas fa-cog"></i>
+                        قيد التنفيذ
+                    </span>
+                {% elif req.status.value == 'COMPLETED' %}
+                    <span class="status-badge status-completed">
+                        <i class="fas fa-check-circle"></i>
+                        مكتمل
+                    </span>
+                {% elif req.status.value == 'REJECTED' %}
+                    <span class="status-badge status-rejected">
+                        <i class="fas fa-times-circle"></i>
+                        مرفوض
+                    </span>
+                {% endif %}
+                <a href="/requests/{{ req.id }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-right"></i>
+                    العودة للعرض
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Request Info -->
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-info-circle" style="color: #3b82f6;"></i>
+                معلومات الطلب
+            </h2>
+        </div>
+        <div class="section-content">
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">رقم الطلب</div>
+                    <div class="info-value">{{ req.request_number }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">الرمز التعريفي</div>
+                    <div class="info-value">{{ req.unique_code }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">تاريخ الإنشاء</div>
+                    <div class="info-value">{{ req.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">مقدم الطلب</div>
+                    <div class="info-value">{{ req.user.email }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Form -->
+    <form method="post" action="/requests/{{ req.id }}/edit" id="editRequestForm" enctype="multipart/form-data">
+        <!-- Personal Information Section -->
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-user" style="color: #10b981;"></i>
+                    المعلومات الشخصية
+                </h2>
+            </div>
+            <div class="section-content">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="full_name" class="form-label">
+                            الاسم الثلاثي <span style="color: #ef4444;">*</span>
+                        </label>
+                        <input type="text"
+                               id="full_name"
+                               name="full_name"
+                               value="{{ req.full_name or '' }}"
+                               required
+                               class="form-control">
+                        <div class="form-help">يرجى إدخال الاسم الثلاثي كاملاً</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="personal_number" class="form-label">
+                            الرقم الشخصي <span style="color: #ef4444;">*</span>
+                        </label>
+                        <input type="text"
+                               id="personal_number"
+                               name="personal_number"
+                               value="{{ req.personal_number or '' }}"
+                               pattern="[0-9]{9}"
+                               maxlength="9"
+                               required
+                               class="form-control">
+                        <div class="form-help">9 أرقام بالضبط</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone_number" class="form-label">
+                            رقم الهاتف
+                        </label>
+                        <input type="tel"
+                               id="phone_number"
+                               name="phone_number"
+                               value="{{ req.phone_number or '' }}"
+                               class="form-control">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Building Information Section -->
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-building" style="color: #f59e0b;"></i>
+                    معلومات المبنى
+                </h2>
+            </div>
+            <div class="section-content">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="building_name" class="form-label">
+                            المبنى
+                        </label>
+                        <input type="text"
+                               id="building_name"
+                               name="building_name"
+                               value="{{ req.building_name or '' }}"
+                               class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="road_name" class="form-label">
+                            الطريق
+                        </label>
+                        <input type="text"
+                               id="road_name"
+                               name="road_name"
+                               value="{{ req.road_name or '' }}"
+                               class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="building_number" class="form-label">
+                            المجمع
+                        </label>
+                        <input type="text"
+                               id="building_number"
+                               name="building_number"
+                               value="{{ req.building_number or '' }}"
+                               class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="civil_defense_file_number" class="form-label">
+                            رقم ملف الدفاع المدني
+                        </label>
+                        <input type="text"
+                               id="civil_defense_file_number"
+                               name="civil_defense_file_number"
+                               value="{{ req.civil_defense_file_number or '' }}"
+                               class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="building_permit_number" class="form-label">
+                            رقم إجازة البناء
+                        </label>
+                        <input type="text"
+                               id="building_permit_number"
+                               name="building_permit_number"
+                               value="{{ req.building_permit_number or '' }}"
+                               class="form-control">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Services Required Section (Read Only) -->
+        {% set has_services = req.licenses_section or req.fire_equipment_section or req.commercial_records_section or req.engineering_offices_section or req.hazardous_materials_section %}
+        {% if has_services %}
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-cogs" style="color: #7c3aed;"></i>
+                    الأقسام المطلوبة (للقراءة فقط)
+                </h2>
+            </div>
+            <div class="section-content">
+                <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 16px; margin-bottom: 20px;">
+                    <div style="display: flex; align-items: flex-start; gap: 8px;">
+                        <i class="fas fa-info-circle" style="color: #2563eb; margin-top: 2px;"></i>
+                        <div>
+                            <div style="font-weight: 600; color: #1e40af; font-size: 14px; margin-bottom: 4px;">ملاحظة مهمة</div>
+                            <div style="color: #1e40af; font-size: 13px;">
+                                هذه الأقسام تم تحديدها عند إنشاء الطلب ولا يمكن تعديلها. تحدد هذه الاختيارات فئات الملفات المتاحة للرفع.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
+                    {% if req.licenses_section %}
+                    <div style="display: flex; align-items: center; gap: 12px; padding: 16px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px;">
+                        <div style="width: 32px; height: 32px; background: #dbeafe; border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-certificate" style="color: #2563eb; font-size: 14px;"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: #111827; font-size: 14px; margin-bottom: 2px;">قسم التراخيص</div>
+                            <div style="font-size: 12px; color: #6b7280;">إصدار وتجديد التراخيص المختلفة</div>
+                        </div>
+                        <span style="background: #d1fae5; color: #065f46; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 12px;">مطلوب</span>
+                    </div>
+                    {% endif %}
+
+                    {% if req.fire_equipment_section %}
+                    <div style="display: flex; align-items: center; gap: 12px; padding: 16px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px;">
+                        <div style="width: 32px; height: 32px; background: #fee2e2; border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-fire-extinguisher" style="color: #dc2626; font-size: 14px;"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: #111827; font-size: 14px; margin-bottom: 2px;">قسم معدات الإطفاء</div>
+                            <div style="font-size: 12px; color: #6b7280;">فحص وصيانة معدات الإطفاء والسلامة</div>
+                        </div>
+                        <span style="background: #d1fae5; color: #065f46; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 12px;">مطلوب</span>
+                    </div>
+                    {% endif %}
+
+                    {% if req.commercial_records_section %}
+                    <div style="display: flex; align-items: center; gap: 12px; padding: 16px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px;">
+                        <div style="width: 32px; height: 32px; background: #d1fae5; border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-file-contract" style="color: #10b981; font-size: 14px;"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: #111827; font-size: 14px; margin-bottom: 2px;">قسم السجلات التجارية</div>
+                            <div style="font-size: 12px; color: #6b7280;">إدارة السجلات والوثائق التجارية</div>
+                        </div>
+                        <span style="background: #d1fae5; color: #065f46; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 12px;">مطلوب</span>
+                    </div>
+                    {% endif %}
+
+                    {% if req.engineering_offices_section %}
+                    <div style="display: flex; align-items: center; gap: 12px; padding: 16px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px;">
+                        <div style="width: 32px; height: 32px; background: #fef3c7; border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-drafting-compass" style="color: #f59e0b; font-size: 14px;"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: #111827; font-size: 14px; margin-bottom: 2px;">قسم المكاتب الهندسية</div>
+                            <div style="font-size: 12px; color: #6b7280;">الاستشارات والخدمات الهندسية</div>
+                        </div>
+                        <span style="background: #d1fae5; color: #065f46; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 12px;">مطلوب</span>
+                    </div>
+                    {% endif %}
+
+                    {% if req.hazardous_materials_section %}
+                    <div style="display: flex; align-items: center; gap: 12px; padding: 16px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px;">
+                        <div style="width: 32px; height: 32px; background: #fed7aa; border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-exclamation-triangle" style="color: #ea580c; font-size: 14px;"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: #111827; font-size: 14px; margin-bottom: 2px;">قسم المواد الخطرة</div>
+                            <div style="font-size: 12px; color: #6b7280;">التعامل مع المواد الخطرة والكيميائية</div>
+                        </div>
+                        <span style="background: #d1fae5; color: #065f46; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 12px;">مطلوب</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Additional Information Section -->
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-info-circle" style="color: #6366f1;"></i>
+                    معلومات إضافية
+                </h2>
+            </div>
+            <div class="section-content">
+                <div class="form-group">
+                    <label for="description" class="form-label">
+                        وصف الطلب
+                    </label>
+                    <textarea id="description"
+                              name="description"
+                              rows="4"
+                              placeholder="اكتب وصفاً تفصيلياً للطلب..."
+                              class="form-control">{{ req.description or '' }}</textarea>
+                    <div class="form-help">وصف تفصيلي لمحتوى الطلب ومتطلباته</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Controls Section -->
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-tasks" style="color: #3b82f6;"></i>
+                    حالة الطلب
+                </h2>
+            </div>
+            <div class="section-content">
+                {% if current_user.role.value == 'ADMIN' %}
+                <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 16px; margin-bottom: 20px;">
+                    <div style="display: flex; align-items: flex-start; gap: 8px;">
+                        <i class="fas fa-info-circle" style="color: #2563eb; margin-top: 2px;"></i>
+                        <div style="color: #1e40af; font-size: 14px;">
+                            <strong>ملاحظة:</strong> يمكنك تغيير حالة الطلب إلى أي حالة متاحة
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 6px; padding: 16px; margin-bottom: 20px;">
+                    <div style="display: flex; align-items: flex-start; gap: 8px;">
+                        <i class="fas fa-check-circle" style="color: #059669; margin-top: 2px;"></i>
+                        <div style="color: #065f46; font-size: 14px;">
+                            <strong>معلومة:</strong> يمكنك تحديث حالة طلبك حسب التقدم المحرز
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="status" class="form-label">
+                            حالة الطلب
+                        </label>
+                        <select id="status" name="status" class="form-control">
+                            {% for status_option in statuses %}
+                            <option value="{{ status_option }}" {% if req.status.value == status_option %}selected{% endif %}>
+                                {% if status_option == 'pending' %}معلق
+                                {% elif status_option == 'in_progress' %}قيد المعالجة
+                                {% elif status_option == 'completed' %}مكتمل
+                                {% elif status_option == 'rejected' %}مرفوض
+                                {% else %}{{ status_option }}
+                                {% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-help">يمكنك تحديث حالة الطلب حسب التقدم المحرز</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            مقدم الطلب
+                        </label>
+                        <div style="padding: 10px 12px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px;">
+                            <div style="font-size: 14px; color: #111827;">{{ req.user.email }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Request Timestamps Section -->
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-calendar" style="color: #8b5cf6;"></i>
+                    التواريخ المهمة
+                </h2>
+            </div>
+            <div class="section-content">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">تاريخ الإنشاء</div>
+                        <div class="info-value">{{ req.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">آخر تحديث</div>
+                        <div class="info-value">
+                            {% if req.updated_at %}
+                                {{ req.updated_at.strftime('%Y-%m-%d %H:%M') }}
+                            {% else %}
+                                لم يتم التحديث
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+        <!-- File Management Section -->
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-folder-open" style="color: #10b981;"></i>
+                    إدارة المرفقات
+                    {% if req.files %}
+                    <span style="background: #f3f4f6; color: #374151; font-size: 12px; font-weight: 500; padding: 4px 8px; border-radius: 12px; margin-right: 8px;">
+                        {{ req.files|length }} ملف
+                    </span>
+                    {% endif %}
+                </h2>
+            </div>
+            <div class="section-content">
+                <!-- Existing Files Management -->
+                {% if req.files %}
+                <div style="margin-bottom: 32px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h3 style="font-size: 16px; font-weight: 600; color: #111827; margin: 0;">الملفات المرفقة</h3>
+                        <div style="font-size: 12px; color: #6b7280;">يمكنك عرض، تحميل، أو حذف الملفات</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
+                        {% for file in req.files %}
+                        <div class="existing-file" id="file-{{ file.id }}">
+                            <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px;">
+                                <div class="file-icon
+                                    {% if file.file_type.lower() == 'pdf' %}pdf
+                                    {% elif file.file_type.lower() in ['jpg', 'jpeg', 'png', 'gif'] %}image
+                                    {% elif file.file_type.lower() in ['doc', 'docx'] %}document
+                                    {% else %}default{% endif %}">
+                                    {% if file.file_type.lower() == 'pdf' %}
+                                        <i class="fas fa-file-pdf"></i>
+                                    {% elif file.file_type.lower() in ['jpg', 'jpeg', 'png', 'gif'] %}
+                                        <i class="fas fa-file-image"></i>
+                                    {% elif file.file_type.lower() in ['doc', 'docx'] %}
+                                        <i class="fas fa-file-word"></i>
+                                    {% else %}
+                                        <i class="fas fa-file"></i>
+                                    {% endif %}
+                                </div>
+                                <div style="flex: 1; min-width: 0;">
+                                    <div class="file-name">{{ file.original_filename }}</div>
+                                    <div style="font-size: 11px; color: #6b7280; margin: 2px 0;">{{ file.file_category }}</div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                                        <span style="font-size: 11px; color: #6b7280;">{{ (file.file_size / 1024 / 1024)|round(2) }} MB</span>
+                                        <span style="background: #f3f4f6; color: #374151; font-size: 10px; font-weight: 500; padding: 2px 6px; border-radius: 4px;">{{ file.file_type.upper() }}</span>
+                                    </div>
+                                    <div style="font-size: 11px; color: #6b7280; margin-top: 2px;">{{ file.uploaded_at.strftime('%Y-%m-%d %H:%M') if file.uploaded_at else 'غير محدد' }}</div>
+                                </div>
+                            </div>
+                            <div class="file-actions">
+                                <button type="button" onclick="viewFile({{ file.id }}, '{{ file.original_filename }}')" class="btn btn-outline" style="padding: 6px 12px; font-size: 11px;">
+                                    <i class="fas fa-eye"></i>
+                                    عرض
+                                </button>
+                                <button type="button" onclick="downloadFile({{ file.id }})" class="btn btn-primary" style="padding: 6px 12px; font-size: 11px;">
+                                    <i class="fas fa-download"></i>
+                                    تحميل
+                                </button>
+                                <button type="button" onclick="deleteFile({{ file.id }}, '{{ file.original_filename|replace("'", "\\'") }}')" style="background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; padding: 6px 12px; border-radius: 6px; font-size: 11px; cursor: pointer;">
+                                    <i class="fas fa-trash"></i>
+                                    حذف
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div style="margin-top: 16px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 12px;">
+                        <div style="display: flex; align-items: flex-start; gap: 8px;">
+                            <i class="fas fa-info-circle" style="color: #2563eb; margin-top: 2px;"></i>
+                            <div style="color: #1e40af; font-size: 13px;">
+                                يمكنك إدارة الملفات مباشرة من هذه الصفحة. لإضافة ملفات جديدة، استخدم قسم "إضافة ملفات جديدة" أدناه.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div style="text-align: center; padding: 32px; margin-bottom: 32px;">
+                    <i class="fas fa-file-upload" style="font-size: 48px; color: #9ca3af; margin-bottom: 16px;"></i>
+                    <h4 style="font-size: 18px; font-weight: 600; color: #111827; margin: 0 0 8px 0;">لا توجد ملفات مرفقة</h4>
+                    <p style="color: #6b7280; margin: 0;">لم يتم رفع أي ملفات مع هذا الطلب بعد</p>
+                </div>
+                {% endif %}
+
+                <!-- File Upload Areas -->
+                <div style="border-top: 1px solid #e5e7eb; padding-top: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h3 style="font-size: 16px; font-weight: 600; color: #111827; margin: 0;">إضافة ملفات جديدة</h3>
+                        <div style="font-size: 12px; color: #6b7280;">يمكنك رفع ملفات متعددة في فئات مختلفة</div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                        <!-- Architectural Plans -->
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-drafting-compass" style="color: #2563eb; margin-left: 4px;"></i>
+                                المخططات المعمارية
+                            </label>
+                            <div class="upload-area" onclick="document.getElementById('architectural_plans').click()">
+                                <div class="upload-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <h3 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600;">اختر ملفات أو اسحبها هنا</h3>
+                                <p style="margin: 0; color: #6b7280; font-size: 12px;">PDF, JPG, PNG</p>
+                                <input type="file" name="architectural_plans" id="architectural_plans" multiple accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
+                            </div>
+                            <div id="architectural_plans_preview" class="file-preview"></div>
+                        </div>
+
+                        <!-- Electrical & Mechanical Plans -->
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-bolt" style="color: #f59e0b; margin-left: 4px;"></i>
+                                المخططات الكهربائية والميكانيكية
+                            </label>
+                            <div class="upload-area" onclick="document.getElementById('electrical_mechanical_plans').click()">
+                                <div class="upload-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <h3 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600;">اختر ملفات أو اسحبها هنا</h3>
+                                <p style="margin: 0; color: #6b7280; font-size: 12px;">PDF, JPG, PNG</p>
+                                <input type="file" name="electrical_mechanical_plans" id="electrical_mechanical_plans" multiple accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
+                            </div>
+                            <div id="electrical_mechanical_plans_preview" class="file-preview"></div>
+                        </div>
+
+                        <!-- Inspection Department -->
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-search" style="color: #10b981; margin-left: 4px;"></i>
+                                إدارة التفتيش
+                            </label>
+                            <div class="upload-area" onclick="document.getElementById('inspection_department').click()">
+                                <div class="upload-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <h3 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600;">اختر ملفات أو اسحبها هنا</h3>
+                                <p style="margin: 0; color: #6b7280; font-size: 12px;">PDF, JPG, PNG</p>
+                                <input type="file" name="inspection_department" id="inspection_department" multiple accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
+                            </div>
+                            <div id="inspection_department_preview" class="file-preview"></div>
+                        </div>
+
+                        <!-- Conditional File Sections -->
+                        <div id="fire_equipment_files_section" class="form-group" style="display: none;">
+                            <label class="form-label">
+                                <i class="fas fa-fire-extinguisher" style="color: #dc2626; margin-left: 4px;"></i>
+                                ملفات معدات الحريق
+                            </label>
+                            <div class="upload-area" onclick="document.getElementById('fire_equipment_files').click()">
+                                <div class="upload-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <h3 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600;">اختر ملفات أو اسحبها هنا</h3>
+                                <p style="margin: 0; color: #6b7280; font-size: 12px;">PDF, JPG, PNG</p>
+                                <input type="file" name="fire_equipment_files" id="fire_equipment_files" multiple accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
+                            </div>
+                            <div id="fire_equipment_files_preview" class="file-preview"></div>
+                        </div>
+
+                        <div id="commercial_records_files_section" class="form-group" style="display: none;">
+                            <label class="form-label">
+                                <i class="fas fa-building" style="color: #7c3aed; margin-left: 4px;"></i>
+                                ملفات السجلات التجارية
+                            </label>
+                            <div class="upload-area" onclick="document.getElementById('commercial_records_files').click()">
+                                <div class="upload-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <h3 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600;">اختر ملفات أو اسحبها هنا</h3>
+                                <p style="margin: 0; color: #6b7280; font-size: 12px;">PDF, JPG, PNG</p>
+                                <input type="file" name="commercial_records_files" id="commercial_records_files" multiple accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
+                            </div>
+                            <div id="commercial_records_files_preview" class="file-preview"></div>
+                        </div>
+
+                        <div id="engineering_offices_files_section" class="form-group" style="display: none;">
+                            <label class="form-label">
+                                <i class="fas fa-hard-hat" style="color: #ea580c; margin-left: 4px;"></i>
+                                ملفات المكاتب الهندسية
+                            </label>
+                            <div class="upload-area" onclick="document.getElementById('engineering_offices_files').click()">
+                                <div class="upload-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <h3 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600;">اختر ملفات أو اسحبها هنا</h3>
+                                <p style="margin: 0; color: #6b7280; font-size: 12px;">PDF, JPG, PNG</p>
+                                <input type="file" name="engineering_offices_files" id="engineering_offices_files" multiple accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
+                            </div>
+                            <div id="engineering_offices_files_preview" class="file-preview"></div>
+                        </div>
+
+                        <div id="hazardous_materials_files_section" class="form-group" style="display: none;">
+                            <label class="form-label">
+                                <i class="fas fa-exclamation-triangle" style="color: #f59e0b; margin-left: 4px;"></i>
+                                ملفات المواد الخطرة
+                            </label>
+                            <div class="upload-area" onclick="document.getElementById('hazardous_materials_files').click()">
+                                <div class="upload-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <h3 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600;">اختر ملفات أو اسحبها هنا</h3>
+                                <p style="margin: 0; color: #6b7280; font-size: 12px;">PDF, JPG, PNG</p>
+                                <input type="file" name="hazardous_materials_files" id="hazardous_materials_files" multiple accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
+                            </div>
+                            <div id="hazardous_materials_files_preview" class="file-preview"></div>
+                        </div>
+                    </div>
+
+                    <!-- Upload Instructions -->
+                    <div style="margin-top: 24px; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 6px; padding: 16px;">
+                        <div style="display: flex; align-items: flex-start; gap: 8px;">
+                            <i class="fas fa-lightbulb" style="color: #059669; margin-top: 2px;"></i>
+                            <div>
+                                <h5 style="font-weight: 600; color: #065f46; font-size: 14px; margin: 0 0 8px 0;">نصائح لرفع الملفات:</h5>
+                                <ul style="color: #065f46; font-size: 13px; margin: 0; padding-right: 16px;">
+                                    <li>يمكنك رفع ملفات متعددة في كل فئة</li>
+                                    <li>استخدم السحب والإفلات لسهولة الرفع</li>
+                                    <li>الأنواع المدعومة: PDF, JPG, PNG</li>
+                                    <li>يمكنك إزالة الملفات من المعاينة قبل الحفظ</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="section">
+            <div class="section-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px;">
+                    <a href="/requests/{{ req.id }}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i>
+                        إلغاء
+                    </a>
+                    <button type="submit" id="submitBtn" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        حفظ التغييرات
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+
+
+
+
+<script>
+// Professional Edit Request JavaScript
+const REQUEST_ID = {{ req.id }};
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Initializing professional edit request form...');
+
+    // Initialize file uploads
+    const fileInputs = [
+        'architectural_plans',
+        'electrical_mechanical_plans',
+        'inspection_department',
+        'fire_equipment_files',
+        'commercial_records_files',
+        'engineering_offices_files',
+        'hazardous_materials_files'
+    ];
+
+    fileInputs.forEach(inputId => {
+        initializeFileUpload(inputId, inputId + '_preview');
+    });
+
+    // Set up conditional sections based on existing request data
+    const conditionalSections = [
+        ['fire_equipment_section', 'fire_equipment_files_section'],
+        ['commercial_records_section', 'commercial_records_files_section'],
+        ['engineering_offices_section', 'engineering_offices_files_section'],
+        ['hazardous_materials_section', 'hazardous_materials_files_section']
+    ];
+
+    conditionalSections.forEach(([checkboxId, sectionId]) => {
+        // Show sections based on existing request data
+        const section = document.getElementById(sectionId);
+        if (section) {
+            {% if req.fire_equipment_section %}
+            if (sectionId === 'fire_equipment_files_section') section.style.display = 'block';
+            {% endif %}
+            {% if req.commercial_records_section %}
+            if (sectionId === 'commercial_records_files_section') section.style.display = 'block';
+            {% endif %}
+            {% if req.engineering_offices_section %}
+            if (sectionId === 'engineering_offices_files_section') section.style.display = 'block';
+            {% endif %}
+            {% if req.hazardous_materials_section %}
+            if (sectionId === 'hazardous_materials_files_section') section.style.display = 'block';
+            {% endif %}
+        }
+    });
+
+    console.log('Professional edit request form initialized successfully');
+});
+
+// Professional file upload handling
+function initializeFileUpload(inputId, previewId) {
+    const input = document.getElementById(inputId);
+    const preview = document.getElementById(previewId);
+    const uploadArea = input ? input.parentElement : null;
+
+    if (!input || !preview) return;
+
+    input.addEventListener('change', function() {
+        updateFilePreview(this, preview);
+    });
+
+    // Drag and drop functionality
+    if (uploadArea) {
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#3b82f6';
+            this.style.backgroundColor = '#eff6ff';
+        });
+
+        uploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#d1d5db';
+            this.style.backgroundColor = '#f9fafb';
+        });
+
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#d1d5db';
+            this.style.backgroundColor = '#f9fafb';
+
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const dt = new DataTransfer();
+                Array.from(files).forEach(file => dt.items.add(file));
+                input.files = dt.files;
+                updateFilePreview(input, preview);
+            }
+        });
+    }
+}
+
+function updateFilePreview(input, previewContainer) {
+    previewContainer.innerHTML = '';
+
+    if (input.files && input.files.length > 0) {
+        Array.from(input.files).forEach((file, index) => {
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            fileItem.innerHTML = `
+                <div class="file-info">
+                    <div class="file-icon">
+                        <i class="fas fa-file-pdf"></i>
+                    </div>
+                    <div class="file-details">
+                        <div class="file-name">${file.name}</div>
+                        <div class="file-size">${(file.size / 1024 / 1024).toFixed(2)} MB</div>
+                    </div>
+                </div>
+                <button type="button" onclick="removeFile('${input.id}', ${index})" class="btn btn-outline" style="padding: 4px 8px; font-size: 12px;">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            previewContainer.appendChild(fileItem);
+        });
+    }
+}
+
+function removeFile(inputId, index) {
+    const input = document.getElementById(inputId);
+    const dt = new DataTransfer();
+
+    Array.from(input.files).forEach((file, i) => {
+        if (i !== index) {
+            dt.items.add(file);
+        }
+    });
+
+    input.files = dt.files;
+    updateFilePreview(input, document.getElementById(inputId + '_preview'));
+}
+
+// Professional file management functions
+function viewFile(fileId, fileName) {
+    window.open(`/files/view/${fileId}`, '_blank');
+}
+
+function downloadFile(fileId) {
+    window.open(`/files/download/${fileId}`, '_blank');
+}
+
+function deleteFile(fileId, fileName) {
+    if (confirm(`هل أنت متأكد من حذف الملف: ${fileName}؟\n\nلا يمكن التراجع عن هذا الإجراء.`)) {
+        confirmDeleteFile(fileId);
+    }
+}
+
+function confirmDeleteFile(fileId) {
+    console.log('Deleting file:', fileId, 'from request:', REQUEST_ID);
+
+    fetch(`/requests/${REQUEST_ID}/files/${fileId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.text().then(text => {
+                throw new Error(`HTTP error! status: ${response.status} - ${text}`);
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            showAlert('تم حذف الملف بنجاح', 'success');
+            // Remove file from UI
+            const fileElement = document.getElementById(`file-${fileId}`);
+            if (fileElement) {
+                fileElement.style.opacity = '0';
+                setTimeout(() => fileElement.remove(), 300);
+            }
+        } else {
+            showAlert(`حدث خطأ في حذف الملف: ${data.error || 'خطأ غير معروف'}`, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error deleting file:', error);
+        showAlert(`حدث خطأ في حذف الملف: ${error.message}`, 'error');
+    });
+}
+
+function showAlert(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.style.cssText = `
+        position: fixed; top: 20px; right: 20px; z-index: 1000;
+        padding: 16px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        background: ${type === 'success' ? '#ecfdf5' : '#fef2f2'};
+        color: ${type === 'success' ? '#065f46' : '#991b1b'};
+        border: 1px solid ${type === 'success' ? '#a7f3d0' : '#fecaca'};
+        font-size: 14px; max-width: 400px;
+    `;
+    alertDiv.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+            <span>${message}</span>
+            <button onclick="this.parentElement.parentElement.remove()" style="margin-right: 12px; background: none; border: none; cursor: pointer; color: inherit;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `;
+    document.body.appendChild(alertDiv);
+
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        if (alertDiv.parentElement) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+console.log('Professional edit request JavaScript loaded successfully');
+</script>
+
+{% endblock %}

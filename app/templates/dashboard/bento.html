@@ -1,0 +1,975 @@
+{% extends "base.html" %}
+
+{% block title %}لوحة التحكم - Bento Dashboard - CMSVS{% endblock %}
+
+{% block content %}
+<style>
+/* Additional CSS for bento grid layout */
+.bento-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1rem;
+    grid-auto-rows: min-content;
+}
+
+@media (min-width: 768px) {
+    .bento-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1.5rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .bento-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 1.5rem;
+    }
+}
+
+.bento-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    min-height: 200px;
+}
+
+.bento-card:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transform: translateY(-2px);
+}
+
+.bento-large {
+    grid-column: span 1;
+    grid-row: span 1;
+    min-height: 300px;
+}
+
+@media (min-width: 768px) {
+    .bento-large {
+        grid-column: span 2;
+        min-height: 350px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .bento-large {
+        grid-column: span 2;
+        grid-row: span 2;
+        min-height: 400px;
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 767px) {
+    .bento-card {
+        padding: 1rem;
+        min-height: 180px;
+    }
+
+    .bento-large {
+        min-height: 250px;
+    }
+}
+
+.progress-bar {
+    width: 100%;
+    height: 0.75rem;
+    background-color: #e5e7eb;
+    border-radius: 9999px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 9999px;
+    transition: width 1s ease-in-out;
+    position: relative;
+}
+
+.progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.status-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.notification-toast {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 50;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+}
+
+.notification-toast.show {
+    transform: translateX(0);
+}
+
+/* Additional styling for better visual appeal */
+.group:hover .group-hover\:scale-110 {
+    transform: scale(1.1);
+}
+
+.group:hover .group-hover\:text-blue-600 {
+    color: #2563eb;
+}
+
+.group:hover .group-hover\:text-green-600 {
+    color: #16a34a;
+}
+
+.group:hover .group-hover\:text-purple-600 {
+    color: #9333ea;
+}
+
+.group:hover .group-hover\:text-blue-700 {
+    color: #1d4ed8;
+}
+
+.group:hover .group-hover\:text-green-700 {
+    color: #15803d;
+}
+
+.group:hover .group-hover\:text-purple-700 {
+    color: #7c2d12;
+}
+
+/* Utility classes */
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.font-medium { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
+.text-xs { font-size: 0.75rem; }
+.text-sm { font-size: 0.875rem; }
+.text-lg { font-size: 1.125rem; }
+.text-xl { font-size: 1.25rem; }
+.text-3xl { font-size: 1.875rem; }
+.mb-1 { margin-bottom: 0.25rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-3 { margin-bottom: 0.75rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.mt-1 { margin-top: 0.25rem; }
+.space-y-3 > * + * { margin-top: 0.75rem; }
+.space-y-4 > * + * { margin-top: 1rem; }
+.space-y-6 > * + * { margin-top: 1.5rem; }
+.flex { display: flex; }
+.justify-between { justify-content: space-between; }
+.items-center { align-items: center; }
+.cursor-pointer { cursor: pointer; }
+.w-full { width: 100%; }
+.p-3 { padding: 0.75rem; }
+.p-4 { padding: 1rem; }
+.px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+.py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+.rounded-lg { border-radius: 0.5rem; }
+.rounded-full { border-radius: 9999px; }
+.block { display: block; }
+.grid { display: grid; }
+.gap-4 { gap: 1rem; }
+.transition-colors { transition-property: color, background-color, border-color, text-decoration-color, fill, stroke; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+.transition-transform { transition-property: transform; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+.duration-300 { transition-duration: 300ms; }
+
+/* Color classes */
+.text-gray-900 { color: #111827; }
+.text-gray-600 { color: #4b5563; }
+.text-gray-500 { color: #6b7280; }
+.text-blue-600 { color: #2563eb; }
+.text-blue-500 { color: #3b82f6; }
+.text-green-600 { color: #16a34a; }
+.text-purple-600 { color: #9333ea; }
+.text-blue-900 { color: #1e3a8a; }
+.text-green-900 { color: #14532d; }
+.text-purple-900 { color: #581c87; }
+.text-blue-200 { color: #bfdbfe; }
+.text-white { color: #ffffff; }
+
+.bg-blue-50 { background-color: #eff6ff; }
+.bg-green-50 { background-color: #f0fdf4; }
+.bg-purple-50 { background-color: #faf5ff; }
+.bg-blue-100 { background-color: #dbeafe; }
+.bg-green-100 { background-color: #dcfce7; }
+.bg-purple-100 { background-color: #f3e8ff; }
+.bg-gray-50 { background-color: #f9fafb; }
+.bg-gray-100 { background-color: #f3f4f6; }
+.bg-blue-600 { background-color: #2563eb; }
+.bg-blue-700 { background-color: #1d4ed8; }
+.bg-green-500 { background-color: #22c55e; }
+.bg-red-500 { background-color: #ef4444; }
+
+.hover\:bg-blue-100:hover { background-color: #dbeafe; }
+.hover\:bg-green-100:hover { background-color: #dcfce7; }
+.hover\:bg-purple-100:hover { background-color: #f3e8ff; }
+.hover\:bg-gray-100:hover { background-color: #f3f4f6; }
+.hover\:bg-gray-200:hover { background-color: #e5e7eb; }
+.hover\:bg-blue-700:hover { background-color: #1d4ed8; }
+.hover\:text-blue-500:hover { color: #3b82f6; }
+
+/* Leaderboard specific styles */
+.bg-blue-50 { background-color: #eff6ff; }
+.bg-green-50 { background-color: #f0fdf4; }
+.bg-purple-50 { background-color: #faf5ff; }
+.bg-blue-100 { background-color: #dbeafe; }
+.bg-green-100 { background-color: #dcfce7; }
+.bg-purple-100 { background-color: #f3e8ff; }
+.bg-blue-600 { background-color: #2563eb; }
+.bg-green-600 { background-color: #16a34a; }
+.bg-purple-600 { background-color: #9333ea; }
+.bg-yellow-500 { background-color: #eab308; }
+.bg-gray-400 { background-color: #9ca3af; }
+.bg-orange-600 { background-color: #ea580c; }
+.text-blue-600 { color: #2563eb; }
+.text-green-600 { color: #16a34a; }
+.text-purple-600 { color: #9333ea; }
+.text-gray-300 { color: #d1d5db; }
+.w-6 { width: 1.5rem; }
+.h-6 { height: 1.5rem; }
+.w-8 { width: 2rem; }
+.h-8 { height: 2rem; }
+.w-16 { width: 4rem; }
+.h-2 { height: 0.5rem; }
+.gap-2 { gap: 0.5rem; }
+.p-2 { padding: 0.5rem; }
+.mt-1 { margin-top: 0.25rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.rounded-full { border-radius: 9999px; }
+.flex-items-center { align-items: center; }
+.justify-center { justify-content: center; }
+.text-xs { font-size: 0.75rem; line-height: 1rem; }
+.duration-500 { transition-duration: 500ms; }
+
+.hover\:bg-blue-100:hover { background-color: #dbeafe; }
+.hover\:bg-green-100:hover { background-color: #dcfce7; }
+.hover\:bg-purple-100:hover { background-color: #f3e8ff; }
+
+/* Donut Chart Styles */
+.donut-chart {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto;
+}
+
+.donut-chart svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.donut-chart .donut-segment {
+    fill: none;
+    stroke-width: 12;
+    transition: stroke-width 0.3s ease;
+}
+
+.donut-chart .donut-segment:hover {
+    stroke-width: 14;
+}
+
+.donut-chart .donut-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.donut-chart .donut-total {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #1f2937;
+}
+
+.donut-chart .donut-label {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.donut-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    justify-content: center;
+}
+
+.donut-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+}
+
+.donut-legend-color {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 50%;
+}
+</style>
+
+<div class="space-y-6">
+    <!-- Welcome Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h2 class="text-3xl font-bold text-gray-900">
+                مرحباً، {{ current_user.full_name }}
+            </h2>
+            <p class="text-gray-600 mt-1">لوحة التحكم التفاعلية - نظرة شاملة على أدائك</p>
+        </div>
+        <a href="/requests/new" class="btn-primary">
+            <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            طلب جديد
+        </a>
+    </div>
+
+    <!-- Main Bento Grid -->
+    <div class="bento-grid">
+
+        <!-- Recent Requests Section - Large -->
+        <div class="bento-card bento-large">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-gray-900">الطلبات الأخيرة</h2>
+                <a href="/requests" class="text-sm text-blue-600 hover:text-blue-500">عرض الكل</a>
+            </div>
+            <div class="space-y-4">
+                {% if requests %}
+                    {% for request in requests[:3] %}
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer" onclick="window.location.href='/requests/{{ request.id }}'">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2">
+                                {% if request.status.value == 'completed' %}
+                                    <span class="status-dot" style="background-color: #10b981;"></span>
+                                {% elif request.status.value == 'pending' %}
+                                    <span class="status-dot" style="background-color: #f59e0b;"></span>
+                                {% elif request.status.value == 'in_progress' %}
+                                    <span class="status-dot" style="background-color: #3b82f6;"></span>
+                                {% else %}
+                                    <span class="status-dot" style="background-color: #6b7280;"></span>
+                                {% endif %}
+                                <span class="font-medium text-gray-900">{{ request.request_number }}</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-1">{{ request.request_title or 'طلب جديد' }} • {{ request.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                        </div>
+                        <span class="px-3 py-1 text-xs rounded-full
+                            {% if request.status.value == 'completed' %}bg-green-100 text-green-800
+                            {% elif request.status.value == 'pending' %}bg-warning-100 text-warning-600
+                            {% elif request.status.value == 'in_progress' %}bg-blue-100 text-blue-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {% if request.status.value == 'completed' %}مكتمل
+                            {% elif request.status.value == 'pending' %}معلق
+                            {% elif request.status.value == 'in_progress' %}قيد المعالجة
+                            {% else %}{{ request.status.value }}{% endif %}
+                        </span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-8 text-gray-500">
+                        <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <p class="mb-2">لا توجد طلبات حتى الآن</p>
+                        <a href="/requests/new" class="text-blue-600 hover:text-blue-500 text-sm font-medium">إنشاء طلب جديد</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Daily Achievement Progress / Top Daily Users -->
+        {% if is_admin %}
+        <div class="bento-card cursor-pointer group" onclick="window.location.href='/admin/requests-records'">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4 group-hover:text-blue-600 transition-colors">سجل الطلبات - يومياً</h2>
+            <div class="text-center mb-4">
+                <div class="text-3xl mb-2 group-hover:scale-110 transition-transform duration-300">🌟</div>
+                <p class="text-sm text-gray-600 mb-2">الهدف: 10 طلب</p>
+                <p class="text-xs text-blue-600 font-medium">المتصدرون اليوم</p>
+            </div>
+            <div class="space-y-3">
+                {% if leaderboard_data.daily_leaders and leaderboard_data.daily_leaders|length > 0 %}
+                    {% for leader in leaderboard_data.daily_leaders %}
+                    <div class="flex justify-between items-center p-2 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                        <div class="flex items-center gap-2">
+                            {% if loop.index == 1 %}
+                                <span class="w-6 h-6 bg-yellow-500 text-white text-xs rounded-full flex items-center justify-center font-bold">🥇</span>
+                            {% elif loop.index == 2 %}
+                                <span class="w-6 h-6 bg-gray-400 text-white text-xs rounded-full flex items-center justify-center font-bold">🥈</span>
+                            {% elif loop.index == 3 %}
+                                <span class="w-6 h-6 bg-orange-600 text-white text-xs rounded-full flex items-center justify-center font-bold">🥉</span>
+                            {% else %}
+                                <span class="w-6 h-6 bg-blue-600 text-white text-xs rounded-full flex items-center justify-center font-bold">{{ loop.index }}</span>
+                            {% endif %}
+                            <div>
+                                <span class="text-sm font-medium text-gray-900">{{ leader.user.full_name or leader.user.username }}</span>
+                                {% if leader.progress.current > 0 %}
+                                    <div class="text-xs text-blue-600">{{ leader.progress.percentage }}% مكتمل</div>
+                                {% else %}
+                                    <div class="text-xs text-gray-500">لم يبدأ</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-sm font-bold text-blue-600">{{ leader.progress.current }}/{{ leader.progress.target }}</span>
+                            <div class="w-16 h-2 bg-gray-200 rounded-full mt-1">
+                                <div class="h-2 bg-blue-600 rounded-full transition-all duration-500" style="width: {{ leader.progress.percentage }}%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4 text-gray-500">
+                        <svg class="w-8 h-8 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                        <p class="text-sm">لا يوجد مستخدمون نشطون اليوم</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <div class="bento-card cursor-pointer group" onclick="window.location.href='/achievements'">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4 group-hover:text-blue-600 transition-colors">الإنجاز اليومي</h2>
+            <div class="text-center mb-4">
+                <div class="text-3xl mb-2 group-hover:scale-110 transition-transform duration-300">🌟</div>
+                <p class="text-sm text-gray-600 mb-2">الهدف: {{ achievement_data.daily_progress.target or 10 }} طلب</p>
+                <p class="text-xs text-blue-600 font-medium">{{ achievement_data.daily_progress.status or 'لم يبدأ' }}</p>
+            </div>
+            <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="text-sm text-gray-600">التقدم</span>
+                    <span class="text-sm font-medium text-gray-900">{{ achievement_data.daily_progress.current or 0 }}/{{ achievement_data.daily_progress.target or 10 }}</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill"
+                         style="width: {{ achievement_data.daily_progress.percentage or 0 }}%; background: linear-gradient(90deg, #3b82f6, #1d4ed8);"
+                         data-daily-progress></div>
+                </div>
+                <div class="text-center">
+                    <span class="text-lg font-bold text-blue-600">{{ achievement_data.daily_progress.percentage or 0 }}%</span>
+                    <p class="text-xs text-gray-500">مكتمل</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Weekly Achievement Progress / Top Weekly Users -->
+        {% if is_admin %}
+        <div class="bento-card cursor-pointer group" onclick="window.location.href='/admin/requests-records'">
+            <h2 class="text-lg font-semibold text-gray-900 mb-2 group-hover:text-green-600 transition-colors">سجل الطلبات - أسبوعياً</h2>
+            <div class="text-center mb-4">
+                <div class="text-3xl mb-2 group-hover:scale-110 transition-transform duration-300">🏆</div>
+                <p class="text-sm text-gray-600 mb-2">الهدف: 50 طلب</p>
+                <p class="text-xs text-green-600 font-medium">المتصدرون هذا الأسبوع</p>
+            </div>
+            <div class="space-y-3">
+                {% if leaderboard_data.weekly_leaders and leaderboard_data.weekly_leaders|length > 0 %}
+                    {% for leader in leaderboard_data.weekly_leaders %}
+                    <div class="flex justify-between items-center p-2 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
+                        <div class="flex items-center gap-2">
+                            {% if loop.index == 1 %}
+                                <span class="w-6 h-6 bg-yellow-500 text-white text-xs rounded-full flex items-center justify-center font-bold">🥇</span>
+                            {% elif loop.index == 2 %}
+                                <span class="w-6 h-6 bg-gray-400 text-white text-xs rounded-full flex items-center justify-center font-bold">🥈</span>
+                            {% elif loop.index == 3 %}
+                                <span class="w-6 h-6 bg-orange-600 text-white text-xs rounded-full flex items-center justify-center font-bold">🥉</span>
+                            {% else %}
+                                <span class="w-6 h-6 bg-green-600 text-white text-xs rounded-full flex items-center justify-center font-bold">{{ loop.index }}</span>
+                            {% endif %}
+                            <div>
+                                <span class="text-sm font-medium text-gray-900">{{ leader.user.full_name or leader.user.username }}</span>
+                                {% if leader.progress.current > 0 %}
+                                    <div class="text-xs text-green-600">{{ leader.progress.percentage }}% مكتمل</div>
+                                {% else %}
+                                    <div class="text-xs text-gray-500">لم يبدأ</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-sm font-bold text-green-600">{{ leader.progress.current }}/{{ leader.progress.target }}</span>
+                            <div class="w-16 h-2 bg-gray-200 rounded-full mt-1">
+                                <div class="h-2 bg-green-600 rounded-full transition-all duration-500" style="width: {{ leader.progress.percentage }}%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4 text-gray-500">
+                        <svg class="w-8 h-8 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                        <p class="text-sm">لا يوجد مستخدمون نشطون هذا الأسبوع</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <div class="bento-card cursor-pointer group" onclick="window.location.href='/achievements'">
+            <h2 class="text-lg font-semibold text-gray-900 mb-2 group-hover:text-green-600 transition-colors">الإنجاز الأسبوعي</h2>
+            <div class="text-center mb-4">
+                <div class="text-3xl mb-2 group-hover:scale-110 transition-transform duration-300">🏆</div>
+                <p class="text-sm text-gray-600 mb-2">الهدف: {{ achievement_data.weekly_progress.target or 50 }} طلب</p>
+                <p class="text-xs text-green-600 font-medium">{{ achievement_data.weekly_progress.status or 'لم يبدأ' }}</p>
+            </div>
+            <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="text-sm text-gray-600">التقدم</span>
+                    <span class="text-sm font-medium text-gray-900">{{ achievement_data.weekly_progress.current or 0 }}/{{ achievement_data.weekly_progress.target or 50 }}</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill"
+                         style="width: {{ achievement_data.weekly_progress.percentage or 0 }}%; background: linear-gradient(90deg, #10b981, #059669);"
+                         data-weekly-progress></div>
+                </div>
+                <div class="text-center">
+                    <span class="text-lg font-bold text-green-600">{{ achievement_data.weekly_progress.percentage or 0 }}%</span>
+                    <p class="text-xs text-gray-500">مكتمل</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Monthly Achievement Progress / Top Monthly Users -->
+        {% if is_admin %}
+        <div class="bento-card cursor-pointer group" onclick="window.location.href='/admin/requests-records'">
+            <h2 class="text-lg font-semibold text-gray-900 mb-2 group-hover:text-purple-600 transition-colors">سجل الطلبات - شهرياً</h2>
+            <div class="text-center mb-4">
+                <div class="text-3xl mb-2 group-hover:scale-110 transition-transform duration-300">👑</div>
+                <p class="text-sm text-gray-600 mb-2">الهدف: 200 طلب</p>
+                <p class="text-xs text-purple-600 font-medium">المتصدرون هذا الشهر</p>
+            </div>
+            <div class="space-y-3">
+                {% if leaderboard_data.monthly_leaders and leaderboard_data.monthly_leaders|length > 0 %}
+                    {% for leader in leaderboard_data.monthly_leaders %}
+                    <div class="flex justify-between items-center p-2 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
+                        <div class="flex items-center gap-2">
+                            {% if loop.index == 1 %}
+                                <span class="w-6 h-6 bg-yellow-500 text-white text-xs rounded-full flex items-center justify-center font-bold">🥇</span>
+                            {% elif loop.index == 2 %}
+                                <span class="w-6 h-6 bg-gray-400 text-white text-xs rounded-full flex items-center justify-center font-bold">🥈</span>
+                            {% elif loop.index == 3 %}
+                                <span class="w-6 h-6 bg-orange-600 text-white text-xs rounded-full flex items-center justify-center font-bold">🥉</span>
+                            {% else %}
+                                <span class="w-6 h-6 bg-purple-600 text-white text-xs rounded-full flex items-center justify-center font-bold">{{ loop.index }}</span>
+                            {% endif %}
+                            <div>
+                                <span class="text-sm font-medium text-gray-900">{{ leader.user.full_name or leader.user.username }}</span>
+                                {% if leader.progress.current > 0 %}
+                                    <div class="text-xs text-purple-600">{{ leader.progress.percentage }}% مكتمل</div>
+                                {% else %}
+                                    <div class="text-xs text-gray-500">لم يبدأ</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-sm font-bold text-purple-600">{{ leader.progress.current }}/{{ leader.progress.target }}</span>
+                            <div class="w-16 h-2 bg-gray-200 rounded-full mt-1">
+                                <div class="h-2 bg-purple-600 rounded-full transition-all duration-500" style="width: {{ leader.progress.percentage }}%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4 text-gray-500">
+                        <svg class="w-8 h-8 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                        <p class="text-sm">لا يوجد مستخدمون نشطون هذا الشهر</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <div class="bento-card cursor-pointer group" onclick="window.location.href='/achievements'">
+            <h2 class="text-lg font-semibold text-gray-900 mb-2 group-hover:text-purple-600 transition-colors">الإنجاز الشهري</h2>
+            <div class="text-center mb-4">
+                <div class="text-3xl mb-2 group-hover:scale-110 transition-transform duration-300">👑</div>
+                <p class="text-sm text-gray-600 mb-2">الهدف: {{ achievement_data.monthly_progress.target or 200 }} طلب</p>
+                <p class="text-xs text-purple-600 font-medium">{{ achievement_data.monthly_progress.status or 'لم يبدأ' }}</p>
+            </div>
+            <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="text-sm text-gray-600">التقدم</span>
+                    <span class="text-sm font-medium text-gray-900">{{ achievement_data.monthly_progress.current or 0 }}/{{ achievement_data.monthly_progress.target or 200 }}</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill"
+                         style="width: {{ achievement_data.monthly_progress.percentage or 0 }}%; background: linear-gradient(90deg, #8b5cf6, #7c3aed);"
+                         data-monthly-progress></div>
+                </div>
+                <div class="text-center">
+                    <span class="text-lg font-bold text-purple-600">{{ achievement_data.monthly_progress.percentage or 0 }}%</span>
+                    <p class="text-xs text-gray-500">مكتمل</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Performance Statistics - Wide -->
+        <div class="bento-card" style="grid-column: span 1; grid-row: span 1;">
+            <h2 class="text-lg font-semibold text-gray-900 mb-2">إحصائيات الأداء</h2>
+            <h3 class="text-xl font-bold text-gray-900 mb-3">نظرة عامة على إنجازاتك</h3>
+            <p class="text-sm text-gray-600 mb-6">تتبع تقدمك وإنجازاتك عبر الفترات الزمنية المختلفة</p>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 gap-4">
+                <div class="text-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer group"
+                     onclick="window.location.href='/requests'">
+                    <p class="text-sm text-blue-600 mb-1 group-hover:text-blue-700">إجمالي الطلبات</p>
+                    <p class="text-3xl font-bold text-blue-900 group-hover:scale-110 transition-transform duration-300" data-total-requests>{{ stats.total or 0 }}</p>
+                </div>
+                <div class="text-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors cursor-pointer group"
+                     onclick="window.location.href='/requests?status=completed'">
+                    <p class="text-sm text-green-600 mb-1 group-hover:text-green-700">الطلبات المكتملة</p>
+                    <p class="text-3xl font-bold text-green-900 group-hover:scale-110 transition-transform duration-300" data-completed-requests>{{ stats.completed or 0 }}</p>
+                </div>
+                <div class="text-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors cursor-pointer group"
+                     onclick="window.location.href='/achievements'">
+                    <p class="text-sm text-purple-600 mb-1 group-hover:text-purple-700">إجمالي النقاط</p>
+                    <p class="text-3xl font-bold text-purple-900 group-hover:scale-110 transition-transform duration-300" data-total-points>{{ user_stats.total_points or 0 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Statistics - Wide (Desktop) -->
+        <div class="bento-card" style="grid-column: span 1; grid-row: span 1;">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">تحليلات الأداء</h2>
+            <div class="space-y-4">
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm text-gray-600">معدل الإنجاز</span>
+                        <span class="text-sm font-semibold text-gray-900">{{ user_progress.completion_rate or 0 }}%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {{ user_progress.completion_rate or 0 }}%; background: linear-gradient(90deg, #3b82f6, #1d4ed8);"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm text-gray-600">الطلبات النشطة</span>
+                        <span class="text-sm font-semibold text-gray-900">{{ stats.pending or 0 }}</span>
+                    </div>
+                    <div class="progress-bar">
+                        {% set pending_percentage = (stats.pending / stats.total * 100) if stats.total > 0 else 0 %}
+                        <div class="progress-fill" style="width: {{ pending_percentage }}%; background: linear-gradient(90deg, #f59e0b, #d97706);"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm text-gray-600">الترتيب العام</span>
+                        <span class="text-sm font-semibold text-gray-900">#{{ user_stats.global_rank or 'غير محدد' }}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 85%; background: linear-gradient(90deg, #10b981, #059669);"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Request Statistics Donut Chart -->
+        <div class="bento-card">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">إحصائيات الطلبات</h2>
+            <div class="donut-chart" id="requestsDonutChart">
+                <svg viewBox="0 0 120 120">
+                    <!-- Background circle -->
+                    <circle cx="60" cy="60" r="54" fill="none" stroke="#f3f4f6" stroke-width="12"></circle>
+
+                    <!-- Completed requests segment -->
+                    <circle cx="60" cy="60" r="54"
+                            class="donut-segment"
+                            stroke="#10b981"
+                            stroke-dasharray="0 339.292"
+                            id="completedSegment">
+                    </circle>
+
+                    <!-- Pending requests segment -->
+                    <circle cx="60" cy="60" r="54"
+                            class="donut-segment"
+                            stroke="#f59e0b"
+                            stroke-dasharray="0 339.292"
+                            id="pendingSegment">
+                    </circle>
+
+                    <!-- In Progress requests segment -->
+                    <circle cx="60" cy="60" r="54"
+                            class="donut-segment"
+                            stroke="#3b82f6"
+                            stroke-dasharray="0 339.292"
+                            id="inProgressSegment">
+                    </circle>
+                </svg>
+
+                <div class="donut-center">
+                    <div class="donut-total" id="totalRequests">{{ stats.total or 0 }}</div>
+                    <div class="donut-label">إجمالي الطلبات</div>
+                </div>
+            </div>
+
+            <div class="donut-legend">
+                <div class="donut-legend-item">
+                    <div class="donut-legend-color" style="background-color: #10b981;"></div>
+                    <span>مكتملة ({{ stats.completed or 0 }})</span>
+                </div>
+                <div class="donut-legend-item">
+                    <div class="donut-legend-color" style="background-color: #f59e0b;"></div>
+                    <span>معلقة ({{ stats.pending or 0 }})</span>
+                </div>
+                <div class="donut-legend-item">
+                    <div class="donut-legend-color" style="background-color: #3b82f6;"></div>
+                    <span>قيد المعالجة ({{ stats.in_progress or 0 }})</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="bento-card">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">إجراءات سريعة</h2>
+            <div class="space-y-3">
+                <a href="/requests/new" class="w-full p-3 bg-blue-600 hover:bg-blue-700 rounded-lg text-right transition-colors block text-white">
+                    <div class="font-medium">طلب جديد</div>
+                    <div class="text-sm text-blue-200">إنشاء طلب جديد</div>
+                </a>
+                <a href="/requests" class="w-full p-3 bg-gray-100 hover:bg-gray-200 rounded-lg text-right transition-colors block text-gray-900">
+                    <div class="font-medium">عرض الطلبات</div>
+                    <div class="text-sm text-gray-600">مراجعة جميع الطلبات</div>
+                </a>
+                <a href="/achievements" class="w-full p-3 bg-gray-100 hover:bg-gray-200 rounded-lg text-right transition-colors block text-gray-900">
+                    <div class="font-medium">الإنجازات</div>
+                    <div class="text-sm text-gray-600">عرض الإنجازات والمنافسات</div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="notification-toast" class="notification-toast bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg">
+        <div class="flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <span id="notification-message">تم تحديث البيانات</span>
+        </div>
+    </div>
+
+    <!-- Auto-refresh functionality -->
+    <script>
+        let isUpdating = false;
+
+        function showNotification(message, type = 'success') {
+            const toast = document.getElementById('notification-toast');
+            const messageEl = document.getElementById('notification-message');
+
+            messageEl.textContent = message;
+            toast.className = `notification-toast px-6 py-3 rounded-lg shadow-lg ${
+                type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+            }`;
+
+            toast.classList.add('show');
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Donut Chart Animation
+        function animateDonutChart() {
+            const total = {{ stats.total or 0 }};
+            const completed = {{ stats.completed or 0 }};
+            const pending = {{ stats.pending or 0 }};
+            const inProgress = {{ stats.in_progress or 0 }};
+
+            if (total === 0) return;
+
+            const circumference = 2 * Math.PI * 54; // radius = 54
+
+            // Calculate percentages
+            const completedPercent = (completed / total) * 100;
+            const pendingPercent = (pending / total) * 100;
+            const inProgressPercent = (inProgress / total) * 100;
+
+            // Calculate stroke-dasharray values
+            const completedLength = (completedPercent / 100) * circumference;
+            const pendingLength = (pendingPercent / 100) * circumference;
+            const inProgressLength = (inProgressPercent / 100) * circumference;
+
+            // Get segments
+            const completedSegment = document.getElementById('completedSegment');
+            const pendingSegment = document.getElementById('pendingSegment');
+            const inProgressSegment = document.getElementById('inProgressSegment');
+
+            // Animate completed segment
+            setTimeout(() => {
+                if (completedSegment) {
+                    completedSegment.style.strokeDasharray = `${completedLength} ${circumference}`;
+                    completedSegment.style.strokeDashoffset = '0';
+                }
+            }, 200);
+
+            // Animate pending segment
+            setTimeout(() => {
+                if (pendingSegment) {
+                    pendingSegment.style.strokeDasharray = `${pendingLength} ${circumference}`;
+                    pendingSegment.style.strokeDashoffset = `-${completedLength}`;
+                }
+            }, 400);
+
+            // Animate in-progress segment
+            setTimeout(() => {
+                if (inProgressSegment) {
+                    inProgressSegment.style.strokeDasharray = `${inProgressLength} ${circumference}`;
+                    inProgressSegment.style.strokeDashoffset = `-${completedLength + pendingLength}`;
+                }
+            }, 600);
+        }
+
+        // Initialize donut chart on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            animateDonutChart();
+        });
+
+        function updateProgressBar(element, percentage, animate = true) {
+            if (element && animate) {
+                element.style.transition = 'width 1s ease-in-out';
+                element.style.width = percentage + '%';
+            } else if (element) {
+                element.style.width = percentage + '%';
+            }
+        }
+
+        // Auto-refresh state
+        let isUpdating = false;
+
+        // Auto-refresh achievement data every 30 seconds
+        setInterval(function() {
+            if (isUpdating) return;
+            isUpdating = true;
+
+            fetch('/api/bento/stats')
+                .then(response => response.json())
+                .then(data => {
+                    let hasUpdates = false;
+
+                    // Update daily progress
+                    const dailyProgress = document.querySelector('[data-daily-progress]');
+                    if (dailyProgress && data.achievement_data && data.achievement_data.daily) {
+                        const daily = data.achievement_data.daily;
+                        const currentWidth = parseFloat(dailyProgress.style.width) || 0;
+                        if (Math.abs(currentWidth - daily.percentage) > 0.1) {
+                            updateProgressBar(dailyProgress, daily.percentage);
+                            hasUpdates = true;
+                        }
+                        const dailyText = dailyProgress.parentElement.previousElementSibling.querySelector('.font-medium');
+                        if (dailyText) {
+                            dailyText.textContent = daily.current + '/' + daily.target;
+                        }
+                        const dailyPercentage = dailyProgress.parentElement.nextElementSibling.querySelector('.text-blue-600');
+                        if (dailyPercentage) {
+                            dailyPercentage.textContent = daily.percentage + '%';
+                        }
+                    }
+
+                    // Update weekly progress
+                    const weeklyProgress = document.querySelector('[data-weekly-progress]');
+                    if (weeklyProgress && data.achievement_data && data.achievement_data.weekly) {
+                        const weekly = data.achievement_data.weekly;
+                        const currentWidth = parseFloat(weeklyProgress.style.width) || 0;
+                        if (Math.abs(currentWidth - weekly.percentage) > 0.1) {
+                            updateProgressBar(weeklyProgress, weekly.percentage);
+                            hasUpdates = true;
+                        }
+                        const weeklyText = weeklyProgress.parentElement.previousElementSibling.querySelector('.font-medium');
+                        if (weeklyText) {
+                            weeklyText.textContent = weekly.current + '/' + weekly.target;
+                        }
+                        const weeklyPercentage = weeklyProgress.parentElement.nextElementSibling.querySelector('.text-green-600');
+                        if (weeklyPercentage) {
+                            weeklyPercentage.textContent = weekly.percentage + '%';
+                        }
+                    }
+
+                    // Update monthly progress
+                    const monthlyProgress = document.querySelector('[data-monthly-progress]');
+                    if (monthlyProgress && data.achievement_data && data.achievement_data.monthly) {
+                        const monthly = data.achievement_data.monthly;
+                        const currentWidth = parseFloat(monthlyProgress.style.width) || 0;
+                        if (Math.abs(currentWidth - monthly.percentage) > 0.1) {
+                            updateProgressBar(monthlyProgress, monthly.percentage);
+                            hasUpdates = true;
+                        }
+                        const monthlyText = monthlyProgress.parentElement.previousElementSibling.querySelector('.font-medium');
+                        if (monthlyText) {
+                            monthlyText.textContent = monthly.current + '/' + monthly.target;
+                        }
+                        const monthlyPercentage = monthlyProgress.parentElement.nextElementSibling.querySelector('.text-purple-600');
+                        if (monthlyPercentage) {
+                            monthlyPercentage.textContent = monthly.percentage + '%';
+                        }
+                    }
+
+                    // Update statistics
+                    if (data.stats) {
+                        const totalStat = document.querySelector('[data-total-requests]');
+                        if (totalStat && totalStat.textContent !== data.stats.total.toString()) {
+                            totalStat.textContent = data.stats.total;
+                            hasUpdates = true;
+                        }
+
+                        const completedStat = document.querySelector('[data-completed-requests]');
+                        if (completedStat && completedStat.textContent !== data.stats.completed.toString()) {
+                            completedStat.textContent = data.stats.completed;
+                            hasUpdates = true;
+                        }
+
+                        const pointsStat = document.querySelector('[data-total-points]');
+                        if (pointsStat && data.user_stats && pointsStat.textContent !== data.user_stats.total_points.toString()) {
+                            pointsStat.textContent = data.user_stats.total_points;
+                            hasUpdates = true;
+                        }
+
+                        // Update donut chart
+                        const totalRequestsEl = document.getElementById('totalRequests');
+                        if (totalRequestsEl && totalRequestsEl.textContent !== data.stats.total.toString()) {
+                            totalRequestsEl.textContent = data.stats.total;
+                            // Re-animate donut chart with new data
+                            setTimeout(() => animateDonutChart(), 100);
+                            hasUpdates = true;
+                        }
+                    }
+
+                    if (hasUpdates) {
+                        showNotification('تم تحديث البيانات بنجاح!', 'success');
+                    }
+
+                    isUpdating = false;
+                })
+                .catch(error => {
+                    console.log('Auto-refresh error:', error);
+                    showNotification('خطأ في تحديث البيانات', 'error');
+                    isUpdating = false;
+                });
+        }, 30000);
+    </script>
+</div>
+{% endblock %}

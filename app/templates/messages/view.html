@@ -1,0 +1,370 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title or 'عرض الرسالة' }} - CMSVS{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Page Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">عرض الرسالة</h1>
+            <p class="text-gray-600 mt-2">تفاصيل الرسالة المحددة</p>
+        </div>
+        <div>
+            <a href="/messages"
+               class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors">
+                <i class="fas fa-arrow-right ml-2"></i>
+                العودة للرسائل
+            </a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Main Content -->
+        <div class="lg:col-span-2">
+            <!-- Message Content -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <!-- Message Header -->
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex items-center space-x-4 space-x-reverse">
+                            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                                <span class="text-blue-600 font-semibold">
+                                    {{ message.sender_name[0] if message.sender_name else 'غ' }}{{ message.sender_name.split(' ')[1][0] if message.sender_name and message.sender_name.split(' ')|length > 1 else '' }}
+                                </span>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-900">{{ message.sender_name or 'مرسل غير معروف' }}</h3>
+                                <p class="text-sm text-gray-500">{{ message.created_at.strftime('%Y-%m-%d %H:%M') if message.created_at else '' }}</p>
+                            </div>
+                        </div>
+                        <div>
+                            {% if message.is_read %}
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    <i class="fas fa-check-circle ml-1"></i>
+                                    مقروءة
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    <i class="fas fa-circle ml-1"></i>
+                                    جديدة
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h2 class="text-xl font-semibold text-gray-900">{{ message.subject or 'بدون موضوع' }}</h2>
+                    </div>
+
+                    <div class="flex items-center space-x-3 space-x-reverse">
+                        {% if message.is_received_by_me %}
+                        <a href="/messages/compose?recipient_id={{ message.sender_id }}"
+                           class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                            <i class="fas fa-reply ml-2"></i>
+                            رد
+                        </a>
+                        {% endif %}
+                        <button onclick="deleteMessage({{ message.id }})"
+                                class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors">
+                            <i class="fas fa-trash ml-2"></i>
+                            حذف
+                        </button>
+                        <div class="relative">
+                            <button type="button"
+                                    onclick="toggleDropdown()"
+                                    class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors">
+                                <i class="fas fa-ellipsis-v ml-2"></i>
+                                المزيد
+                            </button>
+                            <div id="dropdownMenu" class="hidden absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                                <ul class="py-2">
+                                    <li>
+                                        <a href="#" onclick="printMessage()"
+                                           class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                                            <i class="fas fa-print ml-2"></i>
+                                            طباعة
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="#" onclick="exportMessage()"
+                                           class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                                            <i class="fas fa-download ml-2"></i>
+                                            تصدير
+                                        </a>
+                                    </li>
+                                    <li><hr class="my-1"></li>
+                                    <li>
+                                        <a href="#" onclick="reportMessage()"
+                                           class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors">
+                                            <i class="fas fa-flag ml-2"></i>
+                                            إبلاغ
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Message Body -->
+                <div class="p-6">
+                    <div class="prose max-w-none">
+                        <div class="text-gray-900 leading-relaxed whitespace-pre-wrap">{{ message.content or 'لا يوجد محتوى' }}</div>
+                    </div>
+                </div>
+
+                <!-- Message Footer -->
+                <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                    <div class="text-center">
+                        <small class="text-gray-500">
+                            تم الإرسال في {{ message.created_at.strftime('%Y-%m-%d %H:%M') if message.created_at else 'تاريخ غير محدد' }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Quick Actions -->
+            {% if message.is_received_by_me %}
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-reply text-blue-600 ml-2"></i>
+                    رد على الرسالة
+                </h3>
+                <p class="text-gray-600 mb-4">إرسال رد سريع للمرسل</p>
+                <a href="/messages/compose?recipient_id={{ message.sender_id }}"
+                   class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors text-center block">
+                    <i class="fas fa-reply ml-2"></i>
+                    رد الآن
+                </a>
+            </div>
+            {% endif %}
+
+            <!-- Archive Action -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-archive text-yellow-600 ml-2"></i>
+                    أرشفة الرسالة
+                </h3>
+                <p class="text-gray-600 mb-4">نقل الرسالة إلى الأرشيف</p>
+                <button onclick="archiveMessage()"
+                        class="w-full bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-archive ml-2"></i>
+                    أرشفة
+                </button>
+            </div>
+
+            <!-- Message Info -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-info-circle text-green-600 ml-2"></i>
+                    معلومات الرسالة
+                </h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">المرسل:</span>
+                        <span class="font-medium text-gray-900">{{ message.sender_name or 'غير معروف' }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">التاريخ:</span>
+                        <span class="text-sm text-gray-900">{{ message.created_at.strftime('%Y-%m-%d') if message.created_at else 'غير محدد' }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">الوقت:</span>
+                        <span class="text-sm text-gray-900">{{ message.created_at.strftime('%H:%M') if message.created_at else 'غير محدد' }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">الحالة:</span>
+                        {% if message.is_read %}
+                            <span class="text-green-600 text-sm">مقروءة</span>
+                        {% else %}
+                            <span class="text-blue-600 text-sm">جديدة</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-navigation text-purple-600 ml-2"></i>
+                    التنقل السريع
+                </h3>
+                <div class="space-y-3">
+                    <a href="/messages"
+                       class="w-full bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors text-center block">
+                        <i class="fas fa-inbox ml-2"></i>
+                        الرسائل الواردة
+                    </a>
+                    <a href="/messages/sent"
+                       class="w-full bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors text-center block">
+                        <i class="fas fa-paper-plane ml-2"></i>
+                        الرسائل المرسلة
+                    </a>
+                    <a href="/messages/compose"
+                       class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors text-center block">
+                        <i class="fas fa-plus ml-2"></i>
+                        رسالة جديدة
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-xl shadow-xl max-w-md w-full">
+            <div class="p-6">
+                <h3 id="deleteModalLabel" class="text-lg font-medium text-gray-900 mb-4">تأكيد الحذف</h3>
+                <p class="text-gray-600 mb-2">هل أنت متأكد من حذف هذه الرسالة؟</p>
+                <p class="text-red-600 text-sm mb-6">لا يمكن التراجع عن هذا الإجراء.</p>
+                <div class="flex space-x-3 space-x-reverse">
+                    <button type="button"
+                            onclick="closeDeleteModal()"
+                            class="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors">
+                        إلغاء
+                    </button>
+                    <button type="button"
+                            id="confirmDeleteBtn"
+                            class="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors">
+                        حذف الرسالة
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Toggle dropdown menu
+function toggleDropdown() {
+    const dropdown = document.getElementById('dropdownMenu');
+    dropdown.classList.toggle('hidden');
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+    const dropdown = document.getElementById('dropdownMenu');
+    const button = e.target.closest('button');
+
+    if (!button || !button.onclick || button.onclick.toString().indexOf('toggleDropdown') === -1) {
+        dropdown.classList.add('hidden');
+    }
+});
+
+// Delete message
+function deleteMessage(messageId) {
+    document.getElementById('deleteModal').classList.remove('hidden');
+
+    document.getElementById('confirmDeleteBtn').onclick = function() {
+        fetch(`/messages/${messageId}/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = '/messages';
+            } else {
+                alert('حدث خطأ أثناء حذف الرسالة');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء حذف الرسالة');
+        })
+        .finally(() => {
+            closeDeleteModal();
+        });
+    };
+}
+
+// Close delete modal
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.add('hidden');
+}
+
+// Archive message
+function archiveMessage() {
+    if (confirm('هل تريد أرشفة هذه الرسالة؟')) {
+        fetch(`/messages/{{ message.id }}/archive`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('تم أرشفة الرسالة بنجاح');
+                window.location.href = '/messages';
+            } else {
+                alert('حدث خطأ أثناء أرشفة الرسالة');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء أرشفة الرسالة');
+        });
+    }
+}
+
+// Print message
+function printMessage() {
+    window.print();
+}
+
+// Export message
+function exportMessage() {
+    const messageContent = `
+الموضوع: {{ message.subject or 'بدون موضوع' }}
+المرسل: {{ message.sender_name or 'غير معروف' }}
+التاريخ: {{ message.created_at.strftime('%Y-%m-%d %H:%M') if message.created_at else 'غير محدد' }}
+
+المحتوى:
+{{ message.content or 'لا يوجد محتوى' }}
+    `;
+
+    const blob = new Blob([messageContent], { type: 'text/plain;charset=utf-8' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'message_{{ message.id }}.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
+// Report message
+function reportMessage() {
+    if (confirm('هل تريد الإبلاغ عن هذه الرسالة؟')) {
+        fetch(`/messages/{{ message.id }}/report`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('تم الإبلاغ عن الرسالة بنجاح');
+            } else {
+                alert('حدث خطأ أثناء الإبلاغ عن الرسالة');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء الإبلاغ عن الرسالة');
+        });
+    }
+}
+</script>
+{% endblock %}

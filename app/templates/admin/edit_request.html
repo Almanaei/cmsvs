@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تعديل الطلب - {{ req.request_number }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .form-container { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .form-section { background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .status-pending { background-color: #fef3c7; color: #92400e; }
+        .status-in_progress { background-color: #dbeafe; color: #1e40af; }
+        .status-completed { background-color: #d1fae5; color: #065f46; }
+        .status-rejected { background-color: #fee2e2; color: #991b1b; }
+
+        /* File upload styles */
+        .file-upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .file-upload-area:hover {
+            border-color: #3b82f6;
+            background-color: #f8fafc;
+        }
+        .file-upload-area.dragover {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+        .file-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .file-item {
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .file-item .remove-file {
+            color: #ef4444;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .existing-files {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+        }
+        .existing-file {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            padding: 8px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .existing-file:last-child {
+            border-bottom: none;
+        }
+
+        /* Ensure Font Awesome icons are visible */
+        .fas, .far, .fab {
+            font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands" !important;
+            font-weight: 900 !important;
+            display: inline-block !important;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Button icon styling */
+        button i, a i {
+            display: inline-block !important;
+            font-style: normal !important;
+            font-variant: normal !important;
+            text-rendering: auto !important;
+            line-height: 1 !important;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Form action buttons styling to match page design */
+        .bg-blue-600 i {
+            color: white !important;
+            font-size: 14px !important;
+            margin-right: 8px !important;
+        }
+
+        .bg-white i {
+            color: #6b7280 !important;
+            font-size: 14px !important;
+            margin-right: 8px !important;
+        }
+
+
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-4 space-x-reverse">
+                    <h1 class="text-2xl font-bold text-gray-900">تعديل الطلب</h1>
+                    <span class="text-gray-500">{{ req.request_number }}</span>
+                </div>
+                <div class="flex items-center space-x-2 space-x-reverse">
+                    <a href="/admin/requests/{{ req.id }}/view" 
+                       class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors">
+                        <i class="fas fa-arrow-right mr-2"></i>
+                        العودة للعرض
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <!-- Request Info Card -->
+        <div class="form-section mb-8 p-6">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-900">معلومات الطلب</h2>
+                    <p class="text-gray-600">تفاصيل الطلب الأساسية</p>
+                </div>
+                <div class="status-badge status-{{ req.status.value }}">
+                    {% if req.status.value == 'pending' %}
+                        <i class="fas fa-clock mr-1"></i>معلق
+                    {% elif req.status.value == 'in_progress' %}
+                        <i class="fas fa-spinner mr-1"></i>قيد المعالجة
+                    {% elif req.status.value == 'completed' %}
+                        <i class="fas fa-check-circle mr-1"></i>مكتمل
+                    {% elif req.status.value == 'rejected' %}
+                        <i class="fas fa-times-circle mr-1"></i>مرفوض
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">رقم الطلب</label>
+                    <div class="bg-gray-50 p-3 rounded-lg">
+                        <code class="text-sm font-mono">{{ req.request_number }}</code>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">الرمز التعريفي</label>
+                    <div class="bg-gray-50 p-3 rounded-lg">
+                        <code class="text-sm font-mono">{{ req.unique_code }}</code>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">اسم مقدم الطلب</label>
+                    <div class="bg-gray-50 p-3 rounded-lg">{{ req.full_name or 'غير محدد' }}</div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">صاحب الطلب</label>
+                    <div class="bg-gray-50 p-3 rounded-lg">{{ request_owner.full_name or request_owner.username }}</div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">تاريخ الإنشاء</label>
+                    <div class="bg-gray-50 p-3 rounded-lg">{{ req.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">آخر تحديث</label>
+                    <div class="bg-gray-50 p-3 rounded-lg">
+                        {{ req.updated_at.strftime('%Y-%m-%d %H:%M') if req.updated_at else 'لم يتم التحديث' }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Form -->
+        <form method="POST" action="/admin/requests/{{ req.id }}/edit" enctype="multipart/form-data" class="space-y-8">
+
+            <!-- Personal Information Section -->
+            <div class="form-section p-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-6">
+                    <i class="fas fa-user mr-2 text-blue-600"></i>المعلومات الشخصية
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div>
+                        <label for="full_name" class="block text-sm font-medium text-gray-700 mb-2">
+                            الاسم الثلاثي <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="full_name" id="full_name" required
+                               value="{{ req.full_name or '' }}"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+
+                    <div>
+                        <label for="personal_number" class="block text-sm font-medium text-gray-700 mb-2">
+                            الرقم الشخصي <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="personal_number" id="personal_number" required
+                               value="{{ req.personal_number or '' }}" maxlength="9" pattern="[0-9]{9}"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <p class="text-xs text-gray-500 mt-1">9 أرقام بالضبط</p>
+                    </div>
+
+                    <div>
+                        <label for="phone_number" class="block text-sm font-medium text-gray-700 mb-2">
+                            رقم الهاتف
+                        </label>
+                        <input type="tel" name="phone_number" id="phone_number"
+                               value="{{ req.phone_number or '' }}"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Building Information Section -->
+            <div class="form-section p-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-6">
+                    <i class="fas fa-building mr-2 text-green-600"></i>معلومات المبنى
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div>
+                        <label for="building_name" class="block text-sm font-medium text-gray-700 mb-2">
+                            اسم المبنى
+                        </label>
+                        <input type="text" name="building_name" id="building_name"
+                               value="{{ req.building_name or '' }}"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+
+                    <div>
+                        <label for="road_name" class="block text-sm font-medium text-gray-700 mb-2">
+                            اسم الطريق
+                        </label>
+                        <input type="text" name="road_name" id="road_name"
+                               value="{{ req.road_name or '' }}"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+
+                    <div>
+                        <label for="building_number" class="block text-sm font-medium text-gray-700 mb-2">
+                            رقم المبنى
+                        </label>
+                        <input type="text" name="building_number" id="building_number"
+                               value="{{ req.building_number or '' }}"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+
+                    <div>
+                        <label for="civil_defense_file_number" class="block text-sm font-medium text-gray-700 mb-2">
+                            رقم ملف الدفاع المدني
+                        </label>
+                        <input type="text" name="civil_defense_file_number" id="civil_defense_file_number"
+                               value="{{ req.civil_defense_file_number or '' }}"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+
+                    <div>
+                        <label for="building_permit_number" class="block text-sm font-medium text-gray-700 mb-2">
+                            رقم إجازة البناء
+                        </label>
+                        <input type="text" name="building_permit_number" id="building_permit_number"
+                               value="{{ req.building_permit_number or '' }}"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
+            </div>
+
+            <!-- License Sections -->
+            <div class="form-section p-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-6">
+                    <i class="fas fa-certificate mr-2 text-purple-600"></i>أقسام الخدمات المطلوبة
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <div class="flex items-center">
+                            <input type="checkbox" name="licenses_section" id="licenses_section" value="true"
+                                   {% if req.licenses_section %}checked{% endif %}
+                                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                            <label for="licenses_section" class="mr-2 text-sm font-medium text-gray-700">
+                                قسم التراخيص
+                            </label>
+                        </div>
+
+                        <div class="flex items-center">
+                            <input type="checkbox" name="fire_equipment_section" id="fire_equipment_section" value="true"
+                                   {% if req.fire_equipment_section %}checked{% endif %}
+                                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                            <label for="fire_equipment_section" class="mr-2 text-sm font-medium text-gray-700">
+                                قسم معدات مقاومة الحريق
+                            </label>
+                        </div>
+
+                        <div class="flex items-center">
+                            <input type="checkbox" name="commercial_records_section" id="commercial_records_section" value="true"
+                                   {% if req.commercial_records_section %}checked{% endif %}
+                                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                            <label for="commercial_records_section" class="mr-2 text-sm font-medium text-gray-700">
+                                قسم تراخيص السجلات التجارية
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="flex items-center">
+                            <input type="checkbox" name="engineering_offices_section" id="engineering_offices_section" value="true"
+                                   {% if req.engineering_offices_section %}checked{% endif %}
+                                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                            <label for="engineering_offices_section" class="mr-2 text-sm font-medium text-gray-700">
+                                قسم تراخيص وتجديد المكاتب الهندسية
+                            </label>
+                        </div>
+
+                        <div class="flex items-center">
+                            <input type="checkbox" name="hazardous_materials_section" id="hazardous_materials_section" value="true"
+                                   {% if req.hazardous_materials_section %}checked{% endif %}
+                                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                            <label for="hazardous_materials_section" class="mr-2 text-sm font-medium text-gray-700">
+                                قسم المواد الخطرة
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- File Management Section -->
+            <div class="form-section p-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-6">
+                    <i class="fas fa-folder-open mr-2 text-orange-600"></i>إدارة المرفقات
+                </h2>
+
+                <!-- Existing Files -->
+                {% if req.files %}
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">الملفات الحالية ({{ req.files|length }})</h3>
+                    <div class="existing-files">
+                        {% for file in req.files %}
+                        <div class="existing-file">
+                            <div class="flex items-center flex-1">
+                                <i class="fas fa-file-pdf text-red-500 mr-2"></i>
+                                <div>
+                                    <div class="font-medium text-sm">{{ file.original_filename }}</div>
+                                    <div class="text-xs text-gray-500">
+                                        {{ file.file_category }} • {{ (file.file_size / 1024 / 1024)|round(2) }} MB •
+                                        {{ file.uploaded_at.strftime('%Y-%m-%d %H:%M') }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2 space-x-reverse">
+                                <button type="button" onclick="viewFile({{ file.id }}, '{{ file.original_filename }}')"
+                                        class="text-blue-600 hover:text-blue-800 text-sm">
+                                    <i class="fas fa-eye mr-1"></i>عرض
+                                </button>
+                                <button type="button" onclick="downloadFile({{ file.id }})"
+                                        class="text-green-600 hover:text-green-800 text-sm">
+                                    <i class="fas fa-download mr-1"></i>تحميل
+                                </button>
+                                <button type="button" onclick="deleteFile({{ file.id }}, '{{ file.original_filename }}')"
+                                        class="text-red-600 hover:text-red-800 text-sm">
+                                    <i class="fas fa-trash mr-1"></i>حذف
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Add New Files -->
+                <div class="space-y-6">
+                    <h3 class="text-lg font-semibold text-gray-800">إضافة ملفات جديدة</h3>
+
+                    <!-- Required Files -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                المخططات المعمارية
+                            </label>
+                            <div class="file-upload-area" onclick="document.getElementById('architectural_plans').click()">
+                                <i class="fas fa-cloud-upload-alt text-gray-400 text-2xl mb-2"></i>
+                                <p class="text-sm text-gray-600">انقر لاختيار الملفات أو اسحبها هنا</p>
+                                <input type="file" name="architectural_plans" id="architectural_plans" multiple accept=".pdf,.jpg,.jpeg,.png" class="hidden">
+                            </div>
+                            <div id="architectural_plans_preview" class="file-preview"></div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                المخططات الكهربائية والميكانيكية
+                            </label>
+                            <div class="file-upload-area" onclick="document.getElementById('electrical_mechanical_plans').click()">
+                                <i class="fas fa-cloud-upload-alt text-gray-400 text-2xl mb-2"></i>
+                                <p class="text-sm text-gray-600">انقر لاختيار الملفات أو اسحبها هنا</p>
+                                <input type="file" name="electrical_mechanical_plans" id="electrical_mechanical_plans" multiple accept=".pdf,.jpg,.jpeg,.png" class="hidden">
+                            </div>
+                            <div id="electrical_mechanical_plans_preview" class="file-preview"></div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                إدارة التفتيش
+                            </label>
+                            <div class="file-upload-area" onclick="document.getElementById('inspection_department').click()">
+                                <i class="fas fa-cloud-upload-alt text-gray-400 text-2xl mb-2"></i>
+                                <p class="text-sm text-gray-600">انقر لاختيار الملفات أو اسحبها هنا</p>
+                                <input type="file" name="inspection_department" id="inspection_department" multiple accept=".pdf,.jpg,.jpeg,.png" class="hidden">
+                            </div>
+                            <div id="inspection_department_preview" class="file-preview"></div>
+                        </div>
+                    </div>
+
+                    <!-- Optional Files (based on selected sections) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div id="fire_equipment_files_section" style="display: none;">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                ملفات معدات مقاومة الحريق
+                            </label>
+                            <div class="file-upload-area" onclick="document.getElementById('fire_equipment_files').click()">
+                                <i class="fas fa-cloud-upload-alt text-gray-400 text-2xl mb-2"></i>
+                                <p class="text-sm text-gray-600">انقر لاختيار الملفات أو اسحبها هنا</p>
+                                <input type="file" name="fire_equipment_files" id="fire_equipment_files" multiple accept=".pdf,.jpg,.jpeg,.png" class="hidden">
+                            </div>
+                            <div id="fire_equipment_files_preview" class="file-preview"></div>
+                        </div>
+
+                        <div id="commercial_records_files_section" style="display: none;">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                ملفات السجلات التجارية
+                            </label>
+                            <div class="file-upload-area" onclick="document.getElementById('commercial_records_files').click()">
+                                <i class="fas fa-cloud-upload-alt text-gray-400 text-2xl mb-2"></i>
+                                <p class="text-sm text-gray-600">انقر لاختيار الملفات أو اسحبها هنا</p>
+                                <input type="file" name="commercial_records_files" id="commercial_records_files" multiple accept=".pdf,.jpg,.jpeg,.png" class="hidden">
+                            </div>
+                            <div id="commercial_records_files_preview" class="file-preview"></div>
+                        </div>
+
+                        <div id="engineering_offices_files_section" style="display: none;">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                ملفات المكاتب الهندسية
+                            </label>
+                            <div class="file-upload-area" onclick="document.getElementById('engineering_offices_files').click()">
+                                <i class="fas fa-cloud-upload-alt text-gray-400 text-2xl mb-2"></i>
+                                <p class="text-sm text-gray-600">انقر لاختيار الملفات أو اسحبها هنا</p>
+                                <input type="file" name="engineering_offices_files" id="engineering_offices_files" multiple accept=".pdf,.jpg,.jpeg,.png" class="hidden">
+                            </div>
+                            <div id="engineering_offices_files_preview" class="file-preview"></div>
+                        </div>
+
+                        <div id="hazardous_materials_files_section" style="display: none;">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                ملفات المواد الخطرة
+                            </label>
+                            <div class="file-upload-area" onclick="document.getElementById('hazardous_materials_files').click()">
+                                <i class="fas fa-cloud-upload-alt text-gray-400 text-2xl mb-2"></i>
+                                <p class="text-sm text-gray-600">انقر لاختيار الملفات أو اسحبها هنا</p>
+                                <input type="file" name="hazardous_materials_files" id="hazardous_materials_files" multiple accept=".pdf,.jpg,.jpeg,.png" class="hidden">
+                            </div>
+                            <div id="hazardous_materials_files_preview" class="file-preview"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status and Admin Notes Section -->
+            <div class="form-section p-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-6">
+                    <i class="fas fa-flag mr-2 text-red-600"></i>حالة الطلب وملاحظات المدير
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="status" class="block text-sm font-medium text-gray-700 mb-2">
+                            حالة الطلب <span class="text-red-500">*</span>
+                        </label>
+                        <select name="status" id="status" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            {% for status_value in statuses %}
+                            <option value="{{ status_value }}" {% if status_value == req.status.value %}selected{% endif %}>
+                                {% if status_value == 'pending' %}معلق
+                                {% elif status_value == 'in_progress' %}قيد المعالجة
+                                {% elif status_value == 'completed' %}مكتمل
+                                {% elif status_value == 'rejected' %}مرفوض
+                                {% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="admin_notes" class="block text-sm font-medium text-gray-700 mb-2">
+                            ملاحظات المدير (اختياري)
+                        </label>
+                        <textarea name="admin_notes" id="admin_notes" rows="4"
+                                  placeholder="أضف ملاحظات حول التحديث..."
+                                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                        <p class="text-sm text-gray-500 mt-1">ستتم إضافة هذه الملاحظات إلى وصف الطلب</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-section p-6">
+                <div class="flex items-center justify-between">
+                    <a href="/admin/requests/{{ req.id }}/view"
+                       class="inline-flex items-center px-6 py-3 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                        <i class="fas fa-times mr-2 text-gray-500"></i>
+                        إلغاء
+                    </a>
+                    <button type="submit"
+                            class="inline-flex items-center px-6 py-3 border border-transparent rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <i class="fas fa-save mr-2"></i>
+                        حفظ جميع التغييرات
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <!-- Current Description -->
+        {% if req.description %}
+        <div class="form-section p-6 mt-8">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">الوصف والملاحظات الحالية</h2>
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <pre class="whitespace-pre-wrap text-sm text-gray-700">{{ req.description }}</pre>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- File Management Modals -->
+    <div id="fileViewModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
+                <div class="flex justify-between items-center p-4 border-b">
+                    <h3 id="fileViewTitle" class="text-lg font-semibold">عرض الملف</h3>
+                    <button onclick="closeFileModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div class="p-4">
+                    <iframe id="fileViewFrame" class="w-full h-96 border rounded"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // File upload handling
+        function initializeFileUpload(inputId, previewId) {
+            const input = document.getElementById(inputId);
+            const preview = document.getElementById(previewId);
+
+            if (!input || !preview) return;
+
+            input.addEventListener('change', function() {
+                updateFilePreview(this, preview);
+            });
+        }
+
+        function updateFilePreview(input, previewContainer) {
+            previewContainer.innerHTML = '';
+
+            if (input.files && input.files.length > 0) {
+                Array.from(input.files).forEach((file, index) => {
+                    const fileItem = document.createElement('div');
+                    fileItem.className = 'file-item';
+                    fileItem.innerHTML = `
+                        <i class="fas fa-file-pdf text-red-500"></i>
+                        <span class="flex-1">${file.name}</span>
+                        <span class="text-xs text-gray-500">${(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                        <span class="remove-file" onclick="removeFile('${input.id}', ${index})">×</span>
+                    `;
+                    previewContainer.appendChild(fileItem);
+                });
+            }
+        }
+
+        function removeFile(inputId, index) {
+            const input = document.getElementById(inputId);
+            const dt = new DataTransfer();
+
+            Array.from(input.files).forEach((file, i) => {
+                if (i !== index) {
+                    dt.items.add(file);
+                }
+            });
+
+            input.files = dt.files;
+            updateFilePreview(input, document.getElementById(inputId + '_preview'));
+        }
+
+        // File management functions
+        function viewFile(fileId, fileName) {
+            document.getElementById('fileViewTitle').textContent = fileName;
+            document.getElementById('fileViewFrame').src = `/files/view/${fileId}`;
+            document.getElementById('fileViewModal').classList.remove('hidden');
+        }
+
+        function downloadFile(fileId) {
+            window.open(`/files/download/${fileId}`, '_blank');
+        }
+
+        function deleteFile(fileId, fileName) {
+            // Create custom confirmation modal
+            const confirmModal = document.createElement('div');
+            confirmModal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center';
+            confirmModal.innerHTML = `
+                <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                    <div class="flex items-center mb-4">
+                        <i class="fas fa-exclamation-triangle text-red-500 text-2xl mr-3"></i>
+                        <h3 class="text-lg font-semibold text-gray-900">تأكيد حذف الملف</h3>
+                    </div>
+                    <p class="text-gray-600 mb-6">
+                        هل أنت متأكد من حذف الملف: <br>
+                        <strong class="text-gray-900">${fileName}</strong><br>
+                        <span class="text-sm text-red-600">لا يمكن التراجع عن هذا الإجراء</span>
+                    </p>
+                    <div class="flex justify-end space-x-3 space-x-reverse">
+                        <button onclick="this.closest('.fixed').remove()"
+                                class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors">
+                            إلغاء
+                        </button>
+                        <button onclick="confirmDeleteFile(${fileId}, '${fileName}', this)"
+                                class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                            <i class="fas fa-trash mr-1"></i>
+                            حذف الملف
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(confirmModal);
+        }
+
+        function confirmDeleteFile(fileId, fileName, button) {
+            // Disable button and show loading
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>جاري الحذف...';
+
+            fetch(`/admin/api/files/${fileId}/delete`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Close modal
+                button.closest('.fixed').remove();
+
+                if (data.success) {
+                    showAlert('تم حذف الملف بنجاح', 'success');
+
+                    // Remove file from UI without full page reload
+                    const fileElements = document.querySelectorAll('.existing-file');
+                    fileElements.forEach(element => {
+                        const deleteBtn = element.querySelector(`button[onclick*="${fileId}"]`);
+                        if (deleteBtn) {
+                            element.style.transition = 'opacity 0.3s ease';
+                            element.style.opacity = '0';
+                            setTimeout(() => {
+                                element.remove();
+
+                                // Update file count
+                                const remainingFiles = document.querySelectorAll('.existing-file').length;
+                                const fileCountElement = document.querySelector('h3:contains("الملفات الحالية")');
+                                if (fileCountElement) {
+                                    fileCountElement.textContent = `الملفات الحالية (${remainingFiles})`;
+                                }
+
+                                // Hide existing files section if no files left
+                                if (remainingFiles === 0) {
+                                    const existingFilesSection = document.querySelector('.existing-files').closest('div');
+                                    if (existingFilesSection) {
+                                        existingFilesSection.style.display = 'none';
+                                    }
+                                }
+                            }, 300);
+                        }
+                    });
+                } else {
+                    showAlert(`حدث خطأ في حذف الملف: ${data.error || 'خطأ غير معروف'}`, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting file:', error);
+                button.closest('.fixed').remove();
+                showAlert(`حدث خطأ في حذف الملف: ${error.message}`, 'error');
+            });
+        }
+
+        function closeFileModal() {
+            document.getElementById('fileViewModal').classList.add('hidden');
+            document.getElementById('fileViewFrame').src = '';
+        }
+
+        // Toggle conditional file sections based on checkboxes
+        function toggleFileSection(checkboxId, sectionId) {
+            const checkbox = document.getElementById(checkboxId);
+            const section = document.getElementById(sectionId);
+
+            if (checkbox && section) {
+                section.style.display = checkbox.checked ? 'block' : 'none';
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize file uploads
+            const fileInputs = [
+                'architectural_plans',
+                'electrical_mechanical_plans',
+                'inspection_department',
+                'fire_equipment_files',
+                'commercial_records_files',
+                'engineering_offices_files',
+                'hazardous_materials_files'
+            ];
+
+            fileInputs.forEach(inputId => {
+                initializeFileUpload(inputId, inputId + '_preview');
+            });
+
+            // Set up checkbox listeners for conditional sections
+            const conditionalSections = [
+                ['fire_equipment_section', 'fire_equipment_files_section'],
+                ['commercial_records_section', 'commercial_records_files_section'],
+                ['engineering_offices_section', 'engineering_offices_files_section'],
+                ['hazardous_materials_section', 'hazardous_materials_files_section']
+            ];
+
+            conditionalSections.forEach(([checkboxId, sectionId]) => {
+                const checkbox = document.getElementById(checkboxId);
+                if (checkbox) {
+                    // Set initial state
+                    toggleFileSection(checkboxId, sectionId);
+
+                    // Add event listener
+                    checkbox.addEventListener('change', function() {
+                        toggleFileSection(checkboxId, sectionId);
+                    });
+                }
+            });
+
+            // Show success/error messages from URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const success = urlParams.get('success');
+            const error = urlParams.get('error');
+
+            if (success) {
+                showAlert(success, 'success');
+            }
+            if (error) {
+                showAlert(error, 'error');
+            }
+        });
+
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
+                type === 'success' ? 'bg-green-100 text-green-800 border border-green-200' :
+                'bg-red-100 text-red-800 border border-red-200'
+            }`;
+            alertDiv.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} mr-2"></i>
+                    <span>${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="mr-4 text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(alertDiv);
+
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (alertDiv.parentElement) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('fileViewModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeFileModal();
+            }
+        });
+    </script>
+</body>
+</html>

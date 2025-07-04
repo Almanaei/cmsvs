@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+
+{% block title %}إدارة المستخدمين - CMSVS{% endblock %}
+
+{% block content %}
+<style>
+/* Professional Admin Users Styling */
+.page-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px;
+    background: #f8fafc;
+    min-height: 100vh;
+}
+
+.page-header {
+    text-align: right;
+    padding: 32px 24px;
+    margin-bottom: 32px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.page-title {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+    color: #1f2937;
+}
+
+.page-subtitle {
+    font-size: 16px;
+    color: #6b7280;
+    margin: 0;
+}
+
+.btn {
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+}
+
+.btn-secondary {
+    background: #6b7280;
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: #4b5563;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid #d1d5db;
+    color: #374151;
+}
+
+.btn-outline:hover {
+    background: #f9fafb;
+}
+
+.btn-primary {
+    background: #3b82f6;
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: #2563eb;
+}
+
+@media (max-width: 768px) {
+    .page-container {
+        padding: 16px;
+    }
+}
+</style>
+
+<div class="page-container">
+    <!-- Page Header -->
+    <header class="page-header">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px;">
+            <div style="flex: 1;">
+                <h1 class="page-title">إدارة المستخدمين</h1>
+                <p class="page-subtitle">إدارة وتتبع جميع المستخدمين في النظام بسهولة وأمان</p>
+            </div>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <a href="/admin/dashboard" class="btn btn-secondary">
+                    <i class="fas fa-arrow-right"></i>
+                    العودة للوحة التحكم
+                </a>
+                <a href="/admin/users/new" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    إضافة مستخدم جديد
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="card">
+            <div class="card-body">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h6 class="text-sm font-medium text-gray-600">إجمالي المستخدمين</h6>
+                        <h2 class="text-2xl font-bold text-gray-900">{{ users|length }}</h2>
+                        <p class="text-xs text-gray-500 mt-1">جميع المستخدمين المسجلين</p>
+                    </div>
+                    <div class="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h6 class="text-sm font-medium text-gray-600">المستخدمون النشطون</h6>
+                        <h2 class="text-2xl font-bold text-gray-900">{{ users|selectattr("is_active")|list|length }}</h2>
+                        <p class="text-xs text-gray-500 mt-1">حسابات نشطة</p>
+                    </div>
+                    <div class="w-12 h-12 bg-success-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h6 class="text-sm font-medium text-gray-600">المستخدمون غير النشطون</h6>
+                        <h2 class="text-2xl font-bold text-gray-900">{{ users|rejectattr("is_active")|list|length }}</h2>
+                        <p class="text-xs text-gray-500 mt-1">حسابات معطلة</p>
+                    </div>
+                    <div class="w-12 h-12 bg-warning-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-warning-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h6 class="text-sm font-medium text-gray-600">المديرون</h6>
+                        <h2 class="text-2xl font-bold text-gray-900">{{ users|selectattr("role.value", "equalto", "ADMIN")|list|length }}</h2>
+                        <p class="text-xs text-gray-500 mt-1">صلاحيات كاملة</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if users %}
+    <!-- Users Table -->
+    <div class="card">
+        <div class="card-header">
+            <div class="flex justify-between items-center">
+                <h5 class="text-lg font-semibold text-gray-900">قائمة المستخدمين</h5>
+                <button onclick="location.reload()" class="btn-secondary">
+                    <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    تحديث
+                </button>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="overflow-x-auto">
+                <table class="table" id="usersTable">
+                    <thead class="table-header">
+                        <tr>
+                            <th class="table-header-cell">المستخدم</th>
+                            <th class="table-header-cell">البريد الإلكتروني</th>
+                            <th class="table-header-cell">الاسم الكامل</th>
+                            <th class="table-header-cell">الدور</th>
+                            <th class="table-header-cell">الحالة</th>
+                            <th class="table-header-cell">تاريخ الإنشاء</th>
+                            <th class="table-header-cell">الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-body">
+                        {% for user in users %}
+                        <tr>
+                            <td class="table-cell">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center text-sm font-medium text-primary-600 ml-3">
+                                        {{ user.username[:2].upper() }}
+                                    </div>
+                                    <div>
+                                        <h6 class="text-sm font-medium text-gray-900">{{ user.username }}</h6>
+                                        <span class="text-xs text-gray-500">ID: {{ user.id }}</span>
+                                        {% if user.id == current_user.id %}
+                                        <span class="badge-info text-xs">أنت</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="table-cell">
+                                <span class="text-sm text-gray-900">{{ user.email }}</span>
+                            </td>
+                            <td class="table-cell">
+                                <span class="text-sm text-gray-900">
+                                    {% if user.full_name %}{{ user.full_name }}{% else %}غير محدد{% endif %}
+                                </span>
+                            </td>
+                            <td class="table-cell">
+                                {% if user.role.value == 'ADMIN' %}
+                                <span class="badge-primary">مدير النظام</span>
+                                {% else %}
+                                <span class="badge-gray">مستخدم</span>
+                                {% endif %}
+                            </td>
+                            <td class="table-cell">
+                                {% if user.is_active %}
+                                <span class="badge-success">نشط</span>
+                                {% else %}
+                                <span class="badge-danger">غير نشط</span>
+                                {% endif %}
+                            </td>
+                            <td class="table-cell">
+                                <span class="text-sm text-gray-900">
+                                    {{ user.created_at.strftime('%Y-%m-%d') if user.created_at else 'غير محدد' }}
+                                </span>
+                            </td>
+                            <td class="table-cell">
+                                {% if user.id != current_user.id %}
+                                <div class="flex space-x-2 rtl:space-x-reverse">
+                                    <a href="/admin/users/{{ user.id }}/edit" class="text-primary-600 hover:text-primary-500 text-sm">
+                                        تعديل
+                                    </a>
+                                </div>
+                                {% else %}
+                                <div class="text-center">
+                                    <span class="text-gray-400 text-sm">-</span>
+                                </div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- Empty State -->
+    <div class="card">
+        <div class="card-body text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+            </svg>
+            <h5 class="mt-4 text-lg font-medium text-gray-900">لا يوجد مستخدمون</h5>
+            <p class="mt-2 text-sm text-gray-600">لم يتم العثور على أي مستخدمين في النظام. ابدأ بإنشاء أول مستخدم.</p>
+            <a href="/admin/users/new" class="btn-primary mt-4">
+                إنشاء أول مستخدم
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

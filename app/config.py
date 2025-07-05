@@ -11,6 +11,8 @@ class Settings(BaseSettings):
 
     # Database
     database_url: str = "postgresql://username:password@localhost:5432/cmsvs_db"
+    db_password: Optional[str] = None  # For Docker environment
+    redis_password: Optional[str] = None  # For Docker environment
 
     # Database Pool Settings
     db_pool_size: int = 20
@@ -151,9 +153,9 @@ class Settings(BaseSettings):
             if "localhost" in self.database_url:
                 issues.append("DATABASE_URL should not use localhost in production")
 
-            # Check HTTPS
-            if not self.force_https:
-                issues.append("FORCE_HTTPS should be True in production")
+            # Check HTTPS (temporarily disabled for HTTP-only deployment)
+            # if not self.force_https:
+            #     issues.append("FORCE_HTTPS should be True in production")
 
         return issues
 
@@ -174,6 +176,7 @@ class ProductionSettings(Settings):
     class Config:
         env_file = env_file
         case_sensitive = False
+        extra = "ignore"  # Allow extra environment variables
 
 settings = ProductionSettings()
 

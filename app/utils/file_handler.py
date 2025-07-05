@@ -3,374 +3,327 @@ import uuid
 import mimetypes
 import threading
 import time
-import hashlib
-import magic
 import logging
 from typing import List, Optional, Dict, Any
 from datetime import datetime
-from fastapi import UploadFile, HTTPException
+from fastapi import UploadFile
 from app.config import settings
 
 
 class FileHandler:
-    """Handle file upload operations with thread-safe concurrency support - Production Ready"""
+    """Handle file upload operations - Production Ready"""
 
     # Thread-safe locks for file operations
     _file_operation_lock = threading.Lock()
     _directory_creation_lock = threading.Lock()
-    _filename_generation_lock = threading.Lock()
 
-    # Production logging
-    _logger = logging.getLogger(__name__)
-    
+    @staticmethod
+    def _get_upload_dir():
+        """Get upload directory from settings"""
+        return getattr(settings, 'upload_directory', './uploads')
+
+    @staticmethod
+    def _get_max_file_size():
+        """Get max file size from settings"""
+        return getattr(settings, 'max_file_size', 10 * 1024 * 1024)  # 10MB default
+
+    @staticmethod
+    def _get_allowed_extensions():
+        """Get allowed extensions from settings"""
+        allowed_types = getattr(settings, 'allowed_file_types', 'pdf,doc,docx,jpg,jpeg,png,gif,txt')
+        return set(ext.strip().lower() for ext in allowed_types.split(','))
+
+    @staticmethod
+    def _ensure_upload_directory(upload_dir: str):
+        """Ensure upload directory exists with proper permissions"""
+        with FileHandler._directory_creation_lock:
+            try:
+                if not os.path.exists(upload_dir):
+                    os.makedirs(upload_dir, mode=0o755, exist_ok=True)
+                    logging.getLogger(__name__).info(f"Created upload directory: {upload_dir}")
+
+                # Verify directory is writable
+                if not os.access(upload_dir, os.W_OK):
+                    raise Exception(f"Upload directory is not writable: {upload_dir}")
+
+            except Exception as e:
+                logging.getLogger(__name__).error(f"Failed to create upload directory: {str(e)}")
+                raise
+
     @staticmethod
     async def validate_file(file: UploadFile) -> Dict[str, Any]:
-        """Enhanced file validation with security checks"""
-        validation_result = {
-            "valid": False,
-            "errors": [],
-            "warnings": [],
-            "file_info": {}
-        }
-
-        try:
-            # Check if file has a name
-            if not file.filename:
-                validation_result["errors"].append("File must have a filename")
-                return validation_result
-
-            # Get file extension
-            file_ext = file.filename.split('.')[-1].lower() if '.' in file.filename else ''
-            if not file_ext:
-                validation_result["errors"].append("File must have an extension")
-                return validation_result
-
-            # Check file extension against allowed types
-            if file_ext not in settings.allowed_file_types_list:
-                validation_result["errors"].append(
-                    f"File type '{file_ext}' not allowed. Allowed types: {', '.join(settings.allowed_file_types_list)}"
-                )
-                return validation_result
-
-            # Read file content for validation
-            await file.seek(0)  # Ensure we start from the beginning
-            content = await file.read()
-            file_size = len(content)
-
-            # Reset file pointer for later use
-            await file.seek(0)
-
-            # Check file size
-            if file_size == 0:
-                validation_result["errors"].append("File is empty")
-                return validation_result
-
-            if file_size > settings.max_file_size:
-                validation_result["errors"].append(
-                    f"File size ({file_size} bytes) exceeds maximum allowed size ({settings.max_file_size} bytes)"
-                )
-                return validation_result
-
-            # MIME type validation using python-magic (with fallback)
-            try:
-                import magic
-                mime_type = magic.from_buffer(content, mime=True)
-                file_type_from_content = magic.from_buffer(content)
-            except (ImportError, Exception):
-                # Fallback to mimetypes if python-magic fails or not available
-                mime_type, _ = mimetypes.guess_type(file.filename)
-                file_type_from_content = f"File type detection unavailable (install python-magic for better detection)"
-
-            # Validate MIME type matches extension
-            expected_mimes = FileHandler._get_expected_mime_types(file_ext)
-            if mime_type and expected_mimes and mime_type not in expected_mimes:
-                validation_result["warnings"].append(
-                    f"File content type ({mime_type}) doesn't match extension ({file_ext})"
-                )
-
-            # Security checks
-            security_issues = FileHandler._security_scan(content, file.filename)
-            if security_issues:
-                validation_result["errors"].extend(security_issues)
-                return validation_result
-
-            # Generate file hash for duplicate detection
-            file_hash = hashlib.sha256(content).hexdigest()
-
-            validation_result.update({
-                "valid": True,
-                "file_info": {
-                    "filename": file.filename,
-                    "size": file_size,
-                    "extension": file_ext,
-                    "mime_type": mime_type,
-                    "file_type": file_type_from_content,
-                    "hash": file_hash
-                }
-            })
-
-            return validation_result
-
-        except Exception as e:
-            validation_result["errors"].append(f"Validation error: {str(e)}")
-            return validation_result
-    
-    @staticmethod
-    def _get_expected_mime_types(file_ext: str) -> List[str]:
-        """Get expected MIME types for file extension"""
-        mime_map = {
-            'pdf': ['application/pdf'],
-            'doc': ['application/msword'],
-            'docx': ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
-            'txt': ['text/plain'],
-            'jpg': ['image/jpeg'],
-            'jpeg': ['image/jpeg'],
-            'png': ['image/png'],
-            'gif': ['image/gif']
-        }
-        return mime_map.get(file_ext.lower(), [])
-
-    @staticmethod
-    def _security_scan(content: bytes, filename: str) -> List[str]:
-        """Basic security scanning for malicious content"""
-        issues = []
-
-        # Check for suspicious file signatures
-        suspicious_signatures = [
-            b'\x4d\x5a',  # PE executable
-            b'\x7f\x45\x4c\x46',  # ELF executable
-            b'\xca\xfe\xba\xbe',  # Java class file
-            b'\xfe\xed\xfa\xce',  # Mach-O executable
-        ]
-
-        for sig in suspicious_signatures:
-            if content.startswith(sig):
-                issues.append("File appears to be an executable")
-                break
-
-        # Check for script content in non-script files
-        if filename.lower().endswith(('.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png', '.gif')):
-            script_patterns = [b'<script', b'javascript:', b'vbscript:', b'<?php']
-            for pattern in script_patterns:
-                if pattern in content.lower():
-                    issues.append("File contains potentially malicious script content")
-                    break
-
-        # Check file size vs content (zip bombs, etc.)
-        if len(content) > settings.max_file_size * 2:  # Should never happen due to earlier check
-            issues.append("File size inconsistency detected")
-
-        return issues
-
-    @staticmethod
-    def generate_unique_filename(original_filename: str) -> str:
-        """Generate thread-safe unique filename while preserving extension"""
-        with FileHandler._filename_generation_lock:
-            if not original_filename:
-                return f"{uuid.uuid4().hex}.tmp"
-
-            name, ext = os.path.splitext(original_filename)
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")  # Include microseconds for uniqueness
-            unique_id = uuid.uuid4().hex[:12]
-
-            # Add small delay to ensure uniqueness even in high-concurrency scenarios
-            time.sleep(0.001)  # 1ms delay
-
-            return f"{timestamp}_{unique_id}{ext}"
-    
-    @staticmethod
-    def get_file_info(file: UploadFile) -> dict:
-        """Get file information"""
-        mime_type, _ = mimetypes.guess_type(file.filename or "")
-        file_ext = ""
-        
-        if file.filename:
-            file_ext = file.filename.split('.')[-1].lower()
-        
-        return {
-            "original_filename": file.filename or "unknown",
-            "file_type": file_ext,
-            "mime_type": mime_type or "application/octet-stream",
-            "content_type": file.content_type or mime_type or "application/octet-stream"
-        }
-    
-    @staticmethod
-    async def save_file(file: UploadFile, request_id: int, custom_filename: Optional[str] = None) -> dict:
-        """Save uploaded file to disk with enhanced validation and security - Production Ready"""
-        FileHandler._logger.info(f"Starting file save: original='{file.filename}', request_id={request_id}, custom_filename='{custom_filename}'")
-
-        try:
-            # Enhanced file validation
-            validation_result = await FileHandler.validate_file(file)
-
-            if not validation_result["valid"]:
-                error_msg = "; ".join(validation_result["errors"])
-                FileHandler._logger.error(f"File validation failed for '{file.filename}': {error_msg}")
-                raise HTTPException(status_code=400, detail=f"File validation failed: {error_msg}")
-
-            file_info = validation_result["file_info"]
-            FileHandler._logger.info(f"File validation passed: size={file_info['size']}, type={file_info['extension']}")
-
-            # Use custom filename if provided, otherwise generate unique filename
-            if custom_filename:
-                stored_filename = custom_filename
-                FileHandler._logger.info(f"Using custom filename: '{stored_filename}'")
-            else:
-                stored_filename = FileHandler.generate_unique_filename(file.filename)
-                FileHandler._logger.info(f"Generated filename: '{stored_filename}'")
-
-            # Thread-safe directory creation
-            request_dir = os.path.join(settings.upload_directory, f"request_{request_id}")
-            with FileHandler._directory_creation_lock:
-                os.makedirs(request_dir, exist_ok=True)
-
-            # Full file path
-            file_path = os.path.join(request_dir, stored_filename)
-
-            # Ensure filename is unique even if generated simultaneously
-            original_file_path = file_path
-            original_stored_filename = stored_filename
-            counter = 1
-            while os.path.exists(file_path):
-                name, ext = os.path.splitext(original_stored_filename)
-                stored_filename = f"{name}_copy_{counter}{ext}"
-                file_path = os.path.join(request_dir, stored_filename)
-                counter += 1
-
-            # Atomic file save operation
-            await file.seek(0)  # Ensure we start from the beginning
-            content = await file.read()
-
-            # Verify file size hasn't changed
-            if len(content) != file_info["size"]:
-                raise HTTPException(
-                    status_code=400,
-                    detail="File size changed during upload"
-                )
-
-            # Use temporary file for atomic write operation
-            temp_file_path = f"{file_path}.tmp"
-
-            with FileHandler._file_operation_lock:
-                # Write to temporary file first
-                with open(temp_file_path, "wb") as f:
-                    f.write(content)
-
-                # Verify written file
-                if os.path.getsize(temp_file_path) != len(content):
-                    raise Exception("File write verification failed")
-
-                # Atomically move temporary file to final location
-                if os.path.exists(temp_file_path):
-                    os.rename(temp_file_path, file_path)
-
-            FileHandler._logger.info(f"File saved successfully: '{stored_filename}' at '{file_path}'")
-
-            return {
-                "original_filename": file_info["filename"],
-                "stored_filename": stored_filename,
-                "file_path": file_path,
-                "file_size": file_info["size"],
-                "file_type": file_info["extension"],
-                "mime_type": file_info["mime_type"],
-                "file_hash": file_info["hash"],
-                "warnings": validation_result.get("warnings", [])
-            }
-
-        except Exception as e:
-            # Clean up files if save failed
-            FileHandler._logger.error(f"File save failed for '{file.filename}': {str(e)}")
-            temp_file_path = f"{file_path}.tmp" if 'file_path' in locals() else None
-            if temp_file_path and os.path.exists(temp_file_path):
-                os.remove(temp_file_path)
-            if 'file_path' in locals() and os.path.exists(file_path):
-                os.remove(file_path)
-            raise HTTPException(
-                status_code=500,
-                detail=f"Failed to save file: {str(e)}"
-            )
-    
-    @staticmethod
-    def delete_file(file_path: str) -> bool:
-        """Delete file from disk"""
-        try:
-            if os.path.exists(file_path):
-                os.remove(file_path)
-                return True
-            return False
-        except Exception:
-            return False
-    
-    @staticmethod
-    async def validate_multiple_files(files: List[UploadFile], max_files: Optional[int] = None) -> Dict[str, Any]:
-        """Validate multiple files with comprehensive checks"""
+        """Comprehensive file validation with security checks"""
         validation_result = {
             "valid": True,
             "errors": [],
             "warnings": [],
-            "file_results": [],
-            "total_size": 0,
-            "duplicate_hashes": []
+            "file_info": {
+                "original_name": file.filename,
+                "size": 0,
+                "mime_type": None,
+                "extension": None,
+                "content_type": file.content_type
+            }
         }
 
-        # Check file count
-        if max_files and len(files) > max_files:
-            validation_result["errors"].append(f"Too many files. Maximum allowed: {max_files}")
-            validation_result["valid"] = False
-            return validation_result
+        try:
+            # Read file content for validation
+            content = await file.read()
+            await file.seek(0)  # Reset file pointer
 
-        # Track file hashes for duplicate detection
-        file_hashes = {}
-        total_size = 0
+            file_size = len(content)
+            validation_result["file_info"]["size"] = file_size
 
-        for i, file in enumerate(files):
-            if not file.filename:  # Skip empty file inputs
-                continue
+            # Basic filename validation
+            if not file.filename or file.filename.strip() == "":
+                validation_result["errors"].append("Filename is required")
+                return validation_result
 
-            file_validation = await FileHandler.validate_file(file)
-            validation_result["file_results"].append({
-                "index": i,
-                "filename": file.filename,
-                "validation": file_validation
-            })
+            # Check for dangerous filenames
+            dangerous_patterns = ['..', '/', '\\', '<', '>', ':', '"', '|', '?', '*']
+            if any(pattern in file.filename for pattern in dangerous_patterns):
+                validation_result["errors"].append("Filename contains invalid characters")
+                return validation_result
 
-            if not file_validation["valid"]:
-                validation_result["valid"] = False
-                validation_result["errors"].extend([
-                    f"File '{file.filename}': {error}" for error in file_validation["errors"]
-                ])
-            else:
-                file_info = file_validation["file_info"]
-                total_size += file_info["size"]
+            # Extract file extension
+            file_extension = os.path.splitext(file.filename)[1].lower().lstrip('.')
+            validation_result["file_info"]["extension"] = file_extension
 
-                # Check for duplicates
-                file_hash = file_info["hash"]
-                if file_hash in file_hashes:
-                    validation_result["warnings"].append(
-                        f"Duplicate file detected: '{file.filename}' is identical to '{file_hashes[file_hash]}'"
-                    )
-                    validation_result["duplicate_hashes"].append(file_hash)
-                else:
-                    file_hashes[file_hash] = file.filename
+            # Check file size
+            max_file_size = FileHandler._get_max_file_size()
+            if file_size > max_file_size:
+                validation_result["errors"].append(f"File size ({file_size} bytes) exceeds maximum allowed size ({max_file_size} bytes)")
+                return validation_result
 
-                # Add warnings from individual file validation
-                validation_result["warnings"].extend([
-                    f"File '{file.filename}': {warning}" for warning in file_validation.get("warnings", [])
-                ])
+            if file_size == 0:
+                validation_result["errors"].append("File is empty")
+                return validation_result
 
-        validation_result["total_size"] = total_size
+            # Check allowed extensions
+            allowed_extensions = FileHandler._get_allowed_extensions()
+            if allowed_extensions and file_extension not in allowed_extensions:
+                validation_result["errors"].append(f"File type '{file_extension}' is not allowed. Allowed types: {', '.join(allowed_extensions)}")
+                return validation_result
 
-        # Check total size limit (10x single file limit)
-        max_total_size = settings.max_file_size * 10
-        if total_size > max_total_size:
-            validation_result["errors"].append(
-                f"Total file size ({total_size} bytes) exceeds maximum allowed ({max_total_size} bytes)"
-            )
+            # Determine MIME type
+            mime_type = mimetypes.guess_type(file.filename)[0]
+            validation_result["file_info"]["mime_type"] = mime_type
+
+            # Additional security checks for content
+            if file_extension in ['exe', 'bat', 'cmd', 'com', 'pif', 'scr', 'vbs', 'js']:
+                validation_result["errors"].append("Executable files are not allowed")
+                return validation_result
+
+            # Check for suspicious content patterns (basic)
+            try:
+                content_str = content[:1024].decode('utf-8', errors='ignore').lower()
+                suspicious_patterns = ['<script', 'javascript:', 'vbscript:', 'onload=', 'onerror=']
+                if any(pattern in content_str for pattern in suspicious_patterns):
+                    validation_result["warnings"].append("File contains potentially suspicious content")
+            except:
+                pass  # Skip content check if decoding fails
+
+            # Mark as valid if no errors
+            validation_result["valid"] = len(validation_result["errors"]) == 0
+
+        except Exception as e:
+            validation_result["errors"].append(f"File validation failed: {str(e)}")
             validation_result["valid"] = False
 
         return validation_result
 
     @staticmethod
+    def generate_unique_filename(original_filename: str) -> str:
+        """Generate a unique filename to prevent conflicts"""
+        try:
+            if not original_filename:
+                return f"{uuid.uuid4().hex}.tmp"
+
+            name, ext = os.path.splitext(original_filename)
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+            unique_id = uuid.uuid4().hex[:12]
+
+            # Create filename: originalname_timestamp_uniqueid.ext
+            safe_name = "".join(c for c in name if c.isalnum() or c in (' ', '-', '_')).rstrip()
+            safe_name = safe_name[:50]  # Limit length
+
+            if not safe_name:
+                safe_name = "file"
+
+            unique_filename = f"{safe_name}_{timestamp}_{unique_id}{ext}"
+            return unique_filename
+
+        except Exception as e:
+            logging.getLogger(__name__).error(f"Error generating unique filename: {str(e)}")
+            return f"{uuid.uuid4().hex}{os.path.splitext(original_filename)[1] if original_filename else '.tmp'}"
+
+    @staticmethod
+    async def save_file(file: UploadFile, request_id: str, stored_filename: Optional[str] = None) -> Dict[str, Any]:
+        """Save uploaded file with comprehensive error handling and security measures"""
+        result = {
+            "success": False,
+            "file_path": None,
+            "stored_filename": None,
+            "original_filename": file.filename,
+            "file_size": 0,
+            "error": None,
+            "warnings": []
+        }
+
+        try:
+            # Validate file first
+            validation = await FileHandler.validate_file(file)
+            if not validation["valid"]:
+                result["error"] = "; ".join(validation["errors"])
+                return result
+
+            # Add any warnings from validation
+            if validation.get("warnings"):
+                result["warnings"].extend(validation["warnings"])
+
+            # Generate unique filename if not provided
+            if not stored_filename:
+                stored_filename = FileHandler.generate_unique_filename(file.filename)
+
+            result["stored_filename"] = stored_filename
+
+            # Get upload directory and ensure it exists
+            upload_dir = FileHandler._get_upload_dir()
+            FileHandler._ensure_upload_directory(upload_dir)
+
+            # Create request-specific directory
+            request_dir = os.path.join(upload_dir, str(request_id))
+            FileHandler._ensure_upload_directory(request_dir)
+
+            # Full file path
+            file_path = os.path.join(request_dir, stored_filename)
+
+            # Check if file already exists
+            if os.path.exists(file_path):
+                stored_filename = FileHandler.generate_unique_filename(file.filename)
+                file_path = os.path.join(request_dir, stored_filename)
+                result["stored_filename"] = stored_filename
+
+            # Save file with thread safety
+            with FileHandler._file_operation_lock:
+                content = await file.read()
+
+                # Write file atomically using temporary file
+                temp_file_path = f"{file_path}.tmp"
+                try:
+                    with open(temp_file_path, "wb") as temp_file:
+                        temp_file.write(content)
+                        temp_file.flush()
+                        os.fsync(temp_file.fileno())  # Force write to disk
+
+                    # Atomic move
+                    os.rename(temp_file_path, file_path)
+
+                except Exception as e:
+                    # Clean up temp file if something went wrong
+                    if os.path.exists(temp_file_path):
+                        try:
+                            os.remove(temp_file_path)
+                        except:
+                            pass
+                    raise e
+
+            # Verify file was saved correctly
+            if not os.path.exists(file_path):
+                raise Exception("File was not saved successfully")
+
+            saved_size = os.path.getsize(file_path)
+            if saved_size != len(content):
+                raise Exception(f"File size mismatch: expected {len(content)}, got {saved_size}")
+
+            # Set proper file permissions
+            os.chmod(file_path, 0o644)
+
+            result.update({
+                "success": True,
+                "file_path": file_path,
+                "stored_filename": stored_filename,
+                "file_size": saved_size
+            })
+
+            logging.getLogger(__name__).info(f"File saved successfully: {stored_filename} ({saved_size} bytes)")
+
+        except Exception as e:
+            error_msg = f"Failed to save file {file.filename}: {str(e)}"
+            logging.getLogger(__name__).error(error_msg)
+            result["error"] = error_msg
+
+            # Clean up any partial files
+            try:
+                if result.get("file_path") and os.path.exists(result["file_path"]):
+                    os.remove(result["file_path"])
+            except:
+                pass
+
+        finally:
+            # Reset file pointer
+            try:
+                await file.seek(0)
+            except:
+                pass
+
+        return result
+
+    @staticmethod
+    def delete_file(file_path: str) -> bool:
+        """Delete a file from the filesystem"""
+        try:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+                return True
+            return False
+        except Exception as e:
+            logging.getLogger(__name__).error(f"Failed to delete file {file_path}: {str(e)}")
+            return False
+
+    @staticmethod
+    def get_file_info(file_path: str) -> Dict[str, Any]:
+        """Get comprehensive file information"""
+        try:
+            if not os.path.exists(file_path):
+                return {"exists": False, "error": "File not found"}
+
+            stat_info = os.stat(file_path)
+            file_info = {
+                "exists": True,
+                "size": stat_info.st_size,
+                "created": datetime.fromtimestamp(stat_info.st_mtime),
+                "modified": datetime.fromtimestamp(stat_info.st_mtime),
+                "permissions": oct(stat_info.st_mode)[-3:],
+                "extension": os.path.splitext(file_path)[1].lower().lstrip('.'),
+                "mime_type": mimetypes.guess_type(file_path)[0]
+            }
+
+            return file_info
+
+        except Exception as e:
+            return {"exists": False, "error": str(e)}
+
+    @staticmethod
     def validate_file_count(files: List[UploadFile]) -> bool:
-        """Validate number of files (unlimited) - kept for backward compatibility"""
-        return True
+        """Validate file count"""
+        # Basic validation - could be extended to check max file count
+        return len(files) > 0 if files else False
+
+    @staticmethod
+    def cleanup_temp_files(directory: str, max_age_hours: int = 24):
+        """Clean up temporary files older than specified hours"""
+        try:
+            current_time = time.time()
+            for root, _, files in os.walk(directory):
+                for file in files:
+                    if file.endswith('.tmp'):
+                        file_path = os.path.join(root, file)
+                        if os.path.getmtime(file_path) < current_time - (max_age_hours * 3600):
+                            try:
+                                os.remove(file_path)
+                                logging.getLogger(__name__).info(f"Cleaned up temp file: {file_path}")
+                            except Exception as e:
+                                logging.getLogger(__name__).error(f"Failed to clean up temp file {file_path}: {str(e)}")
+        except Exception as e:
+            logging.getLogger(__name__).error(f"Error during temp file cleanup: {str(e)}")

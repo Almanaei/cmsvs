@@ -128,8 +128,10 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         if settings.content_security_policy:
             security_headers["Content-Security-Policy"] = settings.content_security_policy
         
-        # Add HSTS header for HTTPS
-        if settings.force_https and request.url.scheme == "https":
+        # Add HSTS header for HTTPS (considering reverse proxy)
+        forwarded_proto = request.headers.get("x-forwarded-proto", "").lower()
+        actual_scheme = forwarded_proto if forwarded_proto else request.url.scheme
+        if settings.force_https and actual_scheme == "https":
             security_headers["Strict-Transport-Security"] = f"max-age={settings.hsts_max_age}; includeSubDomains"
         
         # Add security headers to response
@@ -155,12 +157,13 @@ class HTTPSRedirectMiddleware(BaseHTTPMiddleware):
             # Check if request is already HTTPS via reverse proxy
             forwarded_proto = request.headers.get("x-forwarded-proto", "").lower()
 
+            # Determine the actual scheme (considering reverse proxy)
+            actual_scheme = forwarded_proto if forwarded_proto else request.url.scheme
+
             # Only redirect if:
-            # 1. Request scheme is HTTP AND
-            # 2. No X-Forwarded-Proto header indicating HTTPS AND
-            # 3. Not localhost/127.0.0.1
-            if (request.url.scheme == "http" and
-                forwarded_proto != "https" and
+            # 1. Actual scheme is HTTP (not HTTPS via reverse proxy) AND
+            # 2. Not localhost/127.0.0.1/app (internal requests)
+            if (actual_scheme == "http" and
                 not request.url.hostname in ["localhost", "127.0.0.1", "app"]):
 
                 # Redirect to HTTPS

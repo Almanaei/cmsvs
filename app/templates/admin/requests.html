@@ -131,12 +131,15 @@
 }
 
 .table-dropdown .dropdown-menu {
-    position: fixed !important;
+    position: absolute !important;
     z-index: 9999 !important;
     min-width: 14rem;
     max-width: 16rem;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
     border: 1px solid #e5e7eb;
+    right: 0;
+    top: 100%;
+    margin-top: 0.25rem;
 }
 
 /* Support for upward dropdown positioning */
@@ -162,6 +165,16 @@
     position: relative;
 }
 
+/* Ensure table cells can contain positioned dropdowns */
+.table tbody td {
+    position: relative;
+}
+
+/* Ensure dropdown container has proper positioning context */
+.table-dropdown {
+    position: relative;
+}
+
 /* Ensure card body allows overflow for dropdowns */
 .card-body {
     overflow: visible !important;
@@ -169,6 +182,11 @@
 
 /* Ensure card container allows overflow for dropdowns */
 .card {
+    overflow: visible !important;
+}
+
+/* Ensure main content area allows overflow */
+.main-content {
     overflow: visible !important;
 }
 
@@ -860,7 +878,7 @@
                                                 <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path>
                                             </svg>
                                         </button>
-                                        <div id="dropdown-{{ req.id }}" class="dropdown-menu hidden absolute w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
+                                        <div id="dropdown-{{ req.id }}" class="dropdown-menu hidden w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
                                             <div class="py-1">
                                                 <div class="px-4 py-2 text-xs text-gray-500 border-b">إجراءات الطلب</div>
 
@@ -1169,78 +1187,39 @@ function toggleDropdown(requestId, event) {
 }
 
 function positionDropdown(dropdown, button) {
-    // Reset classes and styles first
-    dropdown.classList.remove('left-0', 'right-0', 'origin-top-left', 'origin-top-right', 'origin-bottom-left', 'origin-bottom-right');
-    dropdown.classList.remove('mt-2', 'mb-2');
-    dropdown.style.width = '';
+    // Reset any custom positioning
     dropdown.style.left = '';
     dropdown.style.right = '';
     dropdown.style.top = '';
     dropdown.style.bottom = '';
 
-    // Get button and viewport dimensions
+    // Get container and viewport dimensions
+    const container = dropdown.closest('.table-container');
     const buttonRect = button.getBoundingClientRect();
-    const dropdownWidth = 224; // w-56 = 14rem = 224px
-    const dropdownHeight = 200; // Estimated dropdown height
+    const containerRect = container.getBoundingClientRect();
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
 
-    // Calculate positioning using fixed positioning
-    let left, top;
-
-    // Check horizontal space
+    // Check if dropdown would go off-screen to the right
+    const dropdownWidth = 224; // 14rem = 224px
     const spaceOnRight = viewportWidth - buttonRect.right;
-    const spaceOnLeft = buttonRect.left;
 
-    // Check vertical space
+    if (spaceOnRight < dropdownWidth) {
+        // Not enough space on right, position to the left
+        dropdown.style.right = '0';
+        dropdown.style.left = 'auto';
+    }
+
+    // Check if dropdown would go off-screen at the bottom
+    const dropdownHeight = 200; // Estimated height
     const spaceBelow = viewportHeight - buttonRect.bottom;
-    const spaceAbove = buttonRect.top;
 
-    // Determine horizontal positioning
-    if (spaceOnRight >= dropdownWidth) {
-        // Enough space on the right, position to the right of button
-        left = buttonRect.left;
-    } else if (spaceOnLeft >= dropdownWidth) {
-        // Not enough space on right, position to the left of button
-        left = buttonRect.right - dropdownWidth;
-    } else {
-        // Very narrow viewport, position to fit within screen
-        left = Math.max(10, Math.min(buttonRect.left, viewportWidth - dropdownWidth - 10));
-        dropdown.style.width = Math.min(dropdownWidth, viewportWidth - 20) + 'px';
-    }
-
-    // Determine vertical positioning
-    if (spaceBelow >= dropdownHeight) {
-        // Enough space below, position below button
-        top = buttonRect.bottom + 8; // 8px gap
-    } else if (spaceAbove >= dropdownHeight) {
-        // Not enough space below, position above button
-        top = buttonRect.top - dropdownHeight - 8; // 8px gap
-    } else {
-        // Very little space in both directions, position where there's more space
-        if (spaceBelow > spaceAbove) {
-            top = buttonRect.bottom + 8;
-        } else {
-            top = Math.max(10, buttonRect.top - dropdownHeight - 8);
-        }
-    }
-
-    // Apply fixed positioning
-    dropdown.style.left = left + 'px';
-    dropdown.style.top = top + 'px';
-
-    // Ensure dropdown doesn't go off-screen
-    if (left + dropdownWidth > viewportWidth) {
-        dropdown.style.left = (viewportWidth - dropdownWidth - 10) + 'px';
-    }
-    if (left < 0) {
-        dropdown.style.left = '10px';
-    }
-    if (top + dropdownHeight > viewportHeight) {
-        dropdown.style.top = (viewportHeight - dropdownHeight - 10) + 'px';
-    }
-    if (top < 0) {
-        dropdown.style.top = '10px';
+    if (spaceBelow < dropdownHeight) {
+        // Not enough space below, position above
+        dropdown.style.top = 'auto';
+        dropdown.style.bottom = '100%';
+        dropdown.style.marginTop = '0';
+        dropdown.style.marginBottom = '0.25rem';
     }
 }
 

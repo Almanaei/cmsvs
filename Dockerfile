@@ -71,11 +71,9 @@ COPY . .
 
 # Create necessary directories with proper permissions
 RUN mkdir -p /app/uploads /app/logs /app/backups /app/db_backups && \
-    touch /app/logs/app.log && \
     chown -R appuser:appuser /app && \
     chmod -R 755 /app && \
-    chmod -R 777 /app/uploads /app/logs /app/backups /app/db_backups && \
-    chmod 666 /app/logs/app.log
+    chmod -R 777 /app/uploads /app/logs /app/backups /app/db_backups
 
 # Remove development files
 RUN rm -rf /app/node_modules /app/src /app/package*.json /app/tailwind.config.js

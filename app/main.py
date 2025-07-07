@@ -91,14 +91,24 @@ def setup_logging():
 
     # File handler with rotation
     if settings.log_file:
-        file_handler = logging.handlers.RotatingFileHandler(
-            settings.log_file,
-            maxBytes=settings.log_max_size,
-            backupCount=settings.log_backup_count
-        )
-        file_handler.setFormatter(formatter)
-        file_handler.setLevel(log_level)
-        root_logger.addHandler(file_handler)
+        try:
+            # Ensure the log file exists and is writable
+            log_file_path = Path(settings.log_file)
+            if not log_file_path.exists():
+                log_file_path.touch(mode=0o666, exist_ok=True)
+
+            file_handler = logging.handlers.RotatingFileHandler(
+                settings.log_file,
+                maxBytes=settings.log_max_size,
+                backupCount=settings.log_backup_count
+            )
+            file_handler.setFormatter(formatter)
+            file_handler.setLevel(log_level)
+            root_logger.addHandler(file_handler)
+        except (PermissionError, OSError) as e:
+            # If we can't write to the log file, just log to console
+            console_handler.setLevel(logging.WARNING)
+            root_logger.warning(f"Could not create log file {settings.log_file}: {e}. Logging to console only.")
 
     # Set specific logger levels
     logging.getLogger("uvicorn.access").setLevel(logging.WARNING if settings.is_production else logging.INFO)

@@ -351,36 +351,50 @@ class RequestService:
         date_to: Optional[date] = None
     ) -> List[Request]:
         """Get all requests with optional status filter and search"""
-        query = db.query(Request)
+        import logging
+        logger = logging.getLogger(__name__)
 
-        if status:
-            query = query.filter(Request.status == status)
+        try:
+            query = db.query(Request)
 
-        # Search functionality
-        if search_query:
-            search_term = f"%{search_query}%"
-            query = query.filter(
-                or_(
-                    Request.request_number.ilike(search_term),
-                    Request.unique_code.ilike(search_term),
-                    Request.request_title.ilike(search_term),
-                    Request.full_name.ilike(search_term),
-                    Request.personal_number.ilike(search_term),
-                    Request.phone_number.ilike(search_term),
-                    Request.building_permit_number.ilike(search_term)
+            if status:
+                query = query.filter(Request.status == status)
+
+            # Search functionality
+            if search_query:
+                search_term = f"%{search_query}%"
+                query = query.filter(
+                    or_(
+                        Request.request_number.ilike(search_term),
+                        Request.unique_code.ilike(search_term),
+                        Request.request_title.ilike(search_term),
+                        Request.full_name.ilike(search_term),
+                        Request.personal_number.ilike(search_term),
+                        Request.phone_number.ilike(search_term),
+                        Request.building_permit_number.ilike(search_term)
+                    )
                 )
-            )
 
-        # Date filters
-        if date_from:
-            query = query.filter(func.date(Request.created_at) >= date_from)
-        if date_to:
-            query = query.filter(func.date(Request.created_at) <= date_to)
+            # Date filters
+            if date_from:
+                query = query.filter(func.date(Request.created_at) >= date_from)
+            if date_to:
+                query = query.filter(func.date(Request.created_at) <= date_to)
 
-        # Only show non-archived requests by default
-        query = query.filter(Request.is_archived == False)
+            # Only show non-archived requests by default
+            query = query.filter(Request.is_archived == False)
 
-        return query.order_by(desc(Request.created_at)).offset(skip).limit(limit).all()
+            # Debug: Log the SQL query
+            logger.info(f"RequestService.get_all_requests - SQL Query: {str(query)}")
+
+            result = query.order_by(desc(Request.created_at)).offset(skip).limit(limit).all()
+            logger.info(f"RequestService.get_all_requests - Found {len(result)} requests")
+
+            return result
+
+        except Exception as e:
+            logger.error(f"Error in get_all_requests: {e}")
+            return []
 
     @staticmethod
     def get_all_requests_count(
@@ -391,36 +405,47 @@ class RequestService:
         date_to: Optional[date] = None
     ) -> int:
         """Get count of all requests with optional status filter and search"""
-        query = db.query(Request)
+        import logging
+        logger = logging.getLogger(__name__)
 
-        if status:
-            query = query.filter(Request.status == status)
+        try:
+            query = db.query(Request)
 
-        # Search functionality
-        if search_query:
-            search_term = f"%{search_query}%"
-            query = query.filter(
-                or_(
-                    Request.request_number.ilike(search_term),
-                    Request.unique_code.ilike(search_term),
-                    Request.request_title.ilike(search_term),
-                    Request.full_name.ilike(search_term),
-                    Request.personal_number.ilike(search_term),
-                    Request.phone_number.ilike(search_term),
-                    Request.building_permit_number.ilike(search_term)
+            if status:
+                query = query.filter(Request.status == status)
+
+            # Search functionality
+            if search_query:
+                search_term = f"%{search_query}%"
+                query = query.filter(
+                    or_(
+                        Request.request_number.ilike(search_term),
+                        Request.unique_code.ilike(search_term),
+                        Request.request_title.ilike(search_term),
+                        Request.full_name.ilike(search_term),
+                        Request.personal_number.ilike(search_term),
+                        Request.phone_number.ilike(search_term),
+                        Request.building_permit_number.ilike(search_term)
+                    )
                 )
-            )
 
-        # Date filters
-        if date_from:
-            query = query.filter(func.date(Request.created_at) >= date_from)
-        if date_to:
-            query = query.filter(func.date(Request.created_at) <= date_to)
+            # Date filters
+            if date_from:
+                query = query.filter(func.date(Request.created_at) >= date_from)
+            if date_to:
+                query = query.filter(func.date(Request.created_at) <= date_to)
 
-        # Only show non-archived requests by default
-        query = query.filter(Request.is_archived == False)
+            # Only show non-archived requests by default
+            query = query.filter(Request.is_archived == False)
 
-        return query.count()
+            count = query.count()
+            logger.info(f"RequestService.get_all_requests_count - Count: {count}")
+
+            return count
+
+        except Exception as e:
+            logger.error(f"Error in get_all_requests_count: {e}")
+            return 0
     
 
     

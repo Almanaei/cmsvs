@@ -112,6 +112,47 @@
             border-right: 3px solid #3b82f6;
         }
 
+        /* Mobile navigation styles */
+        .mobile-nav-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            color: #374151;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .mobile-nav-link:hover {
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        .mobile-nav-link i {
+            width: 20px;
+            color: #6b7280;
+        }
+
+        /* Mobile menu animations */
+        .mobile-menu-open #mobile-menu-panel {
+            transform: translateX(0);
+        }
+
+        /* Touch-friendly mobile menu */
+        @media (max-width: 768px) {
+            .mobile-nav-link {
+                min-height: 44px; /* iOS recommended touch target size */
+                padding: 12px 16px;
+            }
+
+            .mobile-toggle {
+                min-height: 44px;
+                min-width: 44px;
+            }
+        }
+
         /* Responsive sidebar */
         @media (max-width: 768px) {
             .enhanced-nav-link {
@@ -132,8 +173,8 @@
     <!-- Main Content -->
     <div class="flex min-h-screen">
         {% if current_user %}
-        <!-- Enhanced Sidebar -->
-        <div class="w-64 bg-gradient-to-b from-gray-50 to-white shadow-lg border-l border-gray-200">
+        <!-- Enhanced Sidebar - Hidden on mobile -->
+        <div id="sidebar" class="hidden md:block w-64 bg-gradient-to-b from-gray-50 to-white shadow-lg border-l border-gray-200">
             <div class="p-6">
                 {% block sidebar %}
                 <nav class="space-y-1">
@@ -226,13 +267,79 @@
             </div>
         </div>
 
+        <!-- Mobile Navigation Menu -->
+        <div id="mobile-menu" class="fixed inset-0 z-50 md:hidden hidden">
+            <!-- Backdrop -->
+            <div class="fixed inset-0 bg-black bg-opacity-50" onclick="toggleMobileMenu()"></div>
+
+            <!-- Menu Panel -->
+            <div class="fixed inset-y-0 right-0 w-64 bg-white shadow-xl transform translate-x-full transition-transform duration-300 ease-in-out" id="mobile-menu-panel">
+                <div class="flex items-center justify-between p-4 border-b">
+                    <h2 class="text-lg font-semibold text-gray-900">القائمة</h2>
+                    <button onclick="toggleMobileMenu()" class="p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <nav class="p-4 space-y-1">
+                    {% if current_user.role.value == 'admin' %}
+                    <a href="/admin/dashboard" class="mobile-nav-link" onclick="toggleMobileMenu()">
+                        <i class="fas fa-tachometer-alt ml-3"></i>
+                        <span>لوحة الإدارة</span>
+                    </a>
+                    <a href="/admin/users" class="mobile-nav-link" onclick="toggleMobileMenu()">
+                        <i class="fas fa-users ml-3"></i>
+                        <span>المستخدمون</span>
+                    </a>
+                    <a href="/admin/requests" class="mobile-nav-link" onclick="toggleMobileMenu()">
+                        <i class="fas fa-file-alt ml-3"></i>
+                        <span>الطلبات</span>
+                    </a>
+                    <a href="/admin/requests-records" class="mobile-nav-link" onclick="toggleMobileMenu()">
+                        <i class="fas fa-archive ml-3"></i>
+                        <span>سجل الطلبات</span>
+                    </a>
+                    <a href="/admin/user-activity-report" class="mobile-nav-link" onclick="toggleMobileMenu()">
+                        <i class="fas fa-chart-bar ml-3"></i>
+                        <span>تقارير النشاط</span>
+                    </a>
+                    {% else %}
+                    <a href="/dashboard" class="mobile-nav-link" onclick="toggleMobileMenu()">
+                        <i class="fas fa-home ml-3"></i>
+                        <span>الرئيسية</span>
+                    </a>
+                    <a href="/requests" class="mobile-nav-link" onclick="toggleMobileMenu()">
+                        <i class="fas fa-file-alt ml-3"></i>
+                        <span>طلباتي</span>
+                    </a>
+                    <a href="/requests/new" class="mobile-nav-link" onclick="toggleMobileMenu()">
+                        <i class="fas fa-plus ml-3"></i>
+                        <span>طلب جديد</span>
+                    </a>
+                    <a href="/messages/inbox" class="mobile-nav-link" onclick="toggleMobileMenu()">
+                        <i class="fas fa-envelope ml-3"></i>
+                        <span>الرسائل</span>
+                    </a>
+                    <a href="/achievements" class="mobile-nav-link" onclick="toggleMobileMenu()">
+                        <i class="fas fa-trophy ml-3"></i>
+                        <span>الإنجازات والمسابقات</span>
+                    </a>
+                    <a href="/profile" class="mobile-nav-link" onclick="toggleMobileMenu()">
+                        <i class="fas fa-user ml-3"></i>
+                        <span>الملف الشخصي</span>
+                    </a>
+                    {% endif %}
+                </nav>
+            </div>
+        </div>
+
         <!-- Main Content Area -->
-        <div class="flex-1">
-            <div class="p-6">
+        <div class="flex-1 w-full md:w-auto">
+            <div class="p-4 md:p-6">
         {% else %}
         <!-- Full width for non-authenticated users -->
         <div class="w-full">
-            <div class="p-6">
+            <div class="p-4 md:p-6">
         {% endif %}
 
                 <!-- Alerts -->
@@ -253,6 +360,31 @@
             </div>
         </div>
     </div>
+
+    <!-- Mobile Menu JavaScript -->
+    <script>
+        // Mobile menu toggle function
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            const mobileMenuPanel = document.getElementById('mobile-menu-panel');
+
+            if (mobileMenu.classList.contains('hidden')) {
+                // Show menu
+                mobileMenu.classList.remove('hidden');
+                setTimeout(() => {
+                    mobileMenuPanel.classList.remove('translate-x-full');
+                }, 10);
+                document.body.style.overflow = 'hidden';
+            } else {
+                // Hide menu
+                mobileMenuPanel.classList.add('translate-x-full');
+                setTimeout(() => {
+                    mobileMenu.classList.add('hidden');
+                    document.body.style.overflow = '';
+                }, 300);
+            }
+        }
+    </script>
 
     <!-- Enhanced Sidebar JavaScript -->
     <script>

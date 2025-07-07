@@ -2726,6 +2726,9 @@ async def manage_requests(
     db: Session = Depends(get_db)
 ):
     """Manage requests page with search functionality and pagination"""
+    import logging
+    logger = logging.getLogger(__name__)
+
     # Parse status filter
     status_filter = None
     if status:
@@ -2736,6 +2739,17 @@ async def manage_requests(
 
     # Calculate pagination
     skip = (page - 1) * per_page
+
+    # Debug: Check total requests in database (including archived)
+    try:
+        total_all_requests = db.query(Request).count()
+        total_non_archived = db.query(Request).filter(Request.is_archived == False).count()
+        total_archived = db.query(Request).filter(Request.is_archived == True).count()
+
+        logger.info(f"Admin requests debug - Total requests: {total_all_requests}, Non-archived: {total_non_archived}, Archived: {total_archived}")
+        logger.info(f"Admin requests debug - Status filter: {status_filter}, Search: {search}, Page: {page}, Per page: {per_page}")
+    except Exception as e:
+        logger.error(f"Error checking request counts: {e}")
 
     # Get requests with pagination
     requests = RequestService.get_all_requests(
@@ -2753,23 +2767,32 @@ async def manage_requests(
         search_query=search
     )
 
+    # Debug logging
+    logger.info(f"Admin requests debug - Found {len(requests)} requests, Total count: {total_requests}")
+    logger.info(f"Admin requests debug - Requests type: {type(requests)}")
+    logger.info(f"Admin requests debug - Requests content: {[req.id if hasattr(req, 'id') else str(req) for req in requests] if requests else 'None'}")
+
     # Calculate pagination info
     total_pages = (total_requests + per_page - 1) // per_page
 
+    template_context = {
+        "request": request,
+        "current_user": current_user,
+        "requests": requests,
+        "current_status": status,
+        "current_search": search,
+        "current_page": page,
+        "per_page": per_page,
+        "total_pages": total_pages,
+        "total_requests": total_requests,
+        "statuses": [s.value for s in RequestStatus]
+    }
+
+    logger.info(f"Admin requests debug - Template context requests: {len(template_context['requests']) if template_context['requests'] else 0}")
+
     return templates.TemplateResponse(
         "admin/requests.html",
-        {
-            "request": request,
-            "current_user": current_user,
-            "requests": requests,
-            "current_status": status,
-            "current_search": search,
-            "current_page": page,
-            "per_page": per_page,
-            "total_pages": total_pages,
-            "total_requests": total_requests,
-            "statuses": [s.value for s in RequestStatus]
-        }
+        template_context
     )
 
 

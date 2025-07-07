@@ -808,7 +808,7 @@
         </div>
         <div class="card-body p-0">
             <!-- Desktop Table View -->
-            <div class="block table-container overflow-x-auto relative">
+            <div class="hidden lg:block table-container overflow-x-auto relative">
                 <table class="table">
                     <thead class="table-header">
                         <tr>
@@ -941,7 +941,7 @@
             </div>
 
             <!-- Mobile Card View -->
-            <div class="hidden">
+            <div class="lg:hidden">
                 {% for req in requests %}
                 <div class="mobile-table-card border-r-4 border-r-{{ 'green' if req.status.value == 'approved' else 'yellow' if req.status.value == 'pending' else 'red' if req.status.value == 'rejected' else 'blue' }}-500">
                     <!-- Request Header -->

@@ -145,23 +145,31 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 class HTTPSRedirectMiddleware(BaseHTTPMiddleware):
     """Middleware to redirect HTTP to HTTPS in production"""
-    
+
     def __init__(self, app: ASGIApp):
         super().__init__(app)
         self.force_https = settings.force_https
-    
+
     async def dispatch(self, request: Request, call_next):
-        if (self.force_https and 
-            request.url.scheme == "http" and 
-            not request.url.hostname in ["localhost", "127.0.0.1"]):
-            
-            # Redirect to HTTPS
-            https_url = request.url.replace(scheme="https")
-            return Response(
-                status_code=301,
-                headers={"Location": str(https_url)}
-            )
-        
+        if self.force_https:
+            # Check if request is already HTTPS via reverse proxy
+            forwarded_proto = request.headers.get("x-forwarded-proto", "").lower()
+
+            # Only redirect if:
+            # 1. Request scheme is HTTP AND
+            # 2. No X-Forwarded-Proto header indicating HTTPS AND
+            # 3. Not localhost/127.0.0.1
+            if (request.url.scheme == "http" and
+                forwarded_proto != "https" and
+                not request.url.hostname in ["localhost", "127.0.0.1", "app"]):
+
+                # Redirect to HTTPS
+                https_url = request.url.replace(scheme="https")
+                return Response(
+                    status_code=301,
+                    headers={"Location": str(https_url)}
+                )
+
         return await call_next(request)
 
 

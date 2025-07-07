@@ -73,7 +73,10 @@ COPY . .
 RUN mkdir -p /app/uploads /app/logs /app/backups /app/db_backups && \
     chown -R appuser:appuser /app && \
     chmod -R 755 /app && \
-    chmod -R 777 /app/uploads /app/logs /app/backups /app/db_backups
+    chmod -R 777 /app/uploads /app/logs /app/backups /app/db_backups && \
+    touch /app/logs/app.log && \
+    chown appuser:appuser /app/logs/app.log && \
+    chmod 666 /app/logs/app.log
 
 # Remove development files
 RUN rm -rf /app/node_modules /app/src /app/package*.json /app/tailwind.config.js

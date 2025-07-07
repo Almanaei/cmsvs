@@ -71,11 +71,10 @@ COPY . .
 
 # Create necessary directories with proper permissions
 RUN mkdir -p /app/uploads /app/logs /app/backups /app/db_backups && \
+    touch /app/logs/app.log && \
     chown -R appuser:appuser /app && \
     chmod -R 755 /app && \
     chmod -R 777 /app/uploads /app/logs /app/backups /app/db_backups && \
-    touch /app/logs/app.log && \
-    chown appuser:appuser /app/logs/app.log && \
     chmod 666 /app/logs/app.log
 
 # Remove development files

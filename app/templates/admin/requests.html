@@ -5,39 +5,85 @@
 {% block content %}
 
 <style>
-/* Professional Admin Requests Styling */
+/* Mobile-First Professional Admin Requests Styling */
 .page-container {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 24px;
+    padding: 12px;
     background: #f8fafc;
     min-height: 100vh;
 }
 
+@media (min-width: 640px) {
+    .page-container {
+        padding: 16px;
+    }
+}
+
+@media (min-width: 768px) {
+    .page-container {
+        padding: 24px;
+    }
+}
+
 .page-header {
     text-align: right;
-    padding: 32px 24px;
-    margin-bottom: 32px;
+    padding: 16px;
+    margin-bottom: 20px;
     background: #ffffff;
-    border-radius: 12px;
+    border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+@media (min-width: 640px) {
+    .page-header {
+        padding: 24px;
+        margin-bottom: 24px;
+        border-radius: 12px;
+    }
+}
+
+@media (min-width: 768px) {
+    .page-header {
+        padding: 32px 24px;
+        margin-bottom: 32px;
+    }
+}
+
 .page-title {
-    font-size: 32px;
+    font-size: 24px;
     font-weight: 700;
-    margin: 0 0 8px 0;
+    margin: 0 0 6px 0;
     color: #1f2937;
 }
 
+@media (min-width: 640px) {
+    .page-title {
+        font-size: 28px;
+        margin: 0 0 8px 0;
+    }
+}
+
+@media (min-width: 768px) {
+    .page-title {
+        font-size: 32px;
+    }
+}
+
 .page-subtitle {
-    font-size: 16px;
+    font-size: 14px;
     color: #6b7280;
     margin: 0;
 }
 
+@media (min-width: 640px) {
+    .page-subtitle {
+        font-size: 16px;
+    }
+}
+
 .btn {
-    padding: 10px 16px;
+    padding: 8px 12px;
     border-radius: 6px;
     font-size: 14px;
     font-weight: 500;
@@ -46,8 +92,18 @@
     transition: all 0.2s;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
     text-decoration: none;
+    min-height: 44px;
+    justify-content: center;
+}
+
+@media (min-width: 640px) {
+    .btn {
+        padding: 10px 16px;
+        gap: 6px;
+        min-height: auto;
+    }
 }
 
 .btn-secondary {
@@ -75,37 +131,30 @@
 }
 
 .table-dropdown .dropdown-menu {
-    position: absolute;
-    z-index: 1000;
+    position: fixed !important;
+    z-index: 9999 !important;
     min-width: 14rem;
     max-width: 16rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    border: 1px solid #e5e7eb;
 }
 
 /* Support for upward dropdown positioning */
 .table-dropdown .dropdown-menu.mb-2 {
-    bottom: 100%;
-    top: auto;
     margin-bottom: 0.5rem;
     margin-top: 0;
 }
 
 .table-dropdown .dropdown-menu.mt-2 {
-    top: 100%;
-    bottom: auto;
     margin-top: 0.5rem;
     margin-bottom: 0;
 }
 
-/* Prevent horizontal scroll when dropdown is open */
-.overflow-x-auto {
-    overflow-x: auto;
-    overflow-y: visible;
-}
-
-/* Ensure dropdowns don't cause horizontal scrolling */
+/* Prevent horizontal scroll when dropdown is open but allow vertical overflow */
 .table-container {
     position: relative;
-    overflow: visible;
+    overflow-x: auto;
+    overflow-y: visible;
 }
 
 /* Ensure table rows can contain positioned dropdowns */
@@ -113,15 +162,308 @@
     position: relative;
 }
 
+/* Ensure card body allows overflow for dropdowns */
+.card-body {
+    overflow: visible !important;
+}
+
+/* Ensure card container allows overflow for dropdowns */
+.card {
+    overflow: visible !important;
+}
+
+/* Mobile-First Card Styles */
+.card {
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+    margin-bottom: 16px;
+    overflow: hidden;
+}
+
+@media (min-width: 640px) {
+    .card {
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+}
+
+@media (min-width: 768px) {
+    .card {
+        margin-bottom: 24px;
+    }
+}
+
+.card-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid #e5e7eb;
+    background-color: #f9fafb;
+}
+
+@media (min-width: 640px) {
+    .card-header {
+        padding: 16px 20px;
+    }
+}
+
+@media (min-width: 768px) {
+    .card-header {
+        padding: 20px 24px;
+    }
+}
+
+.card-body {
+    padding: 12px 16px;
+}
+
+@media (min-width: 640px) {
+    .card-body {
+        padding: 16px 20px;
+    }
+}
+
+@media (min-width: 768px) {
+    .card-body {
+        padding: 20px 24px;
+    }
+}
+
+.card-footer {
+    padding: 12px 16px;
+    border-top: 1px solid #e5e7eb;
+    background-color: #f9fafb;
+}
+
+@media (min-width: 640px) {
+    .card-footer {
+        padding: 16px 20px;
+    }
+}
+
+@media (min-width: 768px) {
+    .card-footer {
+        padding: 20px 24px;
+    }
+}
+
+/* Mobile-First Form Styles */
+.form-group {
+    margin-bottom: 16px;
+}
+
+@media (min-width: 640px) {
+    .form-group {
+        margin-bottom: 20px;
+    }
+}
+
+.form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 6px;
+}
+
+@media (min-width: 640px) {
+    .form-label {
+        font-size: 16px;
+        margin-bottom: 8px;
+    }
+}
+
+.form-input,
+.form-select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    background-color: #ffffff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    min-height: 44px;
+}
+
+@media (min-width: 640px) {
+    .form-input,
+    .form-select {
+        padding: 12px 16px;
+        font-size: 16px;
+        min-height: auto;
+    }
+}
+
+.form-input:focus,
+.form-select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Mobile-First Table Styles */
+.table-container {
+    position: relative;
+    overflow: visible;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+@media (min-width: 768px) {
+    .table {
+        font-size: 16px;
+    }
+}
+
+.table-header {
+    background-color: #f9fafb;
+}
+
+.table-header-cell {
+    padding: 8px 12px;
+    text-align: right;
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+@media (min-width: 640px) {
+    .table-header-cell {
+        padding: 12px 16px;
+        font-size: 14px;
+    }
+}
+
+@media (min-width: 768px) {
+    .table-header-cell {
+        padding: 16px;
+    }
+}
+
+.table-body {
+    background-color: #ffffff;
+}
+
+.table-cell {
+    padding: 8px 12px;
+    text-align: right;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: top;
+}
+
+@media (min-width: 640px) {
+    .table-cell {
+        padding: 12px 16px;
+    }
+}
+
+@media (min-width: 768px) {
+    .table-cell {
+        padding: 16px;
+    }
+}
+
+/* Mobile Card View Styles */
+.mobile-table-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+@media (min-width: 640px) {
+    .mobile-table-card {
+        padding: 20px;
+        margin-bottom: 16px;
+        border-radius: 12px;
+    }
+}
+
+.mobile-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 4px;
+}
+
+@media (min-width: 640px) {
+    .mobile-title {
+        font-size: 18px;
+        margin-bottom: 6px;
+    }
+}
+
+.mobile-table-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 4px 0;
+}
+
+@media (min-width: 640px) {
+    .mobile-table-row {
+        padding: 6px 0;
+    }
+}
+
+.mobile-table-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #6b7280;
+    flex-shrink: 0;
+    width: 100px;
+}
+
+@media (min-width: 640px) {
+    .mobile-table-label {
+        font-size: 14px;
+        width: 120px;
+    }
+}
+
+.mobile-table-value {
+    font-size: 14px;
+    color: #1f2937;
+    text-align: left;
+    flex: 1;
+}
+
+@media (min-width: 640px) {
+    .mobile-table-value {
+        font-size: 16px;
+    }
+}
+
 /* Mobile responsive dropdown */
-@media (max-width: 640px) {
+.table-dropdown .dropdown-menu {
+    min-width: 10rem;
+    max-width: 12rem;
+    font-size: 14px;
+    position: fixed !important;
+    z-index: 9999 !important;
+}
+
+@media (min-width: 640px) {
     .table-dropdown .dropdown-menu {
         min-width: 12rem;
         max-width: 14rem;
+        font-size: 16px;
     }
+}
 
-    .page-container {
-        padding: 16px;
+@media (min-width: 768px) {
+    .table-dropdown .dropdown-menu {
+        min-width: 14rem;
+        max-width: 16rem;
     }
 }
 
@@ -134,6 +476,59 @@
     transition: transform 0.2s ease-in-out;
 }
 
+/* Mobile-First Badge Styles */
+.badge-warning,
+.badge-info,
+.badge-success,
+.badge-danger,
+.badge-gray {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    text-align: center;
+    white-space: nowrap;
+}
+
+@media (min-width: 640px) {
+    .badge-warning,
+    .badge-info,
+    .badge-success,
+    .badge-danger,
+    .badge-gray {
+        padding: 6px 12px;
+        font-size: 12px;
+        border-radius: 16px;
+    }
+}
+
+.badge-warning {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.badge-info {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.badge-success {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.badge-danger {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.badge-gray {
+    background-color: #f3f4f6;
+    color: #374151;
+}
+
 /* Quick info badges */
 .filter-badge {
     display: inline-flex;
@@ -143,17 +538,73 @@
     font-size: 0.75rem;
     font-weight: 500;
 }
+
+/* Mobile-First Button Variants */
+.btn-primary {
+    background-color: #3b82f6;
+    color: #ffffff;
+    border: 1px solid #3b82f6;
+}
+
+.btn-primary:hover {
+    background-color: #2563eb;
+    border-color: #2563eb;
+}
+
+.btn-secondary {
+    background-color: #6b7280;
+    color: #ffffff;
+    border: 1px solid #6b7280;
+}
+
+.btn-secondary:hover {
+    background-color: #4b5563;
+    border-color: #4b5563;
+}
+
+.btn-outline {
+    background-color: transparent;
+    color: #374151;
+    border: 1px solid #d1d5db;
+}
+
+.btn-outline:hover {
+    background-color: #f9fafb;
+    border-color: #9ca3af;
+}
+
+.btn-success {
+    background-color: #10b981;
+    color: #ffffff;
+    border: 1px solid #10b981;
+}
+
+.btn-success:hover {
+    background-color: #059669;
+    border-color: #059669;
+}
+
+.btn-danger {
+    background-color: #ef4444;
+    color: #ffffff;
+    border: 1px solid #ef4444;
+}
+
+.btn-danger:hover {
+    background-color: #dc2626;
+    border-color: #dc2626;
+}
 </style>
 
 <div class="page-container">
     <!-- Page Header -->
     <header class="page-header">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px;">
-            <div style="flex: 1;">
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 sm:gap-5">
+            <div class="flex-1">
                 <h1 class="page-title">إدارة الطلبات</h1>
                 <p class="page-subtitle">إدارة ومراقبة جميع طلبات النظام</p>
             </div>
-            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
                 <a href="/admin/dashboard" class="btn btn-secondary">
                     <i class="fas fa-arrow-right"></i>
                     العودة للوحة التحكم
@@ -229,7 +680,7 @@
             <form method="get" action="/admin/requests" id="searchForm">
                 <!-- Hidden input to reset to page 1 when searching -->
                 <input type="hidden" name="page" value="1">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div class="form-group">
                         <label class="form-label">البحث في الطلبات</label>
                         <div class="relative">
@@ -266,10 +717,10 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">&nbsp;</label>
-                        <div class="flex space-x-2 rtl:space-x-reverse">
-                            <button type="submit" class="btn-primary">بحث</button>
-                            <a href="/admin/requests" class="btn-secondary">مسح</a>
+                        <label class="form-label hidden sm:block">&nbsp;</label>
+                        <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                            <button type="submit" class="btn btn-secondary w-full sm:w-auto">بحث</button>
+                            <a href="/admin/requests" class="btn btn-outline w-full sm:w-auto">مسح</a>
                         </div>
                     </div>
                 </div>
@@ -298,12 +749,12 @@
     <!-- Status Filter Tabs -->
     <div class="card">
         <div class="card-body">
-            <div class="flex flex-wrap gap-2">
-                <a href="/admin/requests" class="btn-secondary {% if not current_status %}btn-primary{% endif %}">
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:flex lg:flex-wrap gap-2">
+                <a href="/admin/requests" class="btn btn-secondary {% if not current_status %}btn-primary{% endif %} text-center">
                     الكل
                 </a>
                 {% for status in statuses %}
-                <a href="/admin/requests?status={{ status }}" class="btn-secondary {% if current_status == status %}btn-primary{% endif %}">
+                <a href="/admin/requests?status={{ status }}" class="btn btn-secondary {% if current_status == status %}btn-primary{% endif %} text-center">
                     {% if status == 'pending' %}قيد المراجعة
                     {% elif status == 'in_progress' %}قيد التنفيذ
                     {% elif status == 'completed' %}مكتملة
@@ -311,7 +762,7 @@
                     {% endif %}
                 </a>
                 {% endfor %}
-                <a href="/admin/archive" class="btn-secondary">
+                <a href="/admin/archive" class="btn btn-secondary text-center col-span-2 sm:col-span-1">
                     الطلبات المؤرشفة
                 </a>
             </div>
@@ -326,7 +777,8 @@
             <h5 class="text-lg font-semibold text-gray-900">قائمة الطلبات</h5>
         </div>
         <div class="card-body p-0">
-            <div class="table-container overflow-x-auto relative">
+            <!-- Desktop Table View -->
+            <div class="hidden md:block table-container overflow-x-auto relative">
                 <table class="table">
                     <thead class="table-header">
                         <tr>
@@ -457,16 +909,111 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- Mobile Card View -->
+            <div class="md:hidden">
+                {% for req in requests %}
+                <div class="mobile-table-card border-r-4 border-r-{{ 'green' if req.status.value == 'approved' else 'yellow' if req.status.value == 'pending' else 'red' if req.status.value == 'rejected' else 'blue' }}-500">
+                    <!-- Request Header -->
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <div class="mobile-title">{{ req.full_name or 'غير محدد' }}</div>
+                            <code class="text-xs bg-gray-100 px-2 py-1 rounded">{{ req.request_number }}</code>
+                        </div>
+                        <div class="text-right">
+                            {% if req.status.value == 'pending' %}
+                            <span class="badge-warning">قيد المراجعة</span>
+                            {% elif req.status.value == 'approved' %}
+                            <span class="badge-success">مقبول</span>
+                            {% elif req.status.value == 'rejected' %}
+                            <span class="badge-danger">مرفوض</span>
+                            {% elif req.status.value == 'in_progress' %}
+                            <span class="badge-info">قيد التنفيذ</span>
+                            {% else %}
+                            <span class="badge-gray">{{ req.status.value }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Request Details -->
+                    <div class="space-y-2 mb-4">
+                        <div class="mobile-table-row">
+                            <span class="mobile-table-label">المستخدم:</span>
+                            <span class="mobile-table-value">{{ req.user.full_name }}</span>
+                        </div>
+
+                        <div class="mobile-table-row">
+                            <span class="mobile-table-label">الرمز التعريفي:</span>
+                            <span class="mobile-table-value">{{ req.unique_code or 'غير محدد' }}</span>
+                        </div>
+
+                        <div class="mobile-table-row">
+                            <span class="mobile-table-label">إجازة البناء:</span>
+                            <span class="mobile-table-value">{{ req.building_permit or 'غير محدد' }}</span>
+                        </div>
+
+                        <div class="mobile-table-row">
+                            <span class="mobile-table-label">المرفقات:</span>
+                            <span class="mobile-table-value">
+                                {% set file_count = req.files|length %}
+                                {% if file_count > 0 %}
+                                <span class="text-blue-600">{{ file_count }} ملف</span>
+                                {% else %}
+                                <span class="text-gray-500">لا توجد مرفقات</span>
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        <div class="mobile-table-row">
+                            <span class="mobile-table-label">تاريخ الإنشاء:</span>
+                            <span class="mobile-table-value">{{ req.created_at.strftime('%Y-%m-%d') }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Admin Action Buttons -->
+                    <div class="flex flex-wrap gap-2">
+                        <a href="/admin/requests/{{ req.id }}" class="btn-primary text-xs px-3 py-2">
+                            <i class="fas fa-eye"></i>
+                            عرض
+                        </a>
+
+                        <a href="/admin/requests/{{ req.id }}/edit" class="btn-secondary text-xs px-3 py-2">
+                            <i class="fas fa-edit"></i>
+                            تعديل
+                        </a>
+
+                        {% if req.files %}
+                        <a href="/admin/requests/{{ req.id }}/files" class="btn-outline text-xs px-3 py-2">
+                            <i class="fas fa-paperclip"></i>
+                            المرفقات
+                        </a>
+                        {% endif %}
+
+                        <!-- Status Update Buttons -->
+                        {% if req.status.value == 'pending' %}
+                        <button onclick="updateStatus({{ req.id }}, 'approved')" class="btn-success text-xs px-3 py-2">
+                            <i class="fas fa-check"></i>
+                            قبول
+                        </button>
+                        <button onclick="updateStatus({{ req.id }}, 'rejected')" class="btn-danger text-xs px-3 py-2">
+                            <i class="fas fa-times"></i>
+                            رفض
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
         </div>
 
         <!-- Pagination Controls -->
         {% if total_pages > 1 %}
         <div class="card-footer">
-            <div class="flex items-center justify-between">
-                <div class="text-sm text-gray-700">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div class="text-sm text-gray-700 text-center sm:text-right">
                     عرض {{ ((current_page - 1) * per_page) + 1 }} إلى {{ ((current_page - 1) * per_page) + requests|length }} من {{ total_requests }} نتيجة
                 </div>
-                <div class="flex items-center space-x-2 rtl:space-x-reverse">
+                <div class="flex items-center justify-center sm:justify-end space-x-2 rtl:space-x-reverse overflow-x-auto">
                     <!-- Previous Page -->
                     {% if current_page > 1 %}
                     <a href="?page={{ current_page - 1 }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_search %}&search={{ current_search }}{% endif %}&per_page={{ per_page }}"
@@ -622,10 +1169,14 @@ function toggleDropdown(requestId, event) {
 }
 
 function positionDropdown(dropdown, button) {
-    // Reset classes first
+    // Reset classes and styles first
     dropdown.classList.remove('left-0', 'right-0', 'origin-top-left', 'origin-top-right', 'origin-bottom-left', 'origin-bottom-right');
     dropdown.classList.remove('mt-2', 'mb-2');
     dropdown.style.width = '';
+    dropdown.style.left = '';
+    dropdown.style.right = '';
+    dropdown.style.top = '';
+    dropdown.style.bottom = '';
 
     // Get button and viewport dimensions
     const buttonRect = button.getBoundingClientRect();
@@ -633,7 +1184,9 @@ function positionDropdown(dropdown, button) {
     const dropdownHeight = 200; // Estimated dropdown height
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
-    const tableContainer = button.closest('.table-container');
+
+    // Calculate positioning using fixed positioning
+    let left, top;
 
     // Check horizontal space
     const spaceOnRight = viewportWidth - buttonRect.right;
@@ -644,66 +1197,50 @@ function positionDropdown(dropdown, button) {
     const spaceAbove = buttonRect.top;
 
     // Determine horizontal positioning
-    let horizontalClass = '';
-    let horizontalOrigin = '';
-
     if (spaceOnRight >= dropdownWidth) {
-        // Enough space on the right, position normally
-        horizontalClass = 'left-0';
-        horizontalOrigin = 'left';
+        // Enough space on the right, position to the right of button
+        left = buttonRect.left;
     } else if (spaceOnLeft >= dropdownWidth) {
-        // Not enough space on right, position on the left
-        horizontalClass = 'right-0';
-        horizontalOrigin = 'right';
+        // Not enough space on right, position to the left of button
+        left = buttonRect.right - dropdownWidth;
     } else {
         // Very narrow viewport, position to fit within screen
-        horizontalClass = 'right-0';
-        horizontalOrigin = 'right';
-        dropdown.style.width = Math.min(dropdownWidth, spaceOnLeft - 10) + 'px';
+        left = Math.max(10, Math.min(buttonRect.left, viewportWidth - dropdownWidth - 10));
+        dropdown.style.width = Math.min(dropdownWidth, viewportWidth - 20) + 'px';
     }
 
     // Determine vertical positioning
-    let verticalClass = '';
-    let verticalOrigin = '';
-
     if (spaceBelow >= dropdownHeight) {
-        // Enough space below, position normally (dropdown opens downward)
-        verticalClass = 'mt-2';
-        verticalOrigin = 'top';
+        // Enough space below, position below button
+        top = buttonRect.bottom + 8; // 8px gap
     } else if (spaceAbove >= dropdownHeight) {
-        // Not enough space below, position above (dropdown opens upward)
-        verticalClass = 'mb-2';
-        verticalOrigin = 'bottom';
-        // Position the dropdown above the button
-        dropdown.style.bottom = '100%';
-        dropdown.style.top = 'auto';
+        // Not enough space below, position above button
+        top = buttonRect.top - dropdownHeight - 8; // 8px gap
     } else {
         // Very little space in both directions, position where there's more space
         if (spaceBelow > spaceAbove) {
-            verticalClass = 'mt-2';
-            verticalOrigin = 'top';
+            top = buttonRect.bottom + 8;
         } else {
-            verticalClass = 'mb-2';
-            verticalOrigin = 'bottom';
-            dropdown.style.bottom = '100%';
-            dropdown.style.top = 'auto';
+            top = Math.max(10, buttonRect.top - dropdownHeight - 8);
         }
     }
 
-    // Apply classes
-    dropdown.classList.add(horizontalClass, verticalClass, `origin-${verticalOrigin}-${horizontalOrigin}`);
+    // Apply fixed positioning
+    dropdown.style.left = left + 'px';
+    dropdown.style.top = top + 'px';
 
-    // Ensure dropdown stays within table container bounds
-    if (tableContainer) {
-        const containerRect = tableContainer.getBoundingClientRect();
-        const dropdownRect = dropdown.getBoundingClientRect();
-
-        // Adjust if dropdown extends beyond container
-        if (horizontalOrigin === 'left' && buttonRect.left + dropdownWidth > containerRect.right) {
-            dropdown.style.maxWidth = (containerRect.right - buttonRect.left - 10) + 'px';
-        } else if (horizontalOrigin === 'right' && buttonRect.right - dropdownWidth < containerRect.left) {
-            dropdown.style.maxWidth = (buttonRect.right - containerRect.left - 10) + 'px';
-        }
+    // Ensure dropdown doesn't go off-screen
+    if (left + dropdownWidth > viewportWidth) {
+        dropdown.style.left = (viewportWidth - dropdownWidth - 10) + 'px';
+    }
+    if (left < 0) {
+        dropdown.style.left = '10px';
+    }
+    if (top + dropdownHeight > viewportHeight) {
+        dropdown.style.top = (viewportHeight - dropdownHeight - 10) + 'px';
+    }
+    if (top < 0) {
+        dropdown.style.top = '10px';
     }
 }
 
@@ -724,6 +1261,20 @@ document.addEventListener('click', function(event) {
         if (!dropdown.contains(event.target) && !clickedButton) {
             dropdown.classList.add('hidden');
         }
+    });
+});
+
+// Close dropdown when scrolling
+document.addEventListener('scroll', function() {
+    document.querySelectorAll('[id^="dropdown-"]').forEach(dropdown => {
+        dropdown.classList.add('hidden');
+    });
+}, true);
+
+// Close dropdown when window is resized
+window.addEventListener('resize', function() {
+    document.querySelectorAll('[id^="dropdown-"]').forEach(dropdown => {
+        dropdown.classList.add('hidden');
     });
 });
 

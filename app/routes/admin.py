@@ -568,6 +568,9 @@ async def create_request_for_user(
                     logger.warning(f"File upload failed for category {category}: {str(file_error)}")
                     upload_errors.append(f"خطأ في رفع ملفات {category_name}: {str(file_error)}")
 
+        # Commit the transaction to ensure files are persisted
+        db.commit()
+
         # Check for upload errors
         if upload_errors:
             error_message = "تم إنشاء الطلب ولكن حدثت أخطاء في رفع بعض الملفات:\n" + "\n".join(upload_errors)
@@ -1728,6 +1731,31 @@ async def view_archived_requests(
     db: Session = Depends(get_db)
 ):
     """View archived requests with search functionality"""
+    archived_requests = RequestService.get_archived_requests(
+        db,
+        limit=100,
+        search_query=search
+    )
+
+    return templates.TemplateResponse(
+        "admin/archived_requests.html",
+        {
+            "request": request,
+            "current_user": current_user,
+            "requests": archived_requests,
+            "current_search": search
+        }
+    )
+
+
+@router.get("/archive", response_class=HTMLResponse)
+async def view_archive(
+    request: Request,
+    search: Optional[str] = None,
+    current_user: User = Depends(require_admin_cookie),
+    db: Session = Depends(get_db)
+):
+    """View archived requests with search functionality (alias for /archived-requests)"""
     archived_requests = RequestService.get_archived_requests(
         db,
         limit=100,

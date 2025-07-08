@@ -109,12 +109,17 @@ async def login(
         response = RedirectResponse(url="/dashboard", status_code=302)
     
     # Set token in cookie
+    # Check if request is over HTTPS (considering reverse proxy)
+    forwarded_proto = request.headers.get("x-forwarded-proto", "").lower()
+    is_https = forwarded_proto == "https" or request.url.scheme == "https"
+
     response.set_cookie(
         key="access_token",
         value=f"Bearer {access_token}",
         httponly=True,
         max_age=settings.access_token_expire_minutes * 60,
-        secure=False  # Set to True in production with HTTPS
+        secure=is_https,  # Set to True for HTTPS connections
+        samesite="lax"  # Add SameSite for better mobile compatibility
     )
     
     return response

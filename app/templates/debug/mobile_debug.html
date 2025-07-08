@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Mobile Debug - CMSVS{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h1 class="text-2xl font-bold text-gray-900">Mobile Debug Information</h1>
+                <p class="text-gray-600 mt-2">Debug information for request ID: {{ debug_info.request_id }}</p>
+            </div>
+            
+            <div class="card-body space-y-6">
+                <!-- Device Information -->
+                <div class="section">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-3">Device Information</h2>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <strong>Is Mobile:</strong> 
+                                <span class="{% if debug_info.is_mobile %}text-green-600{% else %}text-red-600{% endif %}">
+                                    {{ debug_info.is_mobile }}
+                                </span>
+                            </div>
+                            <div>
+                                <strong>Client IP:</strong> {{ debug_info.client_ip }}
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <strong>User Agent:</strong>
+                            <div class="text-sm text-gray-600 break-all">{{ debug_info.user_agent }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Authentication Information -->
+                <div class="section">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-3">Authentication</h2>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        {% if debug_info.current_user %}
+                            <div class="text-green-600 mb-2">✓ Authentication Successful</div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div><strong>User ID:</strong> {{ debug_info.current_user.id }}</div>
+                                <div><strong>Username:</strong> {{ debug_info.current_user.username }}</div>
+                                <div><strong>Role:</strong> {{ debug_info.current_user.role }}</div>
+                            </div>
+                        {% else %}
+                            <div class="text-red-600 mb-2">✗ Authentication Failed</div>
+                            {% if debug_info.auth_error %}
+                                <div class="text-red-600 text-sm">Error: {{ debug_info.auth_error }}</div>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Request Information -->
+                <div class="section">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-3">Request Information</h2>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="mb-2">
+                            <strong>Request Found:</strong> 
+                            <span class="{% if debug_info.request_found %}text-green-600{% else %}text-red-600{% endif %}">
+                                {{ debug_info.request_found }}
+                            </span>
+                        </div>
+                        
+                        {% if debug_info.request_found and debug_info.request_info %}
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div><strong>Request ID:</strong> {{ debug_info.request_info.id }}</div>
+                                <div><strong>Owner ID:</strong> {{ debug_info.request_info.user_id }}</div>
+                                <div><strong>Request Number:</strong> {{ debug_info.request_info.request_number }}</div>
+                                <div><strong>Status:</strong> {{ debug_info.request_info.status }}</div>
+                            </div>
+                        {% endif %}
+                        
+                        {% if debug_info.request_error %}
+                            <div class="text-red-600 text-sm mt-2">Error: {{ debug_info.request_error }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Cookies Information -->
+                <div class="section">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-3">Cookies</h2>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        {% if debug_info.cookies %}
+                            <div class="space-y-2">
+                                {% for key, value in debug_info.cookies.items() %}
+                                    <div class="flex flex-col md:flex-row">
+                                        <strong class="md:w-1/4">{{ key }}:</strong>
+                                        <span class="text-sm text-gray-600 break-all md:w-3/4">
+                                            {% if key == 'access_token' %}
+                                                {{ value[:20] }}...{{ value[-10:] if value|length > 30 else value }}
+                                            {% else %}
+                                                {{ value }}
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-gray-500">No cookies found</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Request Details -->
+                <div class="section">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-3">Request Details</h2>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div><strong>URL:</strong> {{ debug_info.url }}</div>
+                            <div><strong>Method:</strong> {{ debug_info.method }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="section">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-3">Actions</h2>
+                    <div class="flex flex-wrap gap-4">
+                        <a href="/requests/{{ debug_info.request_id }}" class="btn-primary">
+                            Try Access Request
+                        </a>
+                        <a href="/requests" class="btn-secondary">
+                            Back to Requests
+                        </a>
+                        <a href="/login" class="btn-secondary">
+                            Re-login
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.section {
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 1.5rem;
+}
+
+.section:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .grid {
+        gap: 0.5rem;
+    }
+}
+</style>
+{% endblock %}

@@ -113,13 +113,22 @@ async def login(
     forwarded_proto = request.headers.get("x-forwarded-proto", "").lower()
     is_https = forwarded_proto == "https" or request.url.scheme == "https"
 
+    # Enhanced mobile-friendly cookie settings
+    user_agent = request.headers.get("User-Agent", "").lower()
+    is_mobile = any(mobile_indicator in user_agent for mobile_indicator in
+                   ['mobile', 'android', 'iphone', 'ipad', 'tablet'])
+
+    # Log cookie setting for debugging
+    logger.info(f"Setting cookie for user {user.username} - Mobile: {is_mobile}, HTTPS: {is_https}")
+
     response.set_cookie(
         key="access_token",
         value=f"Bearer {access_token}",
         httponly=True,
         max_age=settings.access_token_expire_minutes * 60,
         secure=is_https,  # Set to True for HTTPS connections
-        samesite="lax"  # Add SameSite for better mobile compatibility
+        samesite="lax",  # Lax is better for mobile compatibility than strict
+        path="/"  # Ensure cookie is available for all paths
     )
     
     return response

@@ -252,12 +252,32 @@
     min-width: 120px; /* Actions */
 }
 
+/* Ensure dropdown is always visible - fallback positioning */
+.dropdown-menu {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* For dropdowns that might go off-screen, add a CSS fallback */
+@supports (position: fixed) {
+    .dropdown-menu {
+        position: fixed !important;
+    }
+}
+
 /* Mobile responsive dropdown */
 @media (max-width: 640px) {
     .table-dropdown .dropdown-menu {
         min-width: 12rem;
         max-width: 14rem;
     }
+
+    /* On mobile, ensure dropdowns don't go off-screen */
+    .dropdown-menu {
+        max-height: 50vh;
+        overflow-y: auto;
+    }
+}
 
     /* Reduce column widths on mobile */
     .table th,
@@ -736,12 +756,17 @@ body {
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                         </svg>
                                     </button>
-                                    <div id="dropdown-{{ req.id }}" class="dropdown-menu hidden absolute mt-2 bg-white rounded-md shadow-lg border border-gray-200 z-50">
+                                    <div id="dropdown-{{ req.id }}" class="dropdown-menu hidden bg-white rounded-md shadow-lg border border-gray-200">
                                         <a href="/requests/{{ req.id }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">عرض التفاصيل</a>
                                         {% if req.status.value in ['pending', 'in_progress'] %}
                                         <a href="/requests/{{ req.id }}/edit" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">تعديل</a>
                                         {% endif %}
                                         <a href="/requests/{{ req.id }}/files" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">إدارة الملفات</a>
+                                        <div class="border-t border-gray-100"></div>
+                                        <button onclick="confirmDelete({{ req.id }}, '{{ req.request_number }}')" class="block w-full text-right px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                            <i class="fas fa-trash ml-2"></i>
+                                            حذف الطلب
+                                        </button>
                                     </div>
                                 </div>
                             </td>
@@ -978,15 +1003,37 @@ body {
             dropdown.style.opacity = '1';
             dropdown.style.display = 'block';
 
+            // Final check: ensure dropdown is fully visible in viewport
+            setTimeout(() => {
+                const finalRect = dropdown.getBoundingClientRect();
+                if (finalRect.bottom > viewportHeight) {
+                    // Dropdown is still going off-screen, force it above the button
+                    dropdown.style.top = 'auto';
+                    dropdown.style.bottom = (viewportHeight - buttonRect.top + 5) + 'px';
+                    console.log('Dropdown repositioned above button due to viewport overflow');
+                }
+                if (finalRect.top < 0) {
+                    // Dropdown is above viewport, force it below
+                    dropdown.style.bottom = 'auto';
+                    dropdown.style.top = (buttonRect.bottom + 5) + 'px';
+                    console.log('Dropdown repositioned below button due to top overflow');
+                }
+            }, 10);
+
             // Debug log to help troubleshoot
             console.log('Dropdown positioned as overlay:', {
                 id: dropdown.id,
                 position: dropdown.style.position,
                 left: dropdown.style.left,
                 top: dropdown.style.top,
+                bottom: dropdown.style.bottom,
                 width: dropdown.style.width,
                 height: dropdownHeight + 'px',
-                zIndex: dropdown.style.zIndex
+                zIndex: dropdown.style.zIndex,
+                buttonRect: buttonRect,
+                spaceBelow: spaceBelow,
+                spaceAbove: spaceAbove,
+                viewportHeight: viewportHeight
             });
         }
 
@@ -1208,6 +1255,21 @@ body {
                 dateToInput.addEventListener('change', validateDateRange);
             }
         });
+
+        // Delete confirmation functions
+        function confirmDelete(requestId, requestNumber) {
+            if (confirm(`هل أنت متأكد من حذف الطلب رقم ${requestNumber}؟\n\nلا يمكن التراجع عن هذا الإجراء.`)) {
+                // Create and submit delete form
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/requests/${requestId}/delete`;
+                document.body.appendChild(form);
+                form.submit();
+            }
+
+            // Close dropdown
+            document.getElementById(`dropdown-${requestId}`).classList.add('hidden');
+        }
     </script>
 
 </div>

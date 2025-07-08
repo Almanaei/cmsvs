@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}الصفحة غير موجودة - CMSVS{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full text-center">
+        <div class="card">
+            <div class="card-body">
+                <div class="mb-8">
+                    <h1 class="text-6xl md:text-9xl font-bold text-gray-300">404</h1>
+                    <h4 class="text-xl md:text-2xl font-bold text-gray-900 mt-4">الصفحة غير موجودة</h4>
+                    <p class="text-gray-600 mt-4 text-sm md:text-base">
+                        عذراً، الصفحة التي تبحث عنها غير موجودة أو تم نقلها.
+                    </p>
+                </div>
+
+                <!-- Mobile-specific troubleshooting -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-right">
+                    <h5 class="font-semibold text-blue-800 mb-2">للمستخدمين على الهاتف المحمول:</h5>
+                    <ul class="text-sm text-blue-700 space-y-1">
+                        <li>• تأكد من تسجيل الدخول بشكل صحيح</li>
+                        <li>• جرب إعادة تحديث الصفحة</li>
+                        <li>• تأكد من اتصالك بالإنترنت</li>
+                        <li>• جرب مسح ذاكرة التخزين المؤقت للمتصفح</li>
+                    </ul>
+                </div>
+
+                <div class="flex flex-col gap-3 justify-center">
+                    <a href="/" class="btn-primary text-sm md:text-base">
+                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                        </svg>
+                        العودة للرئيسية
+                    </a>
+                    
+                    <a href="/requests" class="btn-secondary text-sm md:text-base">
+                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        عرض الطلبات
+                    </a>
+                    
+                    <button onclick="history.back()" class="btn-secondary text-sm md:text-base">
+                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        العودة للخلف
+                    </button>
+                    
+                    <button onclick="location.reload()" class="btn-outline text-sm md:text-base">
+                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        إعادة تحديث
+                    </button>
+                    
+                    <a href="/login" class="btn-outline text-sm md:text-base">
+                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                        </svg>
+                        إعادة تسجيل الدخول
+                    </a>
+                </div>
+
+                <!-- Debug link for development -->
+                {% if current_user and current_user.role.value == 'admin' %}
+                <div class="mt-6 pt-4 border-t border-gray-200">
+                    <a href="/debug/mobile/{{ request_id if request_id else '0' }}" class="text-xs text-gray-500 hover:text-gray-700">
+                        Debug Info (Admin Only)
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Mobile-optimized styles */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 1.5rem 1rem;
+    }
+    
+    .btn-primary, .btn-secondary, .btn-outline {
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+        min-height: 44px; /* Touch-friendly */
+    }
+    
+    .flex {
+        gap: 0.75rem;
+    }
+}
+
+.btn-outline {
+    @apply inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200;
+}
+</style>
+
+<script>
+// Mobile-specific JavaScript for better UX
+document.addEventListener('DOMContentLoaded', function() {
+    // Add touch feedback for mobile
+    if ('ontouchstart' in window) {
+        const buttons = document.querySelectorAll('.btn-primary, .btn-secondary, .btn-outline');
+        buttons.forEach(button => {
+            button.addEventListener('touchstart', function() {
+                this.style.opacity = '0.7';
+            });
+            button.addEventListener('touchend', function() {
+                this.style.opacity = '1';
+            });
+        });
+    }
+    
+    // Auto-refresh functionality for mobile users
+    let refreshAttempts = 0;
+    const maxRefreshAttempts = 3;
+    
+    function autoRefresh() {
+        if (refreshAttempts < maxRefreshAttempts) {
+            refreshAttempts++;
+            setTimeout(() => {
+                location.reload();
+            }, 5000); // Wait 5 seconds before auto-refresh
+        }
+    }
+    
+    // Only auto-refresh on mobile devices
+    if (window.innerWidth <= 768 && navigator.userAgent.match(/Mobile|Android|iPhone|iPad/i)) {
+        // Show auto-refresh message
+        const autoRefreshDiv = document.createElement('div');
+        autoRefreshDiv.className = 'mt-4 text-xs text-gray-500';
+        autoRefreshDiv.innerHTML = `سيتم إعادة تحديث الصفحة تلقائياً خلال 5 ثوانٍ... (محاولة ${refreshAttempts + 1}/${maxRefreshAttempts})`;
+        document.querySelector('.card-body').appendChild(autoRefreshDiv);
+        
+        autoRefresh();
+    }
+});
+</script>
+{% endblock %}

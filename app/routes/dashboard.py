@@ -34,6 +34,12 @@ async def test_dropdown(request: Request):
     """Test page for dropdown functionality"""
     return templates.TemplateResponse("test_dropdown.html", {"request": request})
 
+
+
+
+
+
+
 # Thread-safe request ID generation
 _request_id_lock = threading.Lock()
 _request_id_counter = 0
@@ -66,9 +72,25 @@ def generate_unique_request_number():
 
 
 async def get_current_user_cookie(request: Request, db: Session = Depends(get_db)) -> User:
-    """Get current user using cookie authentication"""
+    """Get current user using cookie authentication with enhanced mobile debugging and fallback"""
+    user_agent = request.headers.get("User-Agent", "")
+    client_ip = request.client.host if request.client else "unknown"
+    is_mobile = any(mobile_indicator in user_agent.lower() for mobile_indicator in
+                   ['mobile', 'android', 'iphone', 'ipad', 'tablet'])
+
     token = request.cookies.get("access_token")
+
+    # Mobile fallback: check for token in headers if cookie is missing
+    if not token and is_mobile:
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header
+            logger.info(f"Using Authorization header for mobile - IP: {client_ip}")
+
     if not token:
+        logger.warning(f"No access token found - IP: {client_ip}, Mobile: {is_mobile}, "
+                      f"Cookies: {list(request.cookies.keys())}, "
+                      f"Auth Header: {'Yes' if request.headers.get('Authorization') else 'No'}")
         raise HTTPException(status_code=403, detail="Not authenticated")
 
     # Remove 'Bearer ' prefix if present
@@ -77,20 +99,113 @@ async def get_current_user_cookie(request: Request, db: Session = Depends(get_db
 
     payload = verify_token(token)
     if not payload:
+        logger.warning(f"Invalid token - IP: {client_ip}, Mobile: {is_mobile}, "
+                      f"Token length: {len(token) if token else 0}")
         raise HTTPException(status_code=403, detail="Invalid token")
 
     username = payload.get("sub")
     if not username:
+        logger.warning(f"No username in token payload - IP: {client_ip}, Mobile: {is_mobile}")
         raise HTTPException(status_code=403, detail="Invalid token")
 
     user = UserService.get_user_by_username(db, username)
     if not user:
+        logger.warning(f"User not found: {username} - IP: {client_ip}, Mobile: {is_mobile}")
         raise HTTPException(status_code=403, detail="User not found")
 
     if not user.is_active:
+        logger.warning(f"Inactive user: {username} - IP: {client_ip}, Mobile: {is_mobile}")
         raise HTTPException(status_code=403, detail="Inactive user")
 
+    logger.debug(f"Authentication successful - User: {username}, Mobile: {is_mobile}, IP: {client_ip}")
     return user
+
+
+@router.get("/debug/user-role", response_class=HTMLResponse)
+async def debug_user_role(
+    request: Request,
+    current_user: User = Depends(get_current_user_cookie),
+    db: Session = Depends(get_db)
+):
+    """Debug endpoint to check user role detection"""
+    user_agent = request.headers.get("User-Agent", "")
+    is_mobile = any(mobile_indicator in user_agent.lower() for mobile_indicator in
+                   ['mobile', 'android', 'iphone', 'ipad', 'tablet'])
+
+    debug_info = {
+        "user_id": current_user.id,
+        "username": current_user.username,
+        "role": current_user.role.value,
+        "is_admin": current_user.role == UserRole.ADMIN,
+        "is_mobile": is_mobile,
+        "user_agent": user_agent,
+        "role_enum": str(current_user.role),
+        "admin_enum": str(UserRole.ADMIN)
+    }
+
+    return JSONResponse(debug_info)
+
+
+@router.get("/debug/mobile/{request_id}", response_class=HTMLResponse)
+async def debug_mobile_request(
+    request: Request,
+    request_id: int,
+    db: Session = Depends(get_db)
+):
+    """Debug endpoint for mobile request access issues"""
+    user_agent = request.headers.get("User-Agent", "")
+    client_ip = request.client.host if request.client else "unknown"
+    is_mobile = any(mobile_indicator in user_agent.lower() for mobile_indicator in
+                   ['mobile', 'android', 'iphone', 'ipad', 'tablet'])
+
+    debug_info = {
+        "request_id": request_id,
+        "user_agent": user_agent,
+        "client_ip": client_ip,
+        "is_mobile": is_mobile,
+        "cookies": dict(request.cookies),
+        "headers": dict(request.headers),
+        "url": str(request.url),
+        "method": request.method
+    }
+
+    # Try to get current user
+    try:
+        current_user = await get_current_user_cookie(request, db)
+        debug_info["current_user"] = {
+            "id": current_user.id if current_user else None,
+            "username": current_user.username if current_user else None,
+            "role": current_user.role.value if current_user else None,
+            "is_admin": current_user.role == UserRole.ADMIN if current_user else None
+        }
+    except Exception as e:
+        debug_info["auth_error"] = str(e)
+        debug_info["current_user"] = None
+
+    # Try to get the request
+    try:
+        req = RequestService.get_request_by_id(db, request_id)
+        debug_info["request_found"] = req is not None
+        if req:
+            debug_info["request_info"] = {
+                "id": req.id,
+                "user_id": req.user_id,
+                "request_number": req.request_number,
+                "status": req.status.value
+            }
+    except Exception as e:
+        debug_info["request_error"] = str(e)
+        debug_info["request_found"] = False
+
+    logger.info(f"Mobile debug info: {debug_info}")
+
+    return templates.TemplateResponse(
+        "debug/mobile_debug.html",
+        {
+            "request": request,
+            "debug_info": debug_info
+        }
+    )
 
 
 @router.get("/dashboard", response_class=HTMLResponse)
@@ -566,9 +681,20 @@ async def view_request(
     db: Session = Depends(get_db)
 ):
     """View request details by ID"""
+    # Enhanced logging for mobile debugging
+    user_agent = request.headers.get("User-Agent", "")
+    client_ip = request.client.host if request.client else "unknown"
+    is_mobile = any(mobile_indicator in user_agent.lower() for mobile_indicator in
+                   ['mobile', 'android', 'iphone', 'ipad', 'tablet'])
+
+    logger.info(f"Request access attempt - ID: {request_id}, User: {current_user.username if current_user else 'None'}, "
+               f"IP: {client_ip}, Mobile: {is_mobile}, UA: {user_agent[:100]}...")
+
     req = RequestService.get_request_by_id(db, request_id)
 
     if not req:
+        logger.warning(f"Request {request_id} not found - User: {current_user.username if current_user else 'None'}, "
+                      f"Mobile: {is_mobile}, IP: {client_ip}")
         return templates.TemplateResponse(
             "errors/404.html",
             {"request": request, "current_user": current_user},
@@ -577,12 +703,15 @@ async def view_request(
 
     # Check if user can view this request
     if current_user.role != UserRole.ADMIN and req.user_id != current_user.id:
+        logger.warning(f"Access denied to request {request_id} - User: {current_user.username}, "
+                      f"Request Owner: {req.user_id}, Mobile: {is_mobile}")
         return templates.TemplateResponse(
             "errors/403.html",
             {"request": request, "current_user": current_user},
             status_code=403
         )
 
+    logger.info(f"Request {request_id} accessed successfully - User: {current_user.username}, Mobile: {is_mobile}")
     return templates.TemplateResponse(
         "requests/view_request.html",
         {
@@ -842,6 +971,66 @@ async def user_bulk_request_action(
             },
             status_code=500
         )
+
+
+@router.delete("/requests/{request_id}")
+async def delete_request_user(
+    request_id: int,
+    current_user: User = Depends(get_current_user_cookie),
+    db: Session = Depends(get_db)
+):
+    """Delete request - User can only delete their own requests"""
+    # Get the request to verify it exists and check ownership
+    req = RequestService.get_request_by_id(db, request_id)
+    if not req:
+        raise HTTPException(status_code=404, detail="Request not found")
+
+    # Check permissions - only admin or request owner can delete
+    if current_user.role != UserRole.ADMIN and req.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to delete this request")
+
+    # Log the deletion attempt
+    logger.info(f"User {current_user.username} attempting to delete request {request_id}")
+
+    # Delete the request
+    success = RequestService.delete_request(db, request_id)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to delete request")
+
+    # Log successful deletion
+    logger.info(f"User {current_user.username} successfully deleted request {request_id}")
+
+    return {"success": True, "message": "Request deleted successfully"}
+
+
+@router.post("/requests/{request_id}/delete")
+async def delete_request_user_post(
+    request_id: int,
+    current_user: User = Depends(get_current_user_cookie),
+    db: Session = Depends(get_db)
+):
+    """Delete request via POST - User can only delete their own requests"""
+    # Get the request to verify it exists and check ownership
+    req = RequestService.get_request_by_id(db, request_id)
+    if not req:
+        raise HTTPException(status_code=404, detail="Request not found")
+
+    # Check permissions - only admin or request owner can delete
+    if current_user.role != UserRole.ADMIN and req.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to delete this request")
+
+    # Log the deletion attempt
+    logger.info(f"User {current_user.username} attempting to delete request {request_id}")
+
+    # Delete the request
+    success = RequestService.delete_request(db, request_id)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to delete request")
+
+    # Log successful deletion
+    logger.info(f"User {current_user.username} successfully deleted request {request_id}")
+
+    return RedirectResponse(url="/requests?message=Request deleted successfully", status_code=303)
 
 
 @router.post("/requests/{request_id}/update-status")

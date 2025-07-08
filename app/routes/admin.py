@@ -919,6 +919,12 @@ async def get_request_files_api(
         )
 
 
+@router.get("/requests/{request_id}")
+async def redirect_admin_request_view(request_id: int):
+    """Redirect old admin request URLs to the correct view URL"""
+    return RedirectResponse(url=f"/admin/requests/{request_id}/view", status_code=301)
+
+
 @router.get("/requests/{request_id}/view", response_class=HTMLResponse)
 async def view_request_admin(
     request: Request,
@@ -985,6 +991,58 @@ async def edit_request_admin(
             "statuses": [s.value for s in RequestStatus]
         }
     )
+
+
+@router.delete("/requests/{request_id}")
+async def delete_request_admin(
+    request_id: int,
+    current_user: User = Depends(require_admin_cookie),
+    db: Session = Depends(get_db)
+):
+    """Delete request - Admin only"""
+    # Get the request to verify it exists
+    req = RequestService.get_request_by_id(db, request_id)
+    if not req:
+        raise HTTPException(status_code=404, detail="Request not found")
+
+    # Log the deletion attempt
+    logger.info(f"Admin {current_user.username} attempting to delete request {request_id}")
+
+    # Delete the request
+    success = RequestService.delete_request(db, request_id)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to delete request")
+
+    # Log successful deletion
+    logger.info(f"Admin {current_user.username} successfully deleted request {request_id}")
+
+    return {"success": True, "message": "Request deleted successfully"}
+
+
+@router.post("/requests/{request_id}/delete")
+async def delete_request_admin_post(
+    request_id: int,
+    current_user: User = Depends(require_admin_cookie),
+    db: Session = Depends(get_db)
+):
+    """Delete request via POST - Admin only (for form submission)"""
+    # Get the request to verify it exists
+    req = RequestService.get_request_by_id(db, request_id)
+    if not req:
+        raise HTTPException(status_code=404, detail="Request not found")
+
+    # Log the deletion attempt
+    logger.info(f"Admin {current_user.username} attempting to delete request {request_id}")
+
+    # Delete the request
+    success = RequestService.delete_request(db, request_id)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to delete request")
+
+    # Log successful deletion
+    logger.info(f"Admin {current_user.username} successfully deleted request {request_id}")
+
+    return RedirectResponse(url="/admin/requests?message=Request deleted successfully", status_code=303)
 
 
 @router.post("/requests/{request_id}/edit")

@@ -11,6 +11,9 @@ from app.models.activity import ActivityType
 from app.config import settings
 from pydantic import BaseModel, EmailStr
 from typing import Optional
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")

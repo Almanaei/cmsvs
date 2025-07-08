@@ -10,22 +10,7 @@
     z-index: 1000;
 }
 
-.brand-logo {
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-weight: 800;
-    font-size: 1.5rem;
-    letter-spacing: -0.025em;
-}
 
-.brand-subtitle {
-    color: #64748b;
-    font-size: 0.75rem;
-    font-weight: 500;
-    margin-top: 2px;
-}
 
 .nav-item {
     position: relative;
@@ -186,12 +171,9 @@
 }
 
 @media (max-width: 768px) {
-    .brand-logo {
-        font-size: 1.25rem;
-    }
-
-    .brand-subtitle {
-        font-size: 0.6875rem;
+    /* Logo responsive adjustments */
+    .enhanced-header img {
+        max-height: 32px;
     }
 }
 </style>
@@ -201,10 +183,10 @@
         <div class="flex justify-between items-center h-16">
             <!-- Enhanced Brand -->
             <a href="/" class="flex items-center space-x-3 rtl:space-x-reverse group">
-                <div class="text-right">
-                    <div class="brand-logo">CMSVS</div>
-                    <div class="brand-subtitle">نظام الأرشفة الداخلي</div>
-                </div>
+                <img src="/static/logo_cmsvs.png"
+                     alt="CMSVS - نظام الأرشفة الداخلي"
+                     class="h-10 w-auto transition-transform duration-200 group-hover:scale-105"
+                     style="max-height: 40px;">
             </a>
 
             <!-- Enhanced Mobile Toggle Button -->

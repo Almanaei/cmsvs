@@ -17,6 +17,109 @@
     <!-- Alpine.js for interactive components -->
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
+    <!-- Global Event Listener Manager -->
+    <script>
+    // Global Event Listener Manager to prevent conflicts and memory leaks
+    window.EventListenerManager = (function() {
+        const listeners = new Map();
+        let listenerIdCounter = 0;
+
+        function addListener(element, event, handler, options = false) {
+            const listenerId = ++listenerIdCounter;
+            const listenerInfo = {
+                element: element,
+                event: event,
+                handler: handler,
+                options: options
+            };
+
+            listeners.set(listenerId, listenerInfo);
+            element.addEventListener(event, handler, options);
+
+            return listenerId;
+        }
+
+        function removeListener(listenerId) {
+            const listenerInfo = listeners.get(listenerId);
+            if (listenerInfo) {
+                listenerInfo.element.removeEventListener(
+                    listenerInfo.event,
+                    listenerInfo.handler,
+                    listenerInfo.options
+                );
+                listeners.delete(listenerId);
+                return true;
+            }
+            return false;
+        }
+
+        function removeAllListeners() {
+            listeners.forEach((listenerInfo, listenerId) => {
+                listenerInfo.element.removeEventListener(
+                    listenerInfo.event,
+                    listenerInfo.handler,
+                    listenerInfo.options
+                );
+            });
+            listeners.clear();
+        }
+
+        function getActiveListenersCount() {
+            return listeners.size;
+        }
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', removeAllListeners);
+
+        return {
+            add: addListener,
+            remove: removeListener,
+            removeAll: removeAllListeners,
+            getCount: getActiveListenersCount
+        };
+    })();
+
+    // Global dropdown state manager
+    window.DropdownStateManager = (function() {
+        const activeDropdowns = new Set();
+
+        function addActiveDropdown(dropdownId) {
+            activeDropdowns.add(dropdownId);
+        }
+
+        function removeActiveDropdown(dropdownId) {
+            activeDropdowns.delete(dropdownId);
+        }
+
+        function closeAllDropdowns() {
+            activeDropdowns.forEach(dropdownId => {
+                const dropdown = document.getElementById(dropdownId);
+                if (dropdown) {
+                    dropdown.classList.add('hidden');
+
+                    // Remove dropdown-open class from table if exists
+                    const table = dropdown.closest('table');
+                    if (table) {
+                        table.classList.remove('dropdown-open');
+                    }
+                }
+            });
+            activeDropdowns.clear();
+        }
+
+        function getActiveDropdowns() {
+            return Array.from(activeDropdowns);
+        }
+
+        return {
+            add: addActiveDropdown,
+            remove: removeActiveDropdown,
+            closeAll: closeAllDropdowns,
+            getActive: getActiveDropdowns
+        };
+    })();
+    </script>
+
     <!-- Arabic Font Support -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

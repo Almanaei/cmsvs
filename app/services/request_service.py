@@ -110,18 +110,21 @@ class RequestService:
     
     @staticmethod
     def get_request_by_id(db: Session, request_id: int) -> Optional[Request]:
-        """Get request by ID"""
-        return db.query(Request).filter(Request.id == request_id).first()
+        """Get request by ID with files loaded"""
+        from sqlalchemy.orm import joinedload
+        return db.query(Request).options(joinedload(Request.files)).filter(Request.id == request_id).first()
     
     @staticmethod
     def get_request_by_number(db: Session, request_number: str) -> Optional[Request]:
-        """Get request by request number"""
-        return db.query(Request).filter(Request.request_number == request_number).first()
+        """Get request by request number with files loaded"""
+        from sqlalchemy.orm import joinedload
+        return db.query(Request).options(joinedload(Request.files)).filter(Request.request_number == request_number).first()
 
     @staticmethod
     def get_request_by_unique_code(db: Session, unique_code: str) -> Optional[Request]:
-        """Get request by unique code"""
-        return db.query(Request).filter(Request.unique_code == unique_code).first()
+        """Get request by unique code with files loaded"""
+        from sqlalchemy.orm import joinedload
+        return db.query(Request).options(joinedload(Request.files)).filter(Request.unique_code == unique_code).first()
 
     @staticmethod
     def search_requests(
@@ -164,7 +167,8 @@ class RequestService:
         search_query: Optional[str] = None
     ) -> List[Request]:
         """Get requests for a specific user with optional search"""
-        query = db.query(Request).filter(Request.user_id == user_id)
+        from sqlalchemy.orm import joinedload
+        query = db.query(Request).options(joinedload(Request.files)).filter(Request.user_id == user_id)
 
         # Search functionality
         if search_query:
@@ -200,7 +204,8 @@ class RequestService:
         date_to: Optional[date] = None
     ) -> List[Request]:
         """Enhanced user requests with status filtering and better search"""
-        query = db.query(Request).filter(Request.user_id == user_id)
+        from sqlalchemy.orm import joinedload
+        query = db.query(Request).options(joinedload(Request.files)).filter(Request.user_id == user_id)
 
         # Status filter
         if status:
@@ -355,7 +360,8 @@ class RequestService:
         logger = logging.getLogger(__name__)
 
         try:
-            query = db.query(Request)
+            from sqlalchemy.orm import joinedload
+            query = db.query(Request).options(joinedload(Request.files))
 
             if status:
                 query = query.filter(Request.status == status)

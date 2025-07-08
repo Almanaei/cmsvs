@@ -119,12 +119,36 @@
 }
 
 .dropdown-menu {
-    background: rgba(255, 255, 255, 0.95);
+    background: #ffffff !important;
     backdrop-filter: blur(10px);
     border: 1px solid #e2e8f0;
     border-radius: 12px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
     overflow: hidden;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Ensure dropdown is completely opaque when visible */
+.dropdown-menu:not(.hidden) {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: block !important;
+}
+
+.dropdown-menu.hidden {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    display: none !important;
+}
+
+/* Fix opacity transitions */
+.dropdown-menu.opacity-0 {
+    opacity: 0 !important;
+}
+
+.dropdown-menu.opacity-100 {
+    opacity: 1 !important;
 }
 
 .dropdown-item {
@@ -243,10 +267,11 @@
 
                 <!-- Enhanced User Menu -->
                 {% if current_user %}
-                <div class="relative ml-3" x-data="{ open: false }">
+                <div class="relative ml-3" id="user-menu-container">
                     <button type="button"
                             class="user-menu-button focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            @click="open = !open">
+                            id="user-menu-button"
+                            onclick="toggleUserMenu()">
                         <div class="user-avatar">
                             {{ current_user.full_name[0] if current_user.full_name else 'م' }}
                         </div>
@@ -260,20 +285,12 @@
                                 {% endif %}
                             </div>
                         </div>
-                        <svg class="h-4 w-4 text-gray-400 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg id="user-menu-arrow" class="h-4 w-4 text-gray-400 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
                     </button>
 
-                    <ul class="dropdown-menu absolute left-0 mt-3 w-52 py-2 z-50"
-                        x-show="open"
-                        @click.away="open = false"
-                        x-transition:enter="transition ease-out duration-200"
-                        x-transition:enter-start="transform opacity-0 scale-95 translate-y-1"
-                        x-transition:enter-end="transform opacity-100 scale-100 translate-y-0"
-                        x-transition:leave="transition ease-in duration-150"
-                        x-transition:leave-start="transform opacity-100 scale-100 translate-y-0"
-                        x-transition:leave-end="transform opacity-0 scale-95 translate-y-1">
+                    <ul id="user-dropdown-menu" class="dropdown-menu absolute left-0 mt-3 w-52 py-2 z-50 hidden opacity-0 scale-95 translate-y-1 transition-all duration-200">
                         <li>
                             <a href="/profile" class="dropdown-item flex items-center">
                                 <i class="fas fa-user text-gray-400 ml-3 w-4"></i>
@@ -352,13 +369,99 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Enhanced dropdown animation
-    const userMenuButton = document.querySelector('.user-menu-button');
-    if (userMenuButton) {
-        userMenuButton.addEventListener('click', function() {
-            const arrow = this.querySelector('svg');
-            arrow.style.transform = arrow.style.transform === 'rotate(180deg)' ? 'rotate(0deg)' : 'rotate(180deg)';
-        });
-    }
 });
+
+// User dropdown menu functionality
+function toggleUserMenu() {
+    const dropdown = document.getElementById('user-dropdown-menu');
+    const arrow = document.getElementById('user-menu-arrow');
+
+    if (dropdown.classList.contains('hidden')) {
+        // Show dropdown
+        dropdown.classList.remove('hidden');
+        setTimeout(() => {
+            dropdown.classList.remove('opacity-0', 'scale-95', 'translate-y-1');
+            dropdown.classList.add('opacity-100', 'scale-100', 'translate-y-0');
+        }, 10);
+        arrow.style.transform = 'rotate(180deg)';
+    } else {
+        // Hide dropdown
+        dropdown.classList.remove('opacity-100', 'scale-100', 'translate-y-0');
+        dropdown.classList.add('opacity-0', 'scale-95', 'translate-y-1');
+        setTimeout(() => {
+            dropdown.classList.add('hidden');
+        }, 200);
+        arrow.style.transform = 'rotate(0deg)';
+    }
+}
+
+
+
+// User dropdown management with proper cleanup
+(function() {
+    let isInitialized = false;
+
+    function closeUserDropdown() {
+        const dropdown = document.getElementById('user-dropdown-menu');
+        const arrow = document.getElementById('user-menu-arrow');
+
+        if (dropdown && !dropdown.classList.contains('hidden')) {
+            dropdown.classList.remove('opacity-100', 'scale-100', 'translate-y-0');
+            dropdown.classList.add('opacity-0', 'scale-95', 'translate-y-1');
+            setTimeout(() => {
+                dropdown.classList.add('hidden');
+            }, 200);
+            if (arrow) {
+                arrow.style.transform = 'rotate(0deg)';
+            }
+        }
+    }
+
+    function handleOutsideClick(event) {
+        const userMenuContainer = document.getElementById('user-menu-container');
+
+        if (userMenuContainer && !userMenuContainer.contains(event.target)) {
+            closeUserDropdown();
+        }
+    }
+
+    function handleEscapeKey(event) {
+        if (event.key === 'Escape') {
+            closeUserDropdown();
+        }
+    }
+
+    function initializeUserDropdownListeners() {
+        if (isInitialized) return;
+
+        // Add event listeners
+        document.addEventListener('click', handleOutsideClick);
+        document.addEventListener('keydown', handleEscapeKey);
+
+        isInitialized = true;
+    }
+
+    function cleanupUserDropdownListeners() {
+        if (!isInitialized) return;
+
+        // Remove event listeners
+        document.removeEventListener('click', handleOutsideClick);
+        document.removeEventListener('keydown', handleEscapeKey);
+
+        isInitialized = false;
+    }
+
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeUserDropdownListeners);
+    } else {
+        initializeUserDropdownListeners();
+    }
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', cleanupUserDropdownListeners);
+
+    // Expose cleanup function globally for manual cleanup if needed
+    window.cleanupUserDropdown = cleanupUserDropdownListeners;
+})();
 </script>

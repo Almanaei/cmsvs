@@ -3,6 +3,70 @@
 {% block title %}لوحة التحكم - CMSVS{% endblock %}
 
 {% block content %}
+<style>
+/* Table hover effects management */
+.table tbody tr:hover {
+    background-color: #f9fafb;
+}
+
+/* Disable hover effects when dropdown is open */
+.table.dropdown-open tbody tr:hover {
+    background-color: transparent !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.table.dropdown-open tbody td:hover {
+    background-color: transparent !important;
+    transform: none !important;
+    box-shadow: none !important;
+    z-index: 1 !important;
+}
+
+.table.dropdown-open tbody tr {
+    z-index: 1 !important;
+}
+
+.table.dropdown-open tbody td {
+    z-index: 1 !important;
+}
+
+/* Ensure dropdown is completely opaque and visible */
+.dropdown-menu {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.dropdown-menu.hidden {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+/* Force dropdown to be visible when shown */
+.dropdown-menu:not(.hidden) {
+    display: block !important;
+    z-index: 999999 !important;
+    position: fixed !important;
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Fix any ring opacity conflicts */
+.dropdown-menu * {
+    opacity: 1 !important;
+}
+
+/* Ensure dropdown items are fully visible */
+.dropdown-menu a,
+.dropdown-menu button,
+.dropdown-menu div {
+    opacity: 1 !important;
+}
+</style>
+
 <div class="space-y-6">
     <!-- Welcome Header -->
     <div class="flex justify-between items-center">
@@ -141,7 +205,7 @@
                                                     <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path>
                                                 </svg>
                                             </button>
-                                            <div id="dropdown-{{ req.id }}" class="hidden absolute w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+                                            <div id="dropdown-{{ req.id }}" class="hidden w-48 rounded-md shadow-lg bg-white border border-gray-200">
                                                 <div class="py-1">
                                                     <div class="px-4 py-2 text-xs text-gray-500 border-b">إجراءات الطلب</div>
 
@@ -275,8 +339,20 @@ function toggleDropdown(requestId, event) {
         // Position dropdown intelligently
         positionDropdown(dropdown, event.target);
         dropdown.classList.remove('hidden');
+
+        // Add class to table to disable hover effects
+        const table = dropdown.closest('table');
+        if (table) {
+            table.classList.add('dropdown-open');
+        }
     } else {
         dropdown.classList.add('hidden');
+
+        // Remove class from table to re-enable hover effects
+        const table = dropdown.closest('table');
+        if (table) {
+            table.classList.remove('dropdown-open');
+        }
     }
 
     // Prevent page scrolling
@@ -289,95 +365,132 @@ function positionDropdown(dropdown, button) {
     dropdown.classList.remove('mt-2', 'mb-2');
     dropdown.style.width = '';
 
+    // Ensure proper styling
+    dropdown.style.position = 'fixed';
+    dropdown.style.zIndex = '999999';
+    dropdown.style.backgroundColor = '#ffffff';
+    dropdown.style.background = '#ffffff';
+    dropdown.style.opacity = '1';
+    dropdown.style.visibility = 'visible';
+
     // Get button and viewport dimensions
     const buttonRect = button.getBoundingClientRect();
     const dropdownWidth = 192; // w-48 = 12rem = 192px (smaller for user dashboard)
     const dropdownHeight = 120; // Estimated dropdown height (smaller for user dashboard)
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
-    const tableContainer = button.closest('.table-container') || button.closest('table');
 
-    // Check horizontal space
+    // Calculate horizontal position
+    let leftPosition;
     const spaceOnRight = viewportWidth - buttonRect.right;
-    const spaceOnLeft = buttonRect.left;
+    if (spaceOnRight >= dropdownWidth) {
+        // Enough space on the right
+        leftPosition = buttonRect.left;
+    } else {
+        // Not enough space on right, align to right edge of button
+        leftPosition = buttonRect.right - dropdownWidth;
+    }
+    // Ensure it doesn't go off-screen
+    leftPosition = Math.max(10, Math.min(leftPosition, viewportWidth - dropdownWidth - 10));
 
-    // Check vertical space
+    dropdown.style.left = leftPosition + 'px';
+    dropdown.style.width = dropdownWidth + 'px';
+
+    // Calculate vertical position
     const spaceBelow = viewportHeight - buttonRect.bottom;
     const spaceAbove = buttonRect.top;
 
-    // Determine horizontal positioning
-    let horizontalClass = '';
-    let horizontalOrigin = '';
-
-    if (spaceOnRight >= dropdownWidth) {
-        // Enough space on the right, position normally
-        horizontalClass = 'left-0';
-        horizontalOrigin = 'left';
-    } else if (spaceOnLeft >= dropdownWidth) {
-        // Not enough space on right, position on the left
-        horizontalClass = 'right-0';
-        horizontalOrigin = 'right';
+    if (spaceBelow >= dropdownHeight || spaceBelow > spaceAbove) {
+        // Position below button
+        dropdown.style.top = (buttonRect.bottom + 5) + 'px';
+        dropdown.style.bottom = 'auto';
     } else {
-        // Very narrow viewport, position to fit within screen
-        horizontalClass = 'right-0';
-        horizontalOrigin = 'right';
-        dropdown.style.width = Math.min(dropdownWidth, spaceOnLeft - 10) + 'px';
-    }
-
-    // Determine vertical positioning
-    let verticalClass = '';
-    let verticalOrigin = '';
-
-    if (spaceBelow >= dropdownHeight) {
-        // Enough space below, position normally (dropdown opens downward)
-        verticalClass = 'mt-2';
-        verticalOrigin = 'top';
-    } else if (spaceAbove >= dropdownHeight) {
-        // Not enough space below, position above (dropdown opens upward)
-        verticalClass = 'mb-2';
-        verticalOrigin = 'bottom';
-        // Position the dropdown above the button
-        dropdown.style.bottom = '100%';
+        // Position above button
+        dropdown.style.bottom = (viewportHeight - buttonRect.top + 5) + 'px';
         dropdown.style.top = 'auto';
-    } else {
-        // Very little space in both directions, position where there's more space
-        if (spaceBelow > spaceAbove) {
-            verticalClass = 'mt-2';
-            verticalOrigin = 'top';
-        } else {
-            verticalClass = 'mb-2';
-            verticalOrigin = 'bottom';
-            dropdown.style.bottom = '100%';
-            dropdown.style.top = 'auto';
-        }
     }
 
-    // Apply classes
-    dropdown.classList.add(horizontalClass, verticalClass, `origin-${verticalOrigin}-${horizontalOrigin}`);
+    // Ensure dropdown is visible
+    dropdown.style.visibility = 'visible';
+    dropdown.style.opacity = '1';
 }
 
-// Close dropdowns when clicking outside
-document.addEventListener('click', function(event) {
-    const dropdowns = document.querySelectorAll('[id^="dropdown-"]');
-    const clickedButton = event.target.closest('button[onclick*="toggleDropdown"]');
+// Dropdown management with proper cleanup
+(function() {
+    let isInitialized = false;
 
-    dropdowns.forEach(dropdown => {
-        // Don't close if clicking on the dropdown itself or its toggle button
-        if (!dropdown.contains(event.target) && !clickedButton) {
+    function closeAllDropdowns() {
+        document.querySelectorAll('[id^="dropdown-"]').forEach(dropdown => {
             dropdown.classList.add('hidden');
-        }
-    });
-});
 
-// Prevent scrolling when pressing space or enter on dropdown buttons
-document.addEventListener('keydown', function(event) {
-    const target = event.target;
-    if (target.tagName === 'BUTTON' && target.onclick && target.onclick.toString().includes('toggleDropdown')) {
-        if (event.key === ' ' || event.key === 'Enter') {
-            event.preventDefault();
-            target.click();
+            // Remove dropdown-open class from table
+            const table = dropdown.closest('table');
+            if (table) {
+                table.classList.remove('dropdown-open');
+            }
+        });
+    }
+
+    function handleOutsideClick(event) {
+        const dropdowns = document.querySelectorAll('[id^="dropdown-"]');
+        const clickedButton = event.target.closest('button[onclick*="toggleDropdown"]');
+
+        dropdowns.forEach(dropdown => {
+            // Don't close if clicking on the dropdown itself or its toggle button
+            if (!dropdown.contains(event.target) && !clickedButton) {
+                dropdown.classList.add('hidden');
+
+                // Remove dropdown-open class from table
+                const table = dropdown.closest('table');
+                if (table) {
+                    table.classList.remove('dropdown-open');
+                }
+            }
+        });
+    }
+
+    function handleKeydown(event) {
+        const target = event.target;
+        if (target.tagName === 'BUTTON' && target.onclick && target.onclick.toString().includes('toggleDropdown')) {
+            if (event.key === ' ' || event.key === 'Enter') {
+                event.preventDefault();
+                target.click();
+            }
         }
     }
-});
+
+    function initializeDropdownListeners() {
+        if (isInitialized) return;
+
+        // Add event listeners
+        document.addEventListener('click', handleOutsideClick);
+        document.addEventListener('keydown', handleKeydown);
+
+        isInitialized = true;
+    }
+
+    function cleanupDropdownListeners() {
+        if (!isInitialized) return;
+
+        // Remove event listeners
+        document.removeEventListener('click', handleOutsideClick);
+        document.removeEventListener('keydown', handleKeydown);
+
+        isInitialized = false;
+    }
+
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeDropdownListeners);
+    } else {
+        initializeDropdownListeners();
+    }
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', cleanupDropdownListeners);
+
+    // Expose cleanup function globally for manual cleanup if needed
+    window.cleanupUserDashboardDropdowns = cleanupDropdownListeners;
+})();
 </script>
 {% endblock %}

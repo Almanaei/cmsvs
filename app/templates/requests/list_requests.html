@@ -10,10 +10,13 @@
 }
 
 .table-dropdown .dropdown-menu {
-    position: absolute;
-    z-index: 1000;
+    position: fixed;
+    z-index: 999999;
     min-width: 14rem;
     max-width: 16rem;
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    opacity: 1 !important;
 }
 
 /* Support for upward dropdown positioning */
@@ -47,6 +50,147 @@
 /* Ensure table rows can contain positioned dropdowns */
 .table tbody tr {
     position: relative;
+    z-index: 1;
+}
+
+/* Add hover effects for table rows */
+.table tbody tr:hover {
+    background-color: #f9fafb;
+}
+
+/* Disable hover effects when dropdown is open */
+.table tbody tr:hover:has(.dropdown-menu:not(.hidden)) {
+    background-color: transparent;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Ensure table cells don't interfere with open dropdowns */
+.table tbody td:hover:has(.dropdown-menu:not(.hidden)) {
+    background-color: transparent;
+    transform: none !important;
+    box-shadow: none !important;
+    z-index: 1 !important;
+}
+
+/* When any dropdown is open, reduce z-index of all table elements */
+.table:has(.dropdown-menu:not(.hidden)) tbody tr {
+    z-index: 1 !important;
+}
+
+.table:has(.dropdown-menu:not(.hidden)) tbody td {
+    z-index: 1 !important;
+}
+
+/* Alternative approach using class-based control */
+.table.dropdown-open tbody tr:hover {
+    background-color: transparent !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.table.dropdown-open tbody td:hover {
+    background-color: transparent !important;
+    transform: none !important;
+    box-shadow: none !important;
+    z-index: 1 !important;
+}
+
+.table.dropdown-open tbody tr {
+    z-index: 1 !important;
+}
+
+.table.dropdown-open tbody td {
+    z-index: 1 !important;
+}
+
+/* Force dropdown to be visible when shown with solid background */
+.dropdown-menu:not(.hidden) {
+    display: block !important;
+    z-index: 999999 !important;
+    position: fixed !important;
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    backdrop-filter: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 0.375rem !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+    min-width: 200px !important;
+    max-width: 300px !important;
+    white-space: nowrap !important;
+}
+
+/* Ensure dropdown is always positioned as overlay, never inline */
+.dropdown-menu {
+    position: fixed !important;
+    display: none !important;
+}
+
+/* Ensure dropdown is completely opaque and visible */
+.dropdown-menu {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.dropdown-menu.hidden {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+/* Fix any ring opacity conflicts */
+.dropdown-menu * {
+    opacity: 1 !important;
+}
+
+/* Ensure dropdown items are fully visible */
+.dropdown-menu a,
+.dropdown-menu button,
+.dropdown-menu div {
+    opacity: 1 !important;
+    color: #374151 !important;
+}
+
+/* Ensure dropdown appears above everything */
+.dropdown-menu {
+    z-index: 999999 !important;
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    opacity: 1 !important;
+}
+
+/* When dropdown is open, ensure proper layering */
+.table-dropdown.show {
+    z-index: 999998 !important;
+    position: relative;
+}
+
+/* Ensure table container doesn't clip dropdowns */
+.table-container {
+    overflow: visible !important;
+}
+
+/* Fix table overflow issues that might hide dropdowns */
+.table-container.has-open-dropdown {
+    overflow: visible !important;
+    position: static !important;
+}
+
+/* Ensure dropdown items have proper styling */
+.dropdown-menu a {
+    display: block !important;
+    padding: 0.5rem 1rem !important;
+    text-decoration: none !important;
+    color: #374151 !important;
+    font-size: 0.875rem !important;
+    transition: background-color 0.15s ease-in-out !important;
+}
+
+.dropdown-menu a:hover {
+    background-color: #f3f4f6 !important;
+    color: #1f2937 !important;
 }
 
 /* Responsive table styling */
@@ -571,6 +715,7 @@ body {
                                 {% elif req.status.value == 'rejected' %}
                                 <span class="badge-danger">مرفوض</span>
                                 {% endif %}
+                            </td>
                             <td class="table-cell">
                                 {% if req.files %}
                                 <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
@@ -585,13 +730,13 @@ body {
                             </td>
                             <td class="table-cell">
                                 <div class="table-dropdown">
-                                    <button onclick="toggleDropdown({{ req.id }})" class="btn-secondary text-sm">
+                                    <button onclick="toggleDropdown({{ req.id }}, event)" class="btn-secondary text-sm">
                                         الإجراءات
                                         <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                         </svg>
                                     </button>
-                                    <div id="dropdown-{{ req.id }}" class="dropdown-menu hidden mt-2 bg-white rounded-md shadow-lg border border-gray-200">
+                                    <div id="dropdown-{{ req.id }}" class="dropdown-menu hidden absolute mt-2 bg-white rounded-md shadow-lg border border-gray-200 z-50">
                                         <a href="/requests/{{ req.id }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">عرض التفاصيل</a>
                                         {% if req.status.value in ['pending', 'in_progress'] %}
                                         <a href="/requests/{{ req.id }}/edit" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">تعديل</a>
@@ -672,20 +817,177 @@ body {
             }
         }
 
-        // Toggle dropdown
-        function toggleDropdown(requestId) {
-            const dropdown = document.getElementById('dropdown-' + requestId);
-            const allDropdowns = document.querySelectorAll('[id^="dropdown-"]');
+        // Toggle dropdown with intelligent positioning
+        function toggleDropdown(requestId, event) {
+            // Prevent default behavior and stop propagation
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
 
-            // Close all other dropdowns
-            allDropdowns.forEach(d => {
-                if (d.id !== 'dropdown-' + requestId) {
-                    d.classList.add('hidden');
+            const dropdownId = 'dropdown-' + requestId;
+            const dropdown = document.getElementById(dropdownId);
+            if (!dropdown) return false;
+
+            const isHidden = dropdown.classList.contains('hidden');
+
+            // Close all other dropdowns using global state manager
+            if (window.DropdownStateManager) {
+                window.DropdownStateManager.closeAll();
+            } else {
+                // Fallback
+                const allDropdowns = document.querySelectorAll('[id^="dropdown-"]');
+                allDropdowns.forEach(d => {
+                    if (d.id !== dropdownId) {
+                        d.classList.add('hidden');
+                        d.style.display = 'none';
+                        // Remove table container overflow fix
+                        const tableContainer = d.closest('.table-container');
+                        if (tableContainer) {
+                            tableContainer.classList.remove('has-open-dropdown');
+                        }
+                    }
+                });
+            }
+
+            if (isHidden) {
+                // Fix table container overflow to prevent clipping
+                const tableContainer = dropdown.closest('.table-container');
+                if (tableContainer) {
+                    tableContainer.classList.add('has-open-dropdown');
                 }
-            });
 
-            // Toggle current dropdown
-            dropdown.classList.toggle('hidden');
+                // Move dropdown to body to ensure it's not clipped by table
+                if (dropdown.parentElement !== document.body) {
+                    // Store original parent for cleanup
+                    dropdown.setAttribute('data-original-parent', dropdown.parentElement.id || 'table-cell');
+                    document.body.appendChild(dropdown);
+                }
+
+                // Position dropdown intelligently
+                positionDropdown(dropdown, event ? event.target : document.querySelector(`button[onclick*="${requestId}"]`));
+                dropdown.classList.remove('hidden');
+                dropdown.style.display = 'block';
+
+                // Add to global state manager
+                if (window.DropdownStateManager) {
+                    window.DropdownStateManager.add(dropdownId);
+                }
+
+                // Add class to table to disable hover effects
+                const table = document.querySelector('table');
+                if (table) {
+                    table.classList.add('dropdown-open');
+                }
+            } else {
+                dropdown.classList.add('hidden');
+                dropdown.style.display = 'none';
+
+                // Remove table container overflow fix
+                const tableContainer = document.querySelector('.table-container');
+                if (tableContainer) {
+                    tableContainer.classList.remove('has-open-dropdown');
+                }
+
+                // Remove from global state manager
+                if (window.DropdownStateManager) {
+                    window.DropdownStateManager.remove(dropdownId);
+                }
+
+                // Remove class from table to re-enable hover effects
+                const table = document.querySelector('table');
+                if (table) {
+                    table.classList.remove('dropdown-open');
+                }
+            }
+
+            // Prevent page scrolling
+            return false;
+        }
+
+        // Position dropdown function
+        function positionDropdown(dropdown, button) {
+            // Force fixed positioning and reset any custom positioning
+            dropdown.style.position = 'fixed';
+            dropdown.style.left = '';
+            dropdown.style.right = '';
+            dropdown.style.top = '';
+            dropdown.style.bottom = '';
+            dropdown.style.transform = '';
+            dropdown.style.display = 'block';
+
+            // Get button position relative to viewport
+            const buttonRect = button.getBoundingClientRect();
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+
+            // Set essential dropdown styles for overlay positioning
+            dropdown.style.zIndex = '999999';
+            dropdown.style.backgroundColor = '#ffffff';
+            dropdown.style.background = '#ffffff';
+            dropdown.style.opacity = '1';
+            dropdown.style.visibility = 'visible';
+            dropdown.style.border = '1px solid #e5e7eb';
+            dropdown.style.borderRadius = '0.375rem';
+            dropdown.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+            dropdown.style.whiteSpace = 'nowrap';
+
+            // Measure dropdown dimensions
+            const dropdownWidth = Math.max(200, dropdown.offsetWidth);
+            const dropdownHeight = dropdown.offsetHeight;
+
+            // Calculate horizontal position
+            let leftPosition;
+            if (viewportWidth < 768) {
+                // Mobile: center relative to button
+                const buttonCenter = buttonRect.left + (buttonRect.width / 2);
+                leftPosition = Math.max(10, Math.min(buttonCenter - (dropdownWidth / 2), viewportWidth - dropdownWidth - 10));
+            } else {
+                // Desktop: position relative to button
+                const spaceOnRight = viewportWidth - buttonRect.right;
+                if (spaceOnRight < dropdownWidth) {
+                    // Not enough space on right, align to right edge of button
+                    leftPosition = buttonRect.right - dropdownWidth;
+                } else {
+                    // Enough space, align to left edge of button
+                    leftPosition = buttonRect.left;
+                }
+                // Ensure it doesn't go off-screen
+                leftPosition = Math.max(10, Math.min(leftPosition, viewportWidth - dropdownWidth - 10));
+            }
+
+            dropdown.style.left = leftPosition + 'px';
+            dropdown.style.width = dropdownWidth + 'px';
+
+            // Calculate vertical position
+            const spaceBelow = viewportHeight - buttonRect.bottom;
+            const spaceAbove = buttonRect.top;
+
+            if (spaceBelow >= dropdownHeight + 10 || spaceBelow > spaceAbove) {
+                // Position below button
+                dropdown.style.top = (buttonRect.bottom + 5) + 'px';
+                dropdown.style.bottom = 'auto';
+            } else {
+                // Position above button
+                dropdown.style.bottom = (viewportHeight - buttonRect.top + 5) + 'px';
+                dropdown.style.top = 'auto';
+            }
+
+            // Ensure dropdown is visible as overlay
+            dropdown.style.visibility = 'visible';
+            dropdown.style.opacity = '1';
+            dropdown.style.display = 'block';
+
+            // Debug log to help troubleshoot
+            console.log('Dropdown positioned as overlay:', {
+                id: dropdown.id,
+                position: dropdown.style.position,
+                left: dropdown.style.left,
+                top: dropdown.style.top,
+                width: dropdown.style.width,
+                height: dropdownHeight + 'px',
+                zIndex: dropdown.style.zIndex
+            });
         }
 
         // Copy to clipboard
@@ -703,11 +1005,116 @@ body {
             });
         }
 
-        // Close dropdowns when clicking outside
-        document.addEventListener('click', function(event) {
-            if (!event.target.closest('.table-dropdown')) {
-                const allDropdowns = document.querySelectorAll('[id^="dropdown-"]');
-                allDropdowns.forEach(d => d.classList.add('hidden'));
+        // Dropdown management with proper cleanup
+        (function() {
+            let isInitialized = false;
+
+            function closeAllDropdowns() {
+                document.querySelectorAll('[id^="dropdown-"]').forEach(dropdown => {
+                    dropdown.classList.add('hidden');
+                    dropdown.style.display = 'none';
+
+                    // Remove table container overflow fix
+                    const tableContainer = document.querySelector('.table-container');
+                    if (tableContainer) {
+                        tableContainer.classList.remove('has-open-dropdown');
+                    }
+
+                    // Remove dropdown-open class from table
+                    const table = document.querySelector('table');
+                    if (table) {
+                        table.classList.remove('dropdown-open');
+                    }
+
+                    // Remove from global state manager
+                    if (window.DropdownStateManager) {
+                        window.DropdownStateManager.remove(dropdown.id);
+                    }
+                });
+            }
+
+            function handleOutsideClick(event) {
+                const dropdowns = document.querySelectorAll('[id^="dropdown-"]');
+                const clickedButton = event.target.closest('button[onclick*="toggleDropdown"]');
+
+                dropdowns.forEach(dropdown => {
+                    // Don't close if clicking on the dropdown itself or its toggle button
+                    if (!dropdown.contains(event.target) && !clickedButton) {
+                        dropdown.classList.add('hidden');
+                        dropdown.style.display = 'none';
+
+                        // Remove table container overflow fix
+                        const tableContainer = document.querySelector('.table-container');
+                        if (tableContainer) {
+                            tableContainer.classList.remove('has-open-dropdown');
+                        }
+
+                        // Remove dropdown-open class from table
+                        const table = document.querySelector('table');
+                        if (table) {
+                            table.classList.remove('dropdown-open');
+                        }
+
+                        // Remove from global state manager
+                        if (window.DropdownStateManager) {
+                            window.DropdownStateManager.remove(dropdown.id);
+                        }
+                    }
+                });
+            }
+
+            function handleScroll() {
+                closeAllDropdowns();
+            }
+
+            function handleResize() {
+                closeAllDropdowns();
+            }
+
+            function initializeDropdownListeners() {
+                if (isInitialized) return;
+
+                // Add event listeners
+                document.addEventListener('click', handleOutsideClick);
+                document.addEventListener('scroll', handleScroll, true);
+                window.addEventListener('resize', handleResize);
+
+                isInitialized = true;
+            }
+
+            function cleanupDropdownListeners() {
+                if (!isInitialized) return;
+
+                // Remove event listeners
+                document.removeEventListener('click', handleOutsideClick);
+                document.removeEventListener('scroll', handleScroll, true);
+                window.removeEventListener('resize', handleResize);
+
+                isInitialized = false;
+            }
+
+            // Initialize when DOM is ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initializeDropdownListeners);
+            } else {
+                initializeDropdownListeners();
+            }
+
+            // Cleanup on page unload
+            window.addEventListener('beforeunload', cleanupDropdownListeners);
+
+            // Expose cleanup function globally for manual cleanup if needed
+            window.cleanupRequestsDropdowns = cleanupDropdownListeners;
+        })();
+
+        // Prevent scrolling when pressing space or enter on dropdown buttons
+        document.addEventListener('keydown', function(event) {
+            const target = event.target;
+            if (target.tagName === 'BUTTON' && target.onclick && target.onclick.toString().includes('toggleDropdown')) {
+                if (event.key === ' ' || event.key === 'Enter') {
+                    event.preventDefault();
+                    target.click();
+                }
             }
         });
 

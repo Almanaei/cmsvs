@@ -3,6 +3,34 @@
 {% block title %}{{ page_title or 'عرض الرسالة' }} - CMSVS{% endblock %}
 
 {% block content %}
+<style>
+/* Ensure dropdown is completely opaque and visible */
+#dropdownMenu {
+    opacity: 1 !important;
+    visibility: visible !important;
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+}
+
+#dropdownMenu.hidden {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+#dropdownMenu:not(.hidden) {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Ensure dropdown items are fully visible */
+#dropdownMenu a,
+#dropdownMenu button,
+#dropdownMenu div {
+    opacity: 1 !important;
+}
+</style>
 <div class="space-y-6">
     <!-- Page Header -->
     <div class="flex justify-between items-center">
@@ -247,15 +275,65 @@ function toggleDropdown() {
     dropdown.classList.toggle('hidden');
 }
 
-// Close dropdown when clicking outside
-document.addEventListener('click', function(e) {
-    const dropdown = document.getElementById('dropdownMenu');
-    const button = e.target.closest('button');
+// Message dropdown management with proper cleanup
+(function() {
+    let isInitialized = false;
 
-    if (!button || !button.onclick || button.onclick.toString().indexOf('toggleDropdown') === -1) {
-        dropdown.classList.add('hidden');
+    function closeMessageDropdown() {
+        const dropdown = document.getElementById('dropdownMenu');
+        if (dropdown) {
+            dropdown.classList.add('hidden');
+        }
     }
-});
+
+    function handleOutsideClick(event) {
+        const dropdown = document.getElementById('dropdownMenu');
+        const button = event.target.closest('button');
+
+        if (!button || !button.onclick || button.onclick.toString().indexOf('toggleDropdown') === -1) {
+            closeMessageDropdown();
+        }
+    }
+
+    function handleEscapeKey(event) {
+        if (event.key === 'Escape') {
+            closeMessageDropdown();
+        }
+    }
+
+    function initializeMessageDropdownListeners() {
+        if (isInitialized) return;
+
+        // Add event listeners
+        document.addEventListener('click', handleOutsideClick);
+        document.addEventListener('keydown', handleEscapeKey);
+
+        isInitialized = true;
+    }
+
+    function cleanupMessageDropdownListeners() {
+        if (!isInitialized) return;
+
+        // Remove event listeners
+        document.removeEventListener('click', handleOutsideClick);
+        document.removeEventListener('keydown', handleEscapeKey);
+
+        isInitialized = false;
+    }
+
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeMessageDropdownListeners);
+    } else {
+        initializeMessageDropdownListeners();
+    }
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', cleanupMessageDropdownListeners);
+
+    // Expose cleanup function globally for manual cleanup if needed
+    window.cleanupMessageDropdown = cleanupMessageDropdownListeners;
+})();
 
 // Delete message
 function deleteMessage(messageId) {

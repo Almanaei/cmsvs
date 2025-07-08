@@ -250,14 +250,20 @@
 .file-icon {
     width: 32px;
     height: 32px;
-    background-color: #dc2626;
     border-radius: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #ffffff;
     font-size: 14px;
+    flex-shrink: 0;
 }
+
+.file-icon.pdf { background-color: #dc2626; }
+.file-icon.image { background-color: #7c3aed; }
+.file-icon.document { background-color: #2563eb; }
+.file-icon.text { background-color: #6b7280; }
+.file-icon.default { background-color: #6b7280; }
 
 .file-details {
     flex: 1;
@@ -281,6 +287,147 @@
     border-radius: 8px;
     padding: 16px;
     margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.file-info-mobile {
+    flex: 1;
+    min-width: 0;
+}
+
+.file-header-mobile {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.file-details-mobile {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.file-name {
+    font-weight: 500;
+    color: #111827;
+    font-size: 14px;
+    margin-bottom: 4px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    line-height: 1.4;
+}
+
+.file-meta-mobile {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.file-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+
+/* Desktop-first responsive design with mobile optimizations */
+
+/* Desktop styles (default - 769px and above) */
+.existing-files-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+}
+
+.upload-areas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+/* Mobile responsive improvements for file management */
+@media (max-width: 768px) {
+    .existing-files-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .existing-file {
+        padding: 12px;
+        gap: 10px;
+    }
+
+    .file-header-mobile {
+        gap: 10px;
+        margin-bottom: 6px;
+    }
+
+    .file-name {
+        font-size: 13px;
+        margin-bottom: 3px;
+    }
+
+    .file-meta-mobile {
+        gap: 6px;
+        margin-bottom: 3px;
+    }
+
+    .file-meta-mobile span {
+        font-size: 10px !important;
+    }
+
+    .file-actions {
+        gap: 6px;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid #f3f4f6;
+    }
+
+    .file-actions button {
+        font-size: 10px !important;
+        padding: 4px 8px !important;
+    }
+
+    .upload-areas-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+}
+
+.section-header-mobile {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.file-info-mobile {
+    display: block;
+}
+
+.file-header-mobile {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.file-details-mobile {
+    flex: 1;
+    min-width: 0;
+}
+
+.file-meta-mobile {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 4px;
 }
 
 .file-actions {
@@ -288,6 +435,181 @@
     gap: 8px;
 }
 
+/* Tablet styles (481px to 768px) */
+@media (min-width: 481px) and (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+
+    .page-container {
+        padding: 16px;
+    }
+
+    .section-content {
+        padding: 20px;
+    }
+
+    /* Tablet file grid - 2 columns */
+    .existing-files-grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 14px;
+    }
+
+    /* Tablet upload areas - 2 columns */
+    .upload-areas-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 18px;
+    }
+
+    .file-actions {
+        gap: 8px;
+    }
+
+    .file-actions button {
+        padding: 7px 12px;
+        font-size: 12px;
+    }
+
+    .upload-area {
+        padding: 18px;
+        min-height: 90px;
+    }
+
+    .section-title {
+        font-size: 17px;
+    }
+}
+
+/* Mobile styles (480px and below) */
+@media (max-width: 480px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .page-container {
+        padding: 12px;
+    }
+
+    .section-content {
+        padding: 16px;
+    }
+
+    /* Mobile file grid - single column */
+    .existing-files-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .existing-file {
+        padding: 12px;
+        margin-bottom: 8px;
+    }
+
+    .file-info-mobile {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .file-header-mobile {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .file-details-mobile {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .file-name {
+        font-size: 13px;
+        line-height: 1.3;
+        word-break: break-word;
+    }
+
+    .file-meta-mobile {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 6px;
+        font-size: 11px;
+    }
+
+    .file-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
+    }
+
+    .file-actions button {
+        flex: 1;
+        min-width: 70px;
+        padding: 8px 10px;
+        font-size: 11px;
+        text-align: center;
+    }
+
+    /* Mobile upload areas - single column */
+    .upload-areas-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .upload-area {
+        padding: 16px;
+        min-height: 80px;
+    }
+
+    .upload-icon {
+        font-size: 24px;
+        margin-bottom: 8px;
+    }
+
+    .upload-text {
+        font-size: 13px;
+    }
+
+    .upload-hint {
+        font-size: 11px;
+        margin-top: 4px;
+    }
+
+    /* Mobile section headers */
+    .section-header-mobile {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .section-title {
+        font-size: 16px;
+    }
+
+    .section-subtitle {
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    /* Mobile file preview */
+    .file-preview {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 8px;
+    }
+
+    .file-item {
+        padding: 8px;
+        font-size: 12px;
+    }
+}
+
+/* General responsive improvements for all screen sizes */
 @media (max-width: 768px) {
     .form-grid {
         grid-template-columns: 1fr;
@@ -295,6 +617,238 @@
 
     .page-container {
         padding: 16px;
+    }
+
+    /* Touch-friendly buttons for tablet and mobile */
+    .btn {
+        min-height: 44px;
+        touch-action: manipulation;
+    }
+
+    /* Improved text readability */
+    .form-control {
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+
+    /* Upload area improvements for touch devices */
+    .upload-area {
+        border-width: 2px;
+        border-style: dashed;
+        border-color: #d1d5db;
+        border-radius: 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        touch-action: manipulation;
+    }
+
+    .upload-area:active {
+        border-color: #3b82f6;
+        background-color: #f0f9ff;
+        transform: scale(0.98);
+    }
+}
+
+/* Mobile-specific improvements (480px and below) */
+@media (max-width: 480px) {
+    /* Mobile section title adjustments */
+    .section-title {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .section-title span {
+        margin-right: 0;
+        margin-top: 4px;
+    }
+
+    /* Mobile info box */
+    .mobile-info-box {
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        border-radius: 6px;
+        padding: 10px;
+        margin-top: 12px;
+        font-size: 12px;
+    }
+
+    /* Mobile file icon sizing */
+    .file-icon {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+
+    /* Mobile form action buttons */
+    .form-actions-mobile {
+        display: flex !important;
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+    }
+
+    .form-actions-desktop {
+        display: none !important;
+    }
+
+    .form-actions-mobile .btn {
+        width: 100%;
+        justify-content: center;
+        min-height: 48px;
+        font-size: 16px;
+        padding: 12px 16px;
+    }
+
+    /* Mobile page header improvements */
+    .page-header-mobile {
+        display: flex !important;
+        flex-direction: column;
+        gap: 16px;
+        align-items: flex-start;
+    }
+
+    .page-header-desktop {
+        display: none !important;
+    }
+
+    .page-header-mobile .page-title {
+        font-size: 24px;
+        line-height: 1.2;
+    }
+
+    .page-header-mobile .page-subtitle {
+        font-size: 14px;
+    }
+
+    /* Mobile breadcrumb improvements */
+    .breadcrumb {
+        padding: 10px 12px;
+        font-size: 13px;
+        line-height: 1.4;
+    }
+
+    /* Mobile section header improvements */
+    .section-header {
+        padding: 16px 20px;
+    }
+
+    .section-header-mobile {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .section-header-mobile h3 {
+        font-size: 15px !important;
+    }
+
+    .section-header-mobile .section-subtitle {
+        font-size: 11px !important;
+        color: #6b7280 !important;
+    }
+
+    /* Mobile form improvements */
+    .form-control {
+        min-height: 44px;
+        font-size: 16px; /* Prevents zoom on iOS */
+        border-radius: 8px;
+    }
+
+    .form-label {
+        font-size: 15px;
+        margin-bottom: 8px;
+    }
+
+    .form-help {
+        font-size: 12px;
+        margin-top: 4px;
+    }
+
+    /* Mobile checkbox and radio improvements */
+    input[type="checkbox"], input[type="radio"] {
+        width: 18px;
+        height: 18px;
+        margin-left: 8px;
+    }
+
+    /* Mobile upload area improvements */
+    .upload-area {
+        min-height: 100px;
+        padding: 16px;
+        border-radius: 8px;
+        touch-action: manipulation;
+    }
+
+    .upload-area:active {
+        transform: scale(0.98);
+        background-color: #f0f9ff;
+    }
+
+    /* Mobile status badge improvements */
+    .status-badge {
+        font-size: 12px;
+        padding: 6px 10px;
+        border-radius: 6px;
+    }
+
+    /* Mobile info grid improvements */
+    .info-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .info-item {
+        padding: 12px;
+        border-radius: 6px;
+    }
+
+    .info-label {
+        font-size: 12px;
+        margin-bottom: 4px;
+    }
+
+    .info-value {
+        font-size: 14px;
+    }
+}
+
+/* Desktop enhancements (769px and above) */
+@media (min-width: 769px) {
+    .page-container {
+        padding: 24px;
+    }
+
+    .section-content {
+        padding: 24px;
+    }
+
+    /* Desktop file grid - optimal spacing */
+    .existing-files-grid {
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 20px;
+    }
+
+    /* Desktop upload areas - optimal spacing */
+    .upload-areas-grid {
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 24px;
+    }
+
+    .upload-area {
+        padding: 24px;
+        min-height: 120px;
+    }
+
+    .file-actions button {
+        padding: 8px 16px;
+        font-size: 13px;
     }
 }
 </style>
@@ -311,7 +865,7 @@
 
     <!-- Page Header -->
     <header class="page-header">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px;">
+        <div class="page-header-desktop" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px;">
             <div style="flex: 1;">
                 <h1 class="page-title">تعديل الطلب {{ req.request_number }}</h1>
                 <p class="page-subtitle">تعديل بيانات الطلب - الدفاع المدني</p>
@@ -339,6 +893,39 @@
                     </span>
                 {% endif %}
                 <a href="/requests/{{ req.id }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-right"></i>
+                    العودة للعرض
+                </a>
+            </div>
+        </div>
+        <div class="page-header-mobile" style="display: none;">
+            <div>
+                <h1 class="page-title">تعديل الطلب {{ req.request_number }}</h1>
+                <p class="page-subtitle">تعديل بيانات الطلب - الدفاع المدني</p>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-start;">
+                {% if req.status.value == 'PENDING' %}
+                    <span class="status-badge status-pending">
+                        <i class="fas fa-clock"></i>
+                        قيد المراجعة
+                    </span>
+                {% elif req.status.value == 'IN_PROGRESS' %}
+                    <span class="status-badge status-in-progress">
+                        <i class="fas fa-cog"></i>
+                        قيد التنفيذ
+                    </span>
+                {% elif req.status.value == 'COMPLETED' %}
+                    <span class="status-badge status-completed">
+                        <i class="fas fa-check-circle"></i>
+                        مكتمل
+                    </span>
+                {% elif req.status.value == 'REJECTED' %}
+                    <span class="status-badge status-rejected">
+                        <i class="fas fa-times-circle"></i>
+                        مرفوض
+                    </span>
+                {% endif %}
+                <a href="/requests/{{ req.id }}" class="btn btn-secondary" style="width: 100%; justify-content: center;">
                     <i class="fas fa-arrow-right"></i>
                     العودة للعرض
                 </a>
@@ -376,8 +963,65 @@
         </div>
     </div>
 
+    <!-- Error and Success Messages -->
+    {% if error %}
+    <div class="section">
+        <div class="section-content">
+            <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 16px; margin-bottom: 20px;">
+                <div style="display: flex; align-items: flex-start; gap: 12px;">
+                    <i class="fas fa-exclamation-triangle" style="color: #dc2626; margin-top: 2px; flex-shrink: 0;"></i>
+                    <div>
+                        <div style="font-weight: 600; color: #991b1b; font-size: 14px; margin-bottom: 4px;">خطأ في التحديث</div>
+                        <div style="color: #991b1b; font-size: 13px;">{{ error }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if success %}
+    <div class="section">
+        <div class="section-content">
+            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 16px; margin-bottom: 20px;">
+                <div style="display: flex; align-items: flex-start; gap: 12px;">
+                    <i class="fas fa-check-circle" style="color: #16a34a; margin-top: 2px; flex-shrink: 0;"></i>
+                    <div>
+                        <div style="font-weight: 600; color: #15803d; font-size: 14px; margin-bottom: 4px;">تم التحديث بنجاح</div>
+                        <div style="color: #15803d; font-size: 13px;">{{ success }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if file_upload_warnings %}
+    <div class="section">
+        <div class="section-content">
+            <div style="background: #fffbeb; border: 1px solid #fed7aa; border-radius: 6px; padding: 16px; margin-bottom: 20px;">
+                <div style="display: flex; align-items: flex-start; gap: 12px;">
+                    <i class="fas fa-exclamation-triangle" style="color: #f59e0b; margin-top: 2px; flex-shrink: 0;"></i>
+                    <div>
+                        <div style="font-weight: 600; color: #92400e; font-size: 14px; margin-bottom: 8px;">تحذيرات رفع الملفات</div>
+                        {% for warning in file_upload_warnings %}
+                        <div style="color: #92400e; font-size: 13px; margin-bottom: 4px;">• {{ warning }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Edit Form -->
     <form method="post" action="/requests/{{ req.id }}/edit" id="editRequestForm" enctype="multipart/form-data">
+        <!-- Hidden fields for service sections (read-only but need to be submitted) -->
+        <input type="hidden" name="licenses_section" value="{{ 'true' if req.licenses_section else 'false' }}">
+        <input type="hidden" name="fire_equipment_section" value="{{ 'true' if req.fire_equipment_section else 'false' }}">
+        <input type="hidden" name="commercial_records_section" value="{{ 'true' if req.commercial_records_section else 'false' }}">
+        <input type="hidden" name="engineering_offices_section" value="{{ 'true' if req.engineering_offices_section else 'false' }}">
+        <input type="hidden" name="hazardous_materials_section" value="{{ 'true' if req.hazardous_materials_section else 'false' }}">
         <!-- Personal Information Section -->
         <div class="section">
             <div class="section-header">
@@ -714,37 +1358,39 @@
                 <!-- Existing Files Management -->
                 {% if req.files %}
                 <div style="margin-bottom: 32px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <div class="section-header-mobile" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                         <h3 style="font-size: 16px; font-weight: 600; color: #111827; margin: 0;">الملفات المرفقة</h3>
-                        <div style="font-size: 12px; color: #6b7280;">يمكنك عرض، تحميل، أو حذف الملفات</div>
+                        <div class="section-subtitle" style="font-size: 12px; color: #6b7280;">يمكنك عرض، تحميل، أو حذف الملفات</div>
                     </div>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
+                    <div class="existing-files-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
                         {% for file in req.files %}
                         <div class="existing-file" id="file-{{ file.id }}">
-                            <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px;">
-                                <div class="file-icon
-                                    {% if file.file_type.lower() == 'pdf' %}pdf
-                                    {% elif file.file_type.lower() in ['jpg', 'jpeg', 'png', 'gif'] %}image
-                                    {% elif file.file_type.lower() in ['doc', 'docx'] %}document
-                                    {% else %}default{% endif %}">
-                                    {% if file.file_type.lower() == 'pdf' %}
-                                        <i class="fas fa-file-pdf"></i>
-                                    {% elif file.file_type.lower() in ['jpg', 'jpeg', 'png', 'gif'] %}
-                                        <i class="fas fa-file-image"></i>
-                                    {% elif file.file_type.lower() in ['doc', 'docx'] %}
-                                        <i class="fas fa-file-word"></i>
-                                    {% else %}
-                                        <i class="fas fa-file"></i>
-                                    {% endif %}
-                                </div>
-                                <div style="flex: 1; min-width: 0;">
-                                    <div class="file-name">{{ file.original_filename }}</div>
-                                    <div style="font-size: 11px; color: #6b7280; margin: 2px 0;">{{ file.file_category }}</div>
-                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
-                                        <span style="font-size: 11px; color: #6b7280;">{{ (file.file_size / 1024 / 1024)|round(2) }} MB</span>
-                                        <span style="background: #f3f4f6; color: #374151; font-size: 10px; font-weight: 500; padding: 2px 6px; border-radius: 4px;">{{ file.file_type.upper() }}</span>
+                            <div class="file-info-mobile">
+                                <div class="file-header-mobile">
+                                    <div class="file-icon
+                                        {% if file.file_type.lower() == 'pdf' %}pdf
+                                        {% elif file.file_type.lower() in ['jpg', 'jpeg', 'png', 'gif'] %}image
+                                        {% elif file.file_type.lower() in ['doc', 'docx'] %}document
+                                        {% else %}default{% endif %}">
+                                        {% if file.file_type.lower() == 'pdf' %}
+                                            <i class="fas fa-file-pdf"></i>
+                                        {% elif file.file_type.lower() in ['jpg', 'jpeg', 'png', 'gif'] %}
+                                            <i class="fas fa-file-image"></i>
+                                        {% elif file.file_type.lower() in ['doc', 'docx'] %}
+                                            <i class="fas fa-file-word"></i>
+                                        {% else %}
+                                            <i class="fas fa-file"></i>
+                                        {% endif %}
                                     </div>
-                                    <div style="font-size: 11px; color: #6b7280; margin-top: 2px;">{{ file.uploaded_at.strftime('%Y-%m-%d %H:%M') if file.uploaded_at else 'غير محدد' }}</div>
+                                    <div class="file-details-mobile">
+                                        <div class="file-name">{{ file.original_filename }}</div>
+                                        <div class="file-meta-mobile">
+                                            <span style="font-size: 11px; color: #6b7280;">{{ file.file_category }}</span>
+                                            <span style="font-size: 11px; color: #6b7280;">{{ (file.file_size / 1024 / 1024)|round(2) }} MB</span>
+                                            <span style="background: #f3f4f6; color: #374151; font-size: 10px; font-weight: 500; padding: 2px 6px; border-radius: 4px;">{{ file.file_type.upper() }}</span>
+                                        </div>
+                                        <div style="font-size: 11px; color: #6b7280; margin-top: 2px;">{{ file.uploaded_at.strftime('%Y-%m-%d %H:%M') if file.uploaded_at else 'غير محدد' }}</div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="file-actions">
@@ -764,10 +1410,10 @@
                         </div>
                         {% endfor %}
                     </div>
-                    <div style="margin-top: 16px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 12px;">
+                    <div class="mobile-info-box" style="margin-top: 16px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 12px;">
                         <div style="display: flex; align-items: flex-start; gap: 8px;">
-                            <i class="fas fa-info-circle" style="color: #2563eb; margin-top: 2px;"></i>
-                            <div style="color: #1e40af; font-size: 13px;">
+                            <i class="fas fa-info-circle" style="color: #2563eb; margin-top: 2px; flex-shrink: 0;"></i>
+                            <div style="color: #1e40af; font-size: 13px; line-height: 1.4;">
                                 يمكنك إدارة الملفات مباشرة من هذه الصفحة. لإضافة ملفات جديدة، استخدم قسم "إضافة ملفات جديدة" أدناه.
                             </div>
                         </div>
@@ -783,12 +1429,12 @@
 
                 <!-- File Upload Areas -->
                 <div style="border-top: 1px solid #e5e7eb; padding-top: 24px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <div class="section-header-mobile" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                         <h3 style="font-size: 16px; font-weight: 600; color: #111827; margin: 0;">إضافة ملفات جديدة</h3>
-                        <div style="font-size: 12px; color: #6b7280;">يمكنك رفع ملفات متعددة في فئات مختلفة</div>
+                        <div class="section-subtitle" style="font-size: 12px; color: #6b7280;">يمكنك رفع ملفات متعددة في فئات مختلفة</div>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                    <div class="upload-areas-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
                         <!-- Architectural Plans -->
                         <div class="form-group">
                             <label class="form-label">
@@ -799,8 +1445,8 @@
                                 <div class="upload-icon">
                                     <i class="fas fa-cloud-upload-alt"></i>
                                 </div>
-                                <h3 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600;">اختر ملفات أو اسحبها هنا</h3>
-                                <p style="margin: 0; color: #6b7280; font-size: 12px;">PDF, JPG, PNG</p>
+                                <h3 class="upload-text" style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600;">اختر ملفات أو اسحبها هنا</h3>
+                                <p class="upload-hint" style="margin: 0; color: #6b7280; font-size: 12px;">PDF, JPG, PNG</p>
                                 <input type="file" name="architectural_plans" id="architectural_plans" multiple accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
                             </div>
                             <div id="architectural_plans_preview" class="file-preview"></div>
@@ -816,8 +1462,8 @@
                                 <div class="upload-icon">
                                     <i class="fas fa-cloud-upload-alt"></i>
                                 </div>
-                                <h3 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600;">اختر ملفات أو اسحبها هنا</h3>
-                                <p style="margin: 0; color: #6b7280; font-size: 12px;">PDF, JPG, PNG</p>
+                                <h3 class="upload-text" style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600;">اختر ملفات أو اسحبها هنا</h3>
+                                <p class="upload-hint" style="margin: 0; color: #6b7280; font-size: 12px;">PDF, JPG, PNG</p>
                                 <input type="file" name="electrical_mechanical_plans" id="electrical_mechanical_plans" multiple accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
                             </div>
                             <div id="electrical_mechanical_plans_preview" class="file-preview"></div>
@@ -833,8 +1479,8 @@
                                 <div class="upload-icon">
                                     <i class="fas fa-cloud-upload-alt"></i>
                                 </div>
-                                <h3 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600;">اختر ملفات أو اسحبها هنا</h3>
-                                <p style="margin: 0; color: #6b7280; font-size: 12px;">PDF, JPG, PNG</p>
+                                <h3 class="upload-text" style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600;">اختر ملفات أو اسحبها هنا</h3>
+                                <p class="upload-hint" style="margin: 0; color: #6b7280; font-size: 12px;">PDF, JPG, PNG</p>
                                 <input type="file" name="inspection_department" id="inspection_department" multiple accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
                             </div>
                             <div id="inspection_department_preview" class="file-preview"></div>
@@ -928,7 +1574,7 @@
         <!-- Form Actions -->
         <div class="section">
             <div class="section-content">
-                <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px;">
+                <div class="form-actions-desktop" style="display: flex; justify-content: space-between; align-items: center; gap: 16px;">
                     <a href="/requests/{{ req.id }}" class="btn btn-secondary">
                         <i class="fas fa-times"></i>
                         إلغاء
@@ -937,6 +1583,16 @@
                         <i class="fas fa-save"></i>
                         حفظ التغييرات
                     </button>
+                </div>
+                <div class="form-actions-mobile" style="display: none;">
+                    <button type="submit" id="submitBtnMobile" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        حفظ التغييرات
+                    </button>
+                    <a href="/requests/{{ req.id }}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i>
+                        إلغاء
+                    </a>
                 </div>
             </div>
         </div>
@@ -994,6 +1650,103 @@ document.addEventListener('DOMContentLoaded', function() {
             if (sectionId === 'hazardous_materials_files_section') section.style.display = 'block';
             {% endif %}
         }
+    });
+
+    // Handle form submission for both desktop and mobile buttons
+    const form = document.getElementById('editRequestForm');
+    const submitBtnDesktop = document.getElementById('submitBtn');
+    const submitBtnMobile = document.getElementById('submitBtnMobile');
+
+    function validateForm() {
+        const fullName = document.getElementById('full_name');
+        const personalNumber = document.getElementById('personal_number');
+
+        console.log('Validating form...'); // Debug log
+        console.log('Full name:', fullName ? fullName.value : 'not found');
+        console.log('Personal number:', personalNumber ? personalNumber.value : 'not found');
+
+        if (!fullName || !fullName.value.trim()) {
+            alert('يرجى إدخال الاسم الثلاثي');
+            if (fullName) fullName.focus();
+            return false;
+        }
+
+        if (!personalNumber || !personalNumber.value.trim()) {
+            alert('يرجى إدخال الرقم الشخصي');
+            if (personalNumber) personalNumber.focus();
+            return false;
+        }
+
+        if (personalNumber.value.trim().length !== 9) {
+            alert('الرقم الشخصي يجب أن يكون 9 أرقام بالضبط');
+            personalNumber.focus();
+            return false;
+        }
+
+        return true;
+    }
+
+    function handleFormSubmission(button) {
+        console.log('Form submission triggered by button:', button.id); // Debug log
+
+        if (!validateForm()) {
+            return false;
+        }
+
+        // Show loading state
+        const originalText = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+
+        // Re-enable button after 10 seconds to prevent permanent disable
+        setTimeout(() => {
+            button.disabled = false;
+            button.innerHTML = originalText;
+        }, 10000);
+
+        return true;
+    }
+
+    // Add click event listeners to submit buttons
+    if (submitBtnDesktop) {
+        submitBtnDesktop.addEventListener('click', function(e) {
+            console.log('Desktop submit button clicked'); // Debug log
+            e.preventDefault(); // Always prevent default first
+
+            if (handleFormSubmission(this)) {
+                console.log('Validation passed, submitting form...'); // Debug log
+                form.submit();
+            } else {
+                console.log('Validation failed'); // Debug log
+            }
+        });
+    }
+
+    if (submitBtnMobile) {
+        submitBtnMobile.addEventListener('click', function(e) {
+            console.log('Mobile submit button clicked'); // Debug log
+            e.preventDefault(); // Always prevent default first
+
+            if (handleFormSubmission(this)) {
+                console.log('Validation passed, submitting form...'); // Debug log
+                form.submit();
+            } else {
+                console.log('Validation failed'); // Debug log
+            }
+        });
+    }
+
+    // Remove the form submit event listener to avoid conflicts
+    // The button click handlers will handle form submission
+
+    // Add debugging for form elements
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded, checking form elements...');
+        console.log('Form:', document.getElementById('editRequestForm'));
+        console.log('Desktop button:', document.getElementById('submitBtn'));
+        console.log('Mobile button:', document.getElementById('submitBtnMobile'));
+        console.log('Full name field:', document.getElementById('full_name'));
+        console.log('Personal number field:', document.getElementById('personal_number'));
     });
 
     console.log('Professional edit request form initialized successfully');

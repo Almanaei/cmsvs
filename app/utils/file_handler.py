@@ -4,6 +4,7 @@ import mimetypes
 import threading
 import time
 import logging
+import hashlib
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 from fastapi import UploadFile
@@ -239,11 +240,17 @@ class FileHandler:
             # Set proper file permissions
             os.chmod(file_path, 0o644)
 
+            # Determine file type and MIME type
+            file_extension = os.path.splitext(file.filename)[1].lower().lstrip('.')
+            mime_type = mimetypes.guess_type(file.filename)[0] or 'application/octet-stream'
+
             result.update({
                 "success": True,
                 "file_path": file_path,
                 "stored_filename": stored_filename,
-                "file_size": saved_size
+                "file_size": saved_size,
+                "file_type": file_extension,
+                "mime_type": mime_type
             })
 
             logging.getLogger(__name__).info(f"File saved successfully: {stored_filename} ({saved_size} bytes)")
@@ -303,6 +310,72 @@ class FileHandler:
 
         except Exception as e:
             return {"exists": False, "error": str(e)}
+
+    @staticmethod
+    async def validate_multiple_files(files: List[UploadFile]) -> Dict[str, Any]:
+        """Validate multiple files with comprehensive checks"""
+        validation_result = {
+            "valid": True,
+            "errors": [],
+            "warnings": [],
+            "file_results": [],
+            "total_size": 0,
+            "duplicate_hashes": []
+        }
+
+        if not files:
+            validation_result["errors"].append("No files provided")
+            validation_result["valid"] = False
+            return validation_result
+
+        # Track file hashes to detect duplicates
+        file_hashes = {}
+
+        for i, file in enumerate(files):
+            try:
+                # Validate individual file
+                file_validation = await FileHandler.validate_file(file)
+
+                # Calculate file hash for duplicate detection
+                content = await file.read()
+                await file.seek(0)  # Reset file pointer
+
+                file_hash = hashlib.md5(content).hexdigest()
+
+                if file_hash in file_hashes:
+                    validation_result["duplicate_hashes"].append({
+                        "hash": file_hash,
+                        "files": [file_hashes[file_hash], file.filename]
+                    })
+                    validation_result["warnings"].append(f"Duplicate file detected: {file.filename}")
+                else:
+                    file_hashes[file_hash] = file.filename
+
+                # Add file size to total
+                validation_result["total_size"] += file_validation["file_info"]["size"]
+
+                # Store individual file result
+                file_result = {
+                    "filename": file.filename,
+                    "validation": file_validation,
+                    "hash": file_hash
+                }
+                validation_result["file_results"].append(file_result)
+
+                # If any file is invalid, mark the whole batch as invalid
+                if not file_validation["valid"]:
+                    validation_result["valid"] = False
+                    validation_result["errors"].extend([f"File '{file.filename}': {error}" for error in file_validation["errors"]])
+
+                # Collect warnings
+                if file_validation.get("warnings"):
+                    validation_result["warnings"].extend([f"File '{file.filename}': {warning}" for warning in file_validation["warnings"]])
+
+            except Exception as e:
+                validation_result["valid"] = False
+                validation_result["errors"].append(f"Error validating file '{file.filename}': {str(e)}")
+
+        return validation_result
 
     @staticmethod
     def validate_file_count(files: List[UploadFile]) -> bool:

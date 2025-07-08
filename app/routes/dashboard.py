@@ -8,6 +8,7 @@ import threading
 import os
 import csv
 import io
+import logging
 from datetime import datetime
 from app.database import get_db, engine
 from app.utils.auth import verify_token
@@ -24,6 +25,14 @@ from app.config import settings
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
+
+# Initialize logger
+logger = logging.getLogger(__name__)
+
+@router.get("/test-dropdown", response_class=HTMLResponse)
+async def test_dropdown(request: Request):
+    """Test page for dropdown functionality"""
+    return templates.TemplateResponse("test_dropdown.html", {"request": request})
 
 # Thread-safe request ID generation
 _request_id_lock = threading.Lock()
@@ -1108,12 +1117,12 @@ async def update_request(
     building_number: Optional[str] = Form(None),
     civil_defense_file_number: Optional[str] = Form(None),
     building_permit_number: Optional[str] = Form(None),
-    # Service sections
-    licenses_section: bool = Form(False),
-    fire_equipment_section: bool = Form(False),
-    commercial_records_section: bool = Form(False),
-    engineering_offices_section: bool = Form(False),
-    hazardous_materials_section: bool = Form(False),
+    # Service sections (as strings to handle "true"/"false" from form)
+    licenses_section: str = Form("false"),
+    fire_equipment_section: str = Form("false"),
+    commercial_records_section: str = Form("false"),
+    engineering_offices_section: str = Form("false"),
+    hazardous_materials_section: str = Form("false"),
     # Legacy fields
     request_name: Optional[str] = Form(None),
     request_title: Optional[str] = Form(None),
@@ -1152,6 +1161,16 @@ async def update_request(
     # (Removed status restriction - users can now edit requests in any status)
 
     try:
+        # Convert string boolean values to actual booleans
+        def str_to_bool(value: str) -> bool:
+            return value.lower() in ('true', '1', 'yes', 'on')
+
+        licenses_section_bool = str_to_bool(licenses_section)
+        fire_equipment_section_bool = str_to_bool(fire_equipment_section)
+        commercial_records_section_bool = str_to_bool(commercial_records_section)
+        engineering_offices_section_bool = str_to_bool(engineering_offices_section)
+        hazardous_materials_section_bool = str_to_bool(hazardous_materials_section)
+
         # Validate personal number
         if personal_number and len(personal_number) != 9:
             return templates.TemplateResponse(
@@ -1197,12 +1216,12 @@ async def update_request(
             building_number=building_number,
             civil_defense_file_number=civil_defense_file_number,
             building_permit_number=building_permit_number,
-            # Service sections
-            licenses_section=licenses_section,
-            fire_equipment_section=fire_equipment_section,
-            commercial_records_section=commercial_records_section,
-            engineering_offices_section=engineering_offices_section,
-            hazardous_materials_section=hazardous_materials_section,
+            # Service sections (using converted boolean values)
+            licenses_section=licenses_section_bool,
+            fire_equipment_section=fire_equipment_section_bool,
+            commercial_records_section=commercial_records_section_bool,
+            engineering_offices_section=engineering_offices_section_bool,
+            hazardous_materials_section=hazardous_materials_section_bool,
             # Legacy fields
             request_name=request_name,
             request_title=request_title,
@@ -1217,8 +1236,9 @@ async def update_request(
                 status_code=404
             )
 
-        # Handle file uploads
+        # Handle file uploads with enhanced error handling
         uploaded_files_count = 0
+        file_upload_errors = []
         file_categories = [
             (architectural_plans, "architectural_plans"),
             (electrical_mechanical_plans, "electrical_mechanical_plans"),
@@ -1234,12 +1254,22 @@ async def update_request(
                 valid_files = [f for f in files if f.filename and f.filename.strip()]
                 if valid_files:
                     try:
+                        logger.info(f"Processing {len(valid_files)} files for category {category}")
                         file_result = await RequestService.add_files_to_request(
                             db=db, request_id=updated_request.id, files=valid_files, category=category
                         )
-                        uploaded_files_count += len(file_result.get("saved_files", []))
+                        saved_count = len(file_result.get("saved_files", []))
+                        uploaded_files_count += saved_count
+                        logger.info(f"Successfully uploaded {saved_count} files for category {category}")
+
+                        # Add any warnings to errors list
+                        if file_result.get("warnings"):
+                            file_upload_errors.extend(file_result["warnings"])
+
                     except Exception as file_error:
-                        logger.warning(f"File upload failed for category {category}: {str(file_error)}")
+                        error_msg = f"فشل رفع الملفات في فئة {category}: {str(file_error)}"
+                        file_upload_errors.append(error_msg)
+                        logger.error(f"File upload failed for category {category}: {str(file_error)}")
 
         # Log activity
         UserService.log_activity(
@@ -1255,14 +1285,25 @@ async def update_request(
         if uploaded_files_count > 0:
             success_message += f" مع إضافة {uploaded_files_count} ملف جديد"
 
+        # Refresh the request to get updated file list
+        db.refresh(updated_request)
+
+        # Prepare template context
+        template_context = {
+            "request": request,
+            "current_user": current_user,
+            "req": updated_request,
+            "statuses": [s.value for s in RequestStatus],
+            "success": success_message
+        }
+
+        # Add file upload errors if any
+        if file_upload_errors:
+            template_context["file_upload_warnings"] = file_upload_errors
+
         return templates.TemplateResponse(
-            "requests/view_request.html",
-            {
-                "request": request,
-                "current_user": current_user,
-                "req": updated_request,
-                "success": success_message
-            }
+            "requests/edit_request.html",
+            template_context
         )
 
     except Exception as e:

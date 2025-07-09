@@ -7,7 +7,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from app.config import settings
 from app.database import get_db
-from app.models.user import User, UserRole
+from app.models.user import User, UserRole, UserStatus
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -53,13 +53,20 @@ def authenticate_user(db: Session, username: str, password: str) -> Optional[Use
     user = db.query(User).filter(
         (User.username == username) | (User.email == username)
     ).first()
-    
+
     if not user or not verify_password(password, user.hashed_password):
         return None
-    
-    if not user.is_active:
-        return None
-    
+
+    # Check if user is active and approved (admin users bypass approval check)
+    if user.role == UserRole.ADMIN:
+        # For admin users, only check if active
+        if not user.is_active:
+            return None
+    else:
+        # For regular users, check both active status and approval
+        if not user.is_active or user.approval_status != UserStatus.APPROVED:
+            return None
+
     return user
 
 

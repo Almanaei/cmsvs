@@ -1,7 +1,7 @@
 from typing import Optional, List
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
-from app.models.user import User, UserRole
+from app.models.user import User, UserRole, UserStatus
 from app.models.activity import Activity, ActivityType
 from app.utils.auth import get_password_hash, verify_password
 from app.services.cache import cached, cache
@@ -37,15 +37,26 @@ class UserService:
             else:
                 raise HTTPException(status_code=400, detail="Email already registered")
         
-        # Create new user
+        # Create new user with appropriate approval status
         hashed_password = get_password_hash(password)
+
+        # Admin users are automatically approved and active
+        if role == UserRole.ADMIN:
+            is_active = True
+            approval_status = UserStatus.APPROVED
+        else:
+            is_active = False  # Set inactive until approved
+            approval_status = UserStatus.PENDING  # Set pending approval
+
         user = User(
             username=username,
             email=email,
             full_name=full_name,
             hashed_password=hashed_password,
             avatar_url=avatar_url,
-            role=role
+            role=role,
+            is_active=is_active,
+            approval_status=approval_status
         )
         
         db.add(user)
@@ -93,7 +104,8 @@ class UserService:
         skip: int = 0,
         search: Optional[str] = None,
         role_filter: Optional[str] = None,
-        status_filter: Optional[str] = None
+        status_filter: Optional[str] = None,
+        approval_filter: Optional[str] = None
     ) -> List[User]:
         """Get users with pagination and filtering"""
         query = db.query(User)
@@ -121,6 +133,15 @@ class UserService:
         elif status_filter == 'inactive':
             query = query.filter(User.is_active == False)
 
+        # Apply approval status filter
+        if approval_filter:
+            if approval_filter == 'pending':
+                query = query.filter(User.approval_status == UserStatus.PENDING)
+            elif approval_filter == 'approved':
+                query = query.filter(User.approval_status == UserStatus.APPROVED)
+            elif approval_filter == 'rejected':
+                query = query.filter(User.approval_status == UserStatus.REJECTED)
+
         # Order by creation date (newest first)
         query = query.order_by(User.created_at.desc())
 
@@ -132,7 +153,8 @@ class UserService:
         db: Session,
         search: Optional[str] = None,
         role_filter: Optional[str] = None,
-        status_filter: Optional[str] = None
+        status_filter: Optional[str] = None,
+        approval_filter: Optional[str] = None
     ) -> int:
         """Get total count of users with filtering"""
         query = db.query(User)
@@ -159,6 +181,15 @@ class UserService:
             query = query.filter(User.is_active == True)
         elif status_filter == 'inactive':
             query = query.filter(User.is_active == False)
+
+        # Apply approval status filter
+        if approval_filter:
+            if approval_filter == 'pending':
+                query = query.filter(User.approval_status == UserStatus.PENDING)
+            elif approval_filter == 'approved':
+                query = query.filter(User.approval_status == UserStatus.APPROVED)
+            elif approval_filter == 'rejected':
+                query = query.filter(User.approval_status == UserStatus.REJECTED)
 
         return query.count()
     

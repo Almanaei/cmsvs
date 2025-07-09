@@ -282,6 +282,34 @@
 
         <!-- Statistics Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Pending Approvals -->
+            <div class="stat-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">في انتظار الموافقة</p>
+                        <p class="text-3xl font-bold text-orange-600">{{ approval_stats.pending if approval_stats else 0 }}</p>
+                        <p class="text-xs text-gray-500 mt-1">مستخدمون معلقون</p>
+                    </div>
+                    <div class="w-14 h-14 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center">
+                        <i class="fas fa-clock text-white text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Approved Users -->
+            <div class="stat-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">مستخدمون معتمدون</p>
+                        <p class="text-3xl font-bold text-green-600">{{ approval_stats.approved if approval_stats else 0 }}</p>
+                        <p class="text-xs text-gray-500 mt-1">تم الموافقة عليهم</p>
+                    </div>
+                    <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user-check text-white text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
             <!-- Total Users -->
             <div class="stat-card">
                 <div class="flex items-center justify-between">
@@ -292,20 +320,6 @@
                     </div>
                     <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
                         <i class="fas fa-users text-white text-xl"></i>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Active Users -->
-            <div class="stat-card">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-gray-600">المستخدمون النشطون</p>
-                        <p class="text-3xl font-bold text-green-600">{{ users|selectattr("is_active")|list|length }}</p>
-                        <p class="text-xs text-gray-500 mt-1">حسابات نشطة</p>
-                    </div>
-                    <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center">
-                        <i class="fas fa-user-check text-white text-xl"></i>
                     </div>
                 </div>
             </div>
@@ -394,6 +408,16 @@
                         </select>
                     </div>
 
+                    <!-- Approval Status Filter -->
+                    <div>
+                        <select name="approval_filter" style="color: #374151 !important; background-color: #ffffff !important;" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="" style="color: #9ca3af !important; background-color: #ffffff !important;">جميع حالات الموافقة</option>
+                            <option value="pending" style="color: #374151 !important; background-color: #ffffff !important;" {% if current_approval_filter == 'pending' %}selected{% endif %}>في انتظار الموافقة</option>
+                            <option value="approved" style="color: #374151 !important; background-color: #ffffff !important;" {% if current_approval_filter == 'approved' %}selected{% endif %}>تم الموافقة</option>
+                            <option value="rejected" style="color: #374151 !important; background-color: #ffffff !important;" {% if current_approval_filter == 'rejected' %}selected{% endif %}>تم الرفض</option>
+                        </select>
+                    </div>
+
                     <!-- Per Page -->
                     <div>
                         <select name="per_page" style="color: #374151 !important; background-color: #ffffff !important;" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
@@ -446,6 +470,7 @@
                                     <th class="text-right py-3 px-4 font-semibold text-gray-700">البريد الإلكتروني</th>
                                     <th class="text-center py-3 px-4 font-semibold text-gray-700">الدور</th>
                                     <th class="text-center py-3 px-4 font-semibold text-gray-700">الحالة</th>
+                                    <th class="text-center py-3 px-4 font-semibold text-gray-700">حالة الموافقة</th>
                                     <th class="text-center py-3 px-4 font-semibold text-gray-700">تاريخ التسجيل</th>
                                     <th class="text-center py-3 px-4 font-semibold text-gray-700">الإجراءات</th>
                                 </tr>
@@ -500,25 +525,51 @@
                                         </span>
                                     </td>
                                     <td class="py-4 px-4 text-center">
+                                        {% if user.approval_status.value == 'pending' %}
+                                        <span class="badge-warning">في انتظار الموافقة</span>
+                                        {% elif user.approval_status.value == 'approved' %}
+                                        <span class="badge-success">تم الموافقة</span>
+                                        {% elif user.approval_status.value == 'rejected' %}
+                                        <span class="badge-danger">تم الرفض</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="py-4 px-4 text-center">
                                         <div class="text-sm">
                                             <div class="font-medium text-gray-900">{{ user.created_at.strftime('%Y-%m-%d') }}</div>
                                             <div class="text-gray-500">{{ user.created_at.strftime('%H:%M') }}</div>
                                         </div>
                                     </td>
                                     <td class="py-4 px-4 text-center">
-                                        <div class="flex items-center justify-center space-x-2 space-x-reverse">
+                                        <div class="flex items-center justify-center space-x-2 space-x-reverse flex-wrap gap-1">
+                                            <!-- Approval Actions for Pending Users -->
+                                            {% if user.approval_status.value == 'pending' %}
+                                            <form method="post" action="/admin/users/{{ user.id }}/approve" style="display: inline;">
+                                                <button type="submit" class="inline-flex items-center px-2 py-1 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-xs" onclick="return confirm('هل أنت متأكد من الموافقة على هذا المستخدم؟')">
+                                                    <i class="fas fa-check mr-1"></i>
+                                                    موافقة
+                                                </button>
+                                            </form>
+                                            <form method="post" action="/admin/users/{{ user.id }}/reject" style="display: inline;">
+                                                <button type="submit" class="inline-flex items-center px-2 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-xs" onclick="return confirm('هل أنت متأكد من رفض هذا المستخدم؟')">
+                                                    <i class="fas fa-times mr-1"></i>
+                                                    رفض
+                                                </button>
+                                            </form>
+                                            {% endif %}
+
+                                            <!-- Regular Actions -->
                                             <a href="/admin/users/{{ user.id }}/edit"
-                                               class="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm">
+                                               class="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-xs">
                                                 <i class="fas fa-edit mr-1"></i>
                                                 تعديل
                                             </a>
                                             <a href="/admin/users/{{ user.id }}/requests"
-                                               class="inline-flex items-center px-3 py-1 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm">
+                                               class="inline-flex items-center px-2 py-1 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-xs">
                                                 <i class="fas fa-file-alt mr-1"></i>
                                                 الطلبات
                                             </a>
                                             <a href="/admin/users/{{ user.id }}/activities"
-                                               class="inline-flex items-center px-3 py-1 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm">
+                                               class="inline-flex items-center px-2 py-1 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-xs">
                                                 <i class="fas fa-history mr-1"></i>
                                                 الأنشطة
                                             </a>
@@ -542,7 +593,7 @@
                         <div class="flex items-center space-x-2 space-x-reverse">
                             <!-- Previous Page -->
                             {% if has_prev %}
-                            <a href="?page={{ current_page - 1 }}&per_page={{ per_page }}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_role_filter %}&role_filter={{ current_role_filter }}{% endif %}{% if current_status_filter %}&status_filter={{ current_status_filter }}{% endif %}"
+                            <a href="?page={{ current_page - 1 }}&per_page={{ per_page }}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_role_filter %}&role_filter={{ current_role_filter }}{% endif %}{% if current_status_filter %}&status_filter={{ current_status_filter }}{% endif %}{% if current_approval_filter %}&approval_filter={{ current_approval_filter }}{% endif %}"
                                class="px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
                                 <i class="fas fa-chevron-right"></i>
                             </a>
@@ -557,7 +608,7 @@
                             {% set end_page = min(total_pages, current_page + 2) %}
 
                             {% if start_page > 1 %}
-                            <a href="?page=1&per_page={{ per_page }}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_role_filter %}&role_filter={{ current_role_filter }}{% endif %}{% if current_status_filter %}&status_filter={{ current_status_filter }}{% endif %}"
+                            <a href="?page=1&per_page={{ per_page }}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_role_filter %}&role_filter={{ current_role_filter }}{% endif %}{% if current_status_filter %}&status_filter={{ current_status_filter }}{% endif %}{% if current_approval_filter %}&approval_filter={{ current_approval_filter }}{% endif %}"
                                class="px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">1</a>
                             {% if start_page > 2 %}
                             <span class="px-3 py-2 text-gray-500">...</span>
@@ -568,7 +619,7 @@
                             {% if page_num == current_page %}
                             <span class="px-3 py-2 bg-blue-600 text-white rounded-lg">{{ page_num }}</span>
                             {% else %}
-                            <a href="?page={{ page_num }}&per_page={{ per_page }}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_role_filter %}&role_filter={{ current_role_filter }}{% endif %}{% if current_status_filter %}&status_filter={{ current_status_filter }}{% endif %}"
+                            <a href="?page={{ page_num }}&per_page={{ per_page }}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_role_filter %}&role_filter={{ current_role_filter }}{% endif %}{% if current_status_filter %}&status_filter={{ current_status_filter }}{% endif %}{% if current_approval_filter %}&approval_filter={{ current_approval_filter }}{% endif %}"
                                class="px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">{{ page_num }}</a>
                             {% endif %}
                             {% endfor %}
@@ -577,13 +628,13 @@
                             {% if end_page < total_pages - 1 %}
                             <span class="px-3 py-2 text-gray-500">...</span>
                             {% endif %}
-                            <a href="?page={{ total_pages }}&per_page={{ per_page }}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_role_filter %}&role_filter={{ current_role_filter }}{% endif %}{% if current_status_filter %}&status_filter={{ current_status_filter }}{% endif %}"
+                            <a href="?page={{ total_pages }}&per_page={{ per_page }}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_role_filter %}&role_filter={{ current_role_filter }}{% endif %}{% if current_status_filter %}&status_filter={{ current_status_filter }}{% endif %}{% if current_approval_filter %}&approval_filter={{ current_approval_filter }}{% endif %}"
                                class="px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">{{ total_pages }}</a>
                             {% endif %}
 
                             <!-- Next Page -->
                             {% if has_next %}
-                            <a href="?page={{ current_page + 1 }}&per_page={{ per_page }}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_role_filter %}&role_filter={{ current_role_filter }}{% endif %}{% if current_status_filter %}&status_filter={{ current_status_filter }}{% endif %}"
+                            <a href="?page={{ current_page + 1 }}&per_page={{ per_page }}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_role_filter %}&role_filter={{ current_role_filter }}{% endif %}{% if current_status_filter %}&status_filter={{ current_status_filter }}{% endif %}{% if current_approval_filter %}&approval_filter={{ current_approval_filter }}{% endif %}"
                                class="px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
                                 <i class="fas fa-chevron-left"></i>
                             </a>

@@ -4,9 +4,9 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.utils.auth import authenticate_user, create_access_token, verify_token
+from app.utils.auth import authenticate_user, create_access_token, verify_token, verify_password
 from app.services.user_service import UserService
-from app.models.user import User, UserRole
+from app.models.user import User, UserRole, UserStatus
 from app.models.activity import ActivityType
 from app.config import settings
 from pydantic import BaseModel, EmailStr
@@ -78,8 +78,12 @@ async def login(
     db: Session = Depends(get_db)
 ):
     """Authenticate user and create session"""
-    user = authenticate_user(db, username, password)
-    if not user:
+    # First check if user exists and password is correct
+    user = db.query(User).filter(
+        (User.username == username) | (User.email == username)
+    ).first()
+
+    if not user or not verify_password(password, user.hashed_password):
         return templates.TemplateResponse(
             "auth/login.html",
             {
@@ -88,6 +92,47 @@ async def login(
             },
             status_code=400
         )
+
+    # Check approval status for specific error messages (skip for admin users)
+    if user.role != UserRole.ADMIN:
+        if user.approval_status == UserStatus.PENDING:
+            return templates.TemplateResponse(
+                "auth/login.html",
+                {
+                    "request": request,
+                    "error": "Your account is pending admin approval. Please wait for approval before logging in."
+                },
+                status_code=403
+            )
+        elif user.approval_status == UserStatus.REJECTED:
+            return templates.TemplateResponse(
+                "auth/login.html",
+                {
+                    "request": request,
+                    "error": "Your account has been rejected. Please contact the administrator."
+                },
+                status_code=403
+            )
+        elif not user.is_active:
+            return templates.TemplateResponse(
+                "auth/login.html",
+                {
+                    "request": request,
+                    "error": "Your account is inactive. Please contact the administrator."
+                },
+                status_code=403
+            )
+    else:
+        # For admin users, only check if account is active (ignore approval status)
+        if not user.is_active:
+            return templates.TemplateResponse(
+                "auth/login.html",
+                {
+                    "request": request,
+                    "error": "Your admin account is inactive. Please contact the system administrator."
+                },
+                status_code=403
+            )
     
     # Create access token
     access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
@@ -189,7 +234,7 @@ async def register(
             "auth/login.html",
             {
                 "request": request,
-                "success": "Registration successful! Please log in."
+                "success": "Registration successful! Your account is pending admin approval. You will be able to log in once your account is approved."
             }
         )
         

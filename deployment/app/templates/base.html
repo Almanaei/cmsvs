@@ -277,21 +277,41 @@
 </head>
 <body class="bg-gray-50 font-arabic">
     <!-- Enhanced Header Component -->
-    {% if current_user %}
-    <header class="bg-white shadow-sm border-b border-gray-200 md:hidden">
-        <div class="flex items-center justify-between px-4 py-3">
-            <!-- Logo -->
-            <div class="flex items-center">
-                <img src="/static/logo_cmsvs.png" alt="CMSVS" class="h-8 w-auto">
-            </div>
+    <header class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between py-4">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <img src="/static/logo_cmsvs.png" alt="CMSVS" class="h-12 w-auto ml-3">
+                    <div class="text-right">
+                        <h1 class="text-xl font-bold text-gray-900">CMSVS</h1>
+                        <p class="text-sm text-gray-600">نظام الأرشفة الداخلية</p>
+                    </div>
+                </div>
 
-            <!-- Mobile Menu Toggle Button -->
-            <button onclick="toggleMobileMenu()" class="mobile-toggle p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Toggle mobile menu">
-                <i class="fas fa-bars text-xl"></i>
-            </button>
+                {% if current_user %}
+                <!-- Desktop Navigation -->
+                <nav class="hidden md:flex space-x-8 space-x-reverse">
+                    {% if current_user.role.value == 'admin' %}
+                    <a href="/admin/dashboard" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">لوحة الإدارة</a>
+                    <a href="/admin/users" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">المستخدمون</a>
+                    <a href="/admin/requests" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">الطلبات</a>
+                    {% else %}
+                    <a href="/requests" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">طلباتي</a>
+                    <a href="/requests/create" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">طلب جديد</a>
+                    {% endif %}
+                    <a href="/profile" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">الملف الشخصي</a>
+                    <a href="/auth/logout" class="text-red-600 hover:text-red-800 px-3 py-2 rounded-md text-sm font-medium">تسجيل الخروج</a>
+                </nav>
+
+                <!-- Mobile Menu Toggle Button -->
+                <button onclick="toggleMobileMenu()" class="md:hidden mobile-toggle p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Toggle mobile menu">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                {% endif %}
+            </div>
         </div>
     </header>
-    {% endif %}
 
     <!-- Main Content -->
     <div class="flex min-h-screen">

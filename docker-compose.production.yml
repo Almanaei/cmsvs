@@ -12,7 +12,7 @@ services:
       POSTGRES_PASSWORD: TfEcqHm7OeQUxHoQDMRYGXsFm
       POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - cmsvs_postgres_data:/var/lib/postgresql/data
       - ./scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
     ports:
       - "127.0.0.1:5433:5432"  # Use port 5433 to avoid conflicts
@@ -118,8 +118,8 @@ services:
       - no-new-privileges:true
 
 volumes:
-  postgres_data:
-    driver: local
+  cmsvs_postgres_data:
+    external: true
   redis_data:
     driver: local
   app_uploads:

@@ -525,8 +525,8 @@
 /* Enhanced mobile responsive dropdown */
 @media (max-width: 767px) {
     .table-dropdown .dropdown-menu {
-        min-width: 180px !important;
-        max-width: 220px !important;
+        min-width: 200px !important;
+        max-width: 280px !important;
         font-size: 14px;
         position: fixed !important;
         z-index: 999999 !important;
@@ -536,25 +536,76 @@
         background: #ffffff !important;
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
+        margin: 8px !important;
+        max-height: 80vh !important;
+        overflow-y: auto !important;
     }
 
     /* Enhanced mobile dropdown items */
     .dropdown-item {
-        padding: 12px 16px !important;
-        font-size: 14px !important;
-        min-height: 40px !important;
+        padding: 14px 18px !important;
+        font-size: 15px !important;
+        min-height: 48px !important;
         display: flex !important;
         align-items: center !important;
         touch-action: manipulation;
+        white-space: nowrap;
+        border-radius: 8px;
+        margin: 2px 4px;
+    }
+
+    /* Better touch targets for mobile */
+    .dropdown-item:hover,
+    .dropdown-item:focus {
+        background-color: #f3f4f6 !important;
+        transform: none !important;
+    }
+
+    /* Ensure icons have proper spacing on mobile */
+    .dropdown-item i {
+        width: 20px !important;
+        margin-left: 12px !important;
+        font-size: 14px !important;
+        flex-shrink: 0;
+    }
+
+    /* Mobile dropdown sections */
+    .dropdown-menu .py-1 {
+        padding: 8px 0 !important;
+    }
+
+    /* Mobile dropdown dividers */
+    .dropdown-menu .border-t {
+        margin: 8px 0 !important;
+        border-color: #e5e7eb !important;
+    }
+
+    /* Mobile dropdown headers */
+    .dropdown-menu .px-3.py-1\.5 {
+        padding: 12px 18px 8px 18px !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.05em !important;
     }
 
     /* Larger touch targets for mobile */
     .dropdown-trigger {
-        width: 44px !important;
-        height: 44px !important;
-        min-width: 44px !important;
-        min-height: 44px !important;
+        width: 48px !important;
+        height: 48px !important;
+        min-width: 48px !important;
+        min-height: 48px !important;
         touch-action: manipulation;
+        border-radius: 50% !important;
+        background-color: #f9fafb !important;
+        border: 1px solid #e5e7eb !important;
+    }
+
+    .dropdown-trigger:hover,
+    .dropdown-trigger:focus,
+    .dropdown-trigger:active {
+        background-color: #f3f4f6 !important;
+        border-color: #d1d5db !important;
     }
 
     /* Mobile-specific hover states (touch devices) */
@@ -563,9 +614,25 @@
         transform: scale(0.98);
     }
 
+    /* Prevent text selection on mobile */
+    .dropdown-item {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+
     /* Ensure table doesn't interfere on mobile */
     .table-container {
         overflow: visible !important;
+    }
+
+    /* Mobile viewport protection */
+    .dropdown-menu {
+        max-width: calc(100vw - 16px) !important;
+        max-height: calc(100vh - 100px) !important;
+        overflow-y: auto !important;
     }
 
     /* Enhanced mobile dropdown animation */
@@ -1326,6 +1393,47 @@
     transform: none;
 }
 
+/* Icon spacing improvements */
+.btn i {
+    margin-left: 0.5rem;
+}
+
+.btn i:only-child {
+    margin-left: 0;
+}
+
+.btn svg {
+    margin-left: 0.5rem;
+}
+
+.btn svg:only-child {
+    margin-left: 0;
+}
+
+/* Form field RTL styling */
+.form-input, .form-select {
+    direction: rtl;
+    text-align: right;
+}
+
+/* Select dropdown arrow positioning for RTL */
+.form-select {
+    background-position: left 0.75rem center;
+    padding-left: 2.5rem;
+    padding-right: 0.75rem;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+}
+
+/* RTL specific adjustments */
+.form-input:focus, .form-select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
 /* Improved action button styles */
 .btn-success {
     background-color: #10b981;
@@ -1568,11 +1676,11 @@
             </div>
             <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
                 <a href="/admin/dashboard" class="btn btn-secondary">
-                    <i class="fas fa-arrow-right"></i>
+                    <i class="fas fa-arrow-right ml-2"></i>
                     العودة للوحة التحكم
                 </a>
                 <a href="/requests/new" class="btn btn-outline">
-                    <i class="fas fa-plus"></i>
+                    <i class="fas fa-plus ml-2"></i>
                     إنشاء طلب جديد
                 </a>
             </div>
@@ -1580,16 +1688,14 @@
     </header>
 
     <!-- New Request Button -->
-    <div class="flex justify-end mb-4">
-        <a href="/requests/new" class="btn-primary">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-            </svg>
+    <div class="mb-4" style="overflow: hidden;">
+        <a href="/requests/new" class="btn btn-primary" style="float: right;">
+            <i class="fas fa-plus mr-2"></i>
             إنشاء طلب جديد
         </a>
     </div>
 
-    <!-- Search Section -->
+    <!-- Combined Search and Filter Section -->
     <div class="card">
         <div class="card-header">
             <div class="flex items-center justify-between">
@@ -1639,20 +1745,35 @@
             </div>
         </div>
         <div class="card-body" id="searchSectionContent">
+            <!-- Quick Status Filter Tabs -->
+            <div class="mb-4">
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:flex lg:flex-wrap gap-2">
+                    <a href="/admin/requests" class="btn btn-secondary {% if not current_status %}btn-primary{% endif %} text-center">
+                        الكل
+                    </a>
+                    {% for status in statuses %}
+                    <a href="/admin/requests?status={{ status }}" class="btn btn-secondary {% if current_status == status %}btn-primary{% endif %} text-center">
+                        {% if status == 'pending' %}قيد المراجعة
+                        {% elif status == 'in_progress' %}قيد التنفيذ
+                        {% elif status == 'completed' %}مكتملة
+                        {% elif status == 'rejected' %}مرفوضة
+                        {% endif %}
+                    </a>
+                    {% endfor %}
+                    <a href="/admin/archive" class="btn btn-secondary text-center col-span-2 sm:col-span-1">
+                        الطلبات المؤرشفة
+                    </a>
+                </div>
+            </div>
+
+            <!-- Advanced Search Form -->
             <form method="get" action="/admin/requests" id="searchForm">
                 <!-- Hidden input to reset to page 1 when searching -->
                 <input type="hidden" name="page" value="1">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div class="form-group">
                         <label class="form-label">البحث في الطلبات</label>
-                        <div class="relative">
-                            <input type="text" name="search" value="{{ current_search or '' }}" class="form-input pl-10" placeholder="ابحث برقم الطلب أو اسم المستخدم...">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                </svg>
-                            </div>
-                        </div>
+                        <input type="text" name="search" value="{{ current_search or '' }}" class="form-input" placeholder="ابحث برقم الطلب أو اسم المستخدم...">
                     </div>
                     <div class="form-group">
                         <label class="form-label">تصفية بالحالة</label>
@@ -1705,29 +1826,6 @@
                     {% endif %}
                 </div>
             </form>
-        </div>
-    </div>
-
-    <!-- Status Filter Tabs -->
-    <div class="card">
-        <div class="card-body">
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:flex lg:flex-wrap gap-2">
-                <a href="/admin/requests" class="btn btn-secondary {% if not current_status %}btn-primary{% endif %} text-center">
-                    الكل
-                </a>
-                {% for status in statuses %}
-                <a href="/admin/requests?status={{ status }}" class="btn btn-secondary {% if current_status == status %}btn-primary{% endif %} text-center">
-                    {% if status == 'pending' %}قيد المراجعة
-                    {% elif status == 'in_progress' %}قيد التنفيذ
-                    {% elif status == 'completed' %}مكتملة
-                    {% elif status == 'rejected' %}مرفوضة
-                    {% endif %}
-                </a>
-                {% endfor %}
-                <a href="/admin/archive" class="btn btn-secondary text-center col-span-2 sm:col-span-1">
-                    الطلبات المؤرشفة
-                </a>
-            </div>
         </div>
     </div>
 
@@ -2036,18 +2134,18 @@
                     <!-- Admin Action Buttons -->
                     <div class="flex flex-wrap gap-2">
                         <a href="/admin/requests/{{ req.id }}/view" class="btn-primary text-xs px-3 py-2">
-                            <i class="fas fa-eye"></i>
+                            <i class="fas fa-eye ml-1"></i>
                             عرض
                         </a>
 
                         <a href="/admin/requests/{{ req.id }}/edit" class="btn-secondary text-xs px-3 py-2">
-                            <i class="fas fa-edit"></i>
+                            <i class="fas fa-edit ml-1"></i>
                             تعديل
                         </a>
 
                         {% if req.files %}
                         <a href="/admin/requests/{{ req.id }}/files" class="btn-outline text-xs px-3 py-2">
-                            <i class="fas fa-paperclip"></i>
+                            <i class="fas fa-paperclip ml-1"></i>
                             المرفقات
                         </a>
                         {% endif %}
@@ -2055,18 +2153,18 @@
                         <!-- Status Update Buttons -->
                         {% if req.status.value == 'pending' %}
                         <button onclick="updateStatus({{ req.id }}, 'approved')" class="btn-success text-xs px-3 py-2">
-                            <i class="fas fa-check"></i>
+                            <i class="fas fa-check ml-1"></i>
                             قبول
                         </button>
                         <button onclick="updateStatus({{ req.id }}, 'rejected')" class="btn-danger text-xs px-3 py-2">
-                            <i class="fas fa-times"></i>
+                            <i class="fas fa-times ml-1"></i>
                             رفض
                         </button>
                         {% endif %}
 
                         <!-- Delete Button -->
                         <button onclick="confirmDeleteAdmin({{ req.id }}, '{{ req.request_number }}')" class="btn-danger text-xs px-3 py-2">
-                            <i class="fas fa-trash"></i>
+                            <i class="fas fa-trash ml-1"></i>
                             حذف
                         </button>
                     </div>
@@ -2271,10 +2369,34 @@ document.addEventListener('DOMContentLoaded', function() {
             dropdown.style.zIndex = '999999';
             dropdown.style.position = 'fixed';
 
-            // Simple positioning fallback
+            // Enhanced mobile-responsive positioning
             const buttonRect = button.getBoundingClientRect();
-            dropdown.style.left = (buttonRect.left - 150) + 'px'; // Position to the left of button
-            dropdown.style.top = (buttonRect.bottom + 5) + 'px';   // Position below button
+            const dropdownWidth = 220; // Mobile dropdown width
+            const dropdownHeight = 400; // Estimated max height
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            const margin = 8; // Margin from viewport edges
+
+            let left = buttonRect.left - dropdownWidth + buttonRect.width;
+            let top = buttonRect.bottom + 5;
+
+            // Adjust horizontal position for mobile
+            if (left < margin) {
+                left = margin; // Keep within left edge
+            } else if (left + dropdownWidth > viewportWidth - margin) {
+                left = viewportWidth - dropdownWidth - margin; // Keep within right edge
+            }
+
+            // Adjust vertical position for mobile
+            if (top + dropdownHeight > viewportHeight - margin) {
+                top = buttonRect.top - dropdownHeight - 5; // Position above button
+                if (top < margin) {
+                    top = margin; // Keep within top edge
+                }
+            }
+
+            dropdown.style.left = left + 'px';
+            dropdown.style.top = top + 'px';
 
             // Also try the intelligent positioning
             try {

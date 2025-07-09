@@ -77,6 +77,61 @@
     background: #2563eb;
 }
 
+/* Badge Styles */
+.badge-primary {
+    background: #3b82f6;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.badge-success {
+    background: #10b981;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.badge-danger {
+    background: #ef4444;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.badge-warning {
+    background: #f59e0b;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.badge-gray {
+    background: #6b7280;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.badge-info {
+    background: #06b6d4;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
 @media (max-width: 768px) {
     .page-container {
         padding: 16px;
@@ -200,6 +255,7 @@
                             <th class="table-header-cell">الاسم الكامل</th>
                             <th class="table-header-cell">الدور</th>
                             <th class="table-header-cell">الحالة</th>
+                            <th class="table-header-cell">حالة الموافقة</th>
                             <th class="table-header-cell">تاريخ الإنشاء</th>
                             <th class="table-header-cell">الإجراءات</th>
                         </tr>
@@ -241,6 +297,15 @@
                                 <span class="badge-success">نشط</span>
                                 {% else %}
                                 <span class="badge-danger">غير نشط</span>
+                                {% endif %}
+                            </td>
+                            <td class="table-cell">
+                                {% if user.approval_status.value == 'pending' %}
+                                <span class="badge-warning">في انتظار الموافقة</span>
+                                {% elif user.approval_status.value == 'approved' %}
+                                <span class="badge-success">تم الموافقة</span>
+                                {% elif user.approval_status.value == 'rejected' %}
+                                <span class="badge-danger">تم الرفض</span>
                                 {% endif %}
                             </td>
                             <td class="table-cell">

@@ -11,7 +11,7 @@ from app.services.request_service import RequestService
 from app.services.achievement_service import AchievementService
 from app.services.avatar_service import AvatarService
 from app.services.activity_service import ActivityService
-from app.models.user import User, UserRole
+from app.models.user import User, UserRole, UserStatus
 from app.models.request import RequestStatus
 
 logger = logging.getLogger(__name__)
@@ -195,6 +195,7 @@ async def manage_users(
     search: Optional[str] = None,
     role_filter: Optional[str] = None,
     status_filter: Optional[str] = None,
+    approval_filter: Optional[str] = None,
     current_user: User = Depends(require_admin_cookie),
     db: Session = Depends(get_db)
 ):
@@ -214,7 +215,8 @@ async def manage_users(
             skip=offset,
             search=search,
             role_filter=role_filter,
-            status_filter=status_filter
+            status_filter=status_filter,
+            approval_filter=approval_filter
         )
 
         # Get total count for pagination
@@ -222,7 +224,8 @@ async def manage_users(
             db=db,
             search=search,
             role_filter=role_filter,
-            status_filter=status_filter
+            status_filter=status_filter,
+            approval_filter=approval_filter
         )
 
         # Calculate pagination info
@@ -235,6 +238,14 @@ async def manage_users(
 
         # Get recent requests for display
         recent_requests = RequestService.get_all_requests(db, limit=10)
+
+        # Get approval statistics
+        all_users = UserService.get_all_users(db, limit=1000)
+        approval_stats = {
+            "pending": len([u for u in all_users if u.approval_status == UserStatus.PENDING]),
+            "approved": len([u for u in all_users if u.approval_status == UserStatus.APPROVED]),
+            "rejected": len([u for u in all_users if u.approval_status == UserStatus.REJECTED])
+        }
 
         return templates.TemplateResponse(
             "admin/users_with_upload.html",
@@ -255,6 +266,9 @@ async def manage_users(
                 "current_search": search,
                 "current_role_filter": role_filter,
                 "current_status_filter": status_filter,
+                "current_approval_filter": approval_filter,
+                # Approval statistics
+                "approval_stats": approval_stats,
                 "available_roles": [role.value for role in UserRole]
             }
         )
@@ -1307,6 +1321,110 @@ async def delete_file_admin(
         )
 
 
+@router.post("/users/{user_id}/approve")
+async def approve_user_from_users_page(
+    request: Request,
+    user_id: int,
+    current_user: User = Depends(require_admin_cookie),
+    db: Session = Depends(get_db)
+):
+    """Approve a user account from the users page"""
+    try:
+        # Get the user
+        user = UserService.get_user_by_id(db, user_id)
+        if not user:
+            return RedirectResponse(
+                url="/admin/users?error=User not found",
+                status_code=303
+            )
+
+        # Check if user is pending approval
+        if user.approval_status != UserStatus.PENDING:
+            return RedirectResponse(
+                url="/admin/users?error=User is not pending approval",
+                status_code=303
+            )
+
+        # Update user status
+        user.approval_status = UserStatus.APPROVED
+        user.is_active = True
+        db.commit()
+
+        # Log activity
+        from app.utils.request_utils import log_user_activity
+        log_user_activity(
+            db=db,
+            user_id=current_user.id,
+            activity_type="user_approved",
+            description=f"Admin approved user: {user.username}",
+            request=request
+        )
+
+        return RedirectResponse(
+            url="/admin/users?success=User approved successfully",
+            status_code=303
+        )
+
+    except Exception as e:
+        logger.error(f"Error approving user {user_id}: {e}")
+        return RedirectResponse(
+            url="/admin/users?error=Failed to approve user",
+            status_code=303
+        )
+
+
+@router.post("/users/{user_id}/reject")
+async def reject_user_from_users_page(
+    request: Request,
+    user_id: int,
+    current_user: User = Depends(require_admin_cookie),
+    db: Session = Depends(get_db)
+):
+    """Reject a user account from the users page"""
+    try:
+        # Get the user
+        user = UserService.get_user_by_id(db, user_id)
+        if not user:
+            return RedirectResponse(
+                url="/admin/users?error=User not found",
+                status_code=303
+            )
+
+        # Check if user is pending approval
+        if user.approval_status != UserStatus.PENDING:
+            return RedirectResponse(
+                url="/admin/users?error=User is not pending approval",
+                status_code=303
+            )
+
+        # Update user status
+        user.approval_status = UserStatus.REJECTED
+        user.is_active = False
+        db.commit()
+
+        # Log activity
+        from app.utils.request_utils import log_user_activity
+        log_user_activity(
+            db=db,
+            user_id=current_user.id,
+            activity_type="user_rejected",
+            description=f"Admin rejected user: {user.username}",
+            request=request
+        )
+
+        return RedirectResponse(
+            url="/admin/users?success=User rejected successfully",
+            status_code=303
+        )
+
+    except Exception as e:
+        logger.error(f"Error rejecting user {user_id}: {e}")
+        return RedirectResponse(
+            url="/admin/users?error=Failed to reject user",
+            status_code=303
+        )
+
+
 @router.get("/users/new", response_class=HTMLResponse)
 async def new_user_form(
     request: Request,
@@ -1791,6 +1909,8 @@ async def soft_delete_user(
             "error": "Failed to deactivate user" if not success else None
         }
     )
+
+
 
 
 @router.get("/archived-requests", response_class=HTMLResponse)

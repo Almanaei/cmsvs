@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+
+{% block title %}المسابقات - CMSVS{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Page Header -->
+    <div class="bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl shadow-lg text-white p-8">
+        <div class="flex justify-between items-start">
+            <div>
+                <h1 class="text-4xl font-bold mb-2">🎯 المسابقات</h1>
+                <p class="text-purple-100 text-lg">شارك في المسابقات وتنافس مع الآخرين لتحقيق أفضل النتائج</p>
+            </div>
+            <div class="text-center">
+                <a href="/achievements" class="bg-white text-purple-600 px-6 py-2 rounded-lg font-semibold hover:bg-purple-50 transition-colors">
+                    العودة للإنجازات
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Competition Filters -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex space-x-4 rtl:space-x-reverse">
+            <a href="/competitions?status=active" 
+               class="px-4 py-2 rounded-lg {{ 'bg-green-100 text-green-700' if current_status == 'active' else 'text-gray-500 hover:bg-gray-100' }}">
+                🟢 المسابقات النشطة
+            </a>
+            <a href="/competitions?status=upcoming" 
+               class="px-4 py-2 rounded-lg {{ 'bg-blue-100 text-blue-700' if current_status == 'upcoming' else 'text-gray-500 hover:bg-gray-100' }}">
+                🔵 المسابقات القادمة
+            </a>
+            <a href="/competitions?status=completed" 
+               class="px-4 py-2 rounded-lg {{ 'bg-gray-100 text-gray-700' if current_status == 'completed' else 'text-gray-500 hover:bg-gray-100' }}">
+                ⚫ المسابقات المنتهية
+            </a>
+        </div>
+    </div>
+
+    <!-- Competitions List -->
+    {% if competitions_data %}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {% for comp_data in competitions_data %}
+        {% set competition = comp_data.competition %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <!-- Competition Header -->
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-900">{{ competition.name }}</h3>
+                    <p class="text-sm text-gray-500">
+                        {% if competition.competition_type.value == 'daily' %}
+                        🌟 مسابقة يومية
+                        {% elif competition.competition_type.value == 'weekly' %}
+                        🏆 مسابقة أسبوعية
+                        {% elif competition.competition_type.value == 'monthly' %}
+                        👑 مسابقة شهرية
+                        {% endif %}
+                    </p>
+                </div>
+                
+                <!-- Status Badge -->
+                {% if competition.status.value == 'active' %}
+                <span class="px-3 py-1 bg-green-100 text-green-700 text-sm rounded-full">نشطة</span>
+                {% elif competition.status.value == 'upcoming' %}
+                <span class="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-full">قادمة</span>
+                {% elif competition.status.value == 'completed' %}
+                <span class="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full">منتهية</span>
+                {% endif %}
+            </div>
+
+            <!-- Competition Description -->
+            <p class="text-gray-600 mb-4">{{ competition.description }}</p>
+
+            <!-- Competition Details -->
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div class="text-center p-3 bg-gray-50 rounded-lg">
+                    <div class="text-2xl font-bold text-gray-900">{{ competition.target_value }}</div>
+                    <div class="text-sm text-gray-500">الهدف المطلوب</div>
+                </div>
+                <div class="text-center p-3 bg-gray-50 rounded-lg">
+                    <div class="text-2xl font-bold text-gray-900">{{ comp_data.total_participants }}</div>
+                    <div class="text-sm text-gray-500">المشاركين</div>
+                </div>
+            </div>
+
+            <!-- User Progress (if participating) -->
+            {% if comp_data.is_participating %}
+            <div class="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm font-medium text-blue-900">تقدمك في المسابقة</span>
+                    <span class="text-sm text-blue-600">{{ comp_data.user_progress }}/{{ competition.target_value }}</span>
+                </div>
+                <div class="w-full bg-blue-200 rounded-full h-3">
+                    <div class="bg-blue-600 h-3 rounded-full transition-all duration-300" 
+                         style="width: {{ (comp_data.user_progress / competition.target_value * 100)|round(1) }}%"></div>
+                </div>
+                <div class="text-xs text-blue-600 mt-1">{{ (comp_data.user_progress / competition.target_value * 100)|round(1) }}% مكتمل</div>
+            </div>
+            {% endif %}
+
+            <!-- Competition Dates -->
+            <div class="text-sm text-gray-500 mb-4">
+                <div class="flex justify-between">
+                    <span>📅 البداية: {{ competition.start_date.strftime('%Y-%m-%d %H:%M') }}</span>
+                    <span>🏁 النهاية: {{ competition.end_date.strftime('%Y-%m-%d %H:%M') }}</span>
+                </div>
+            </div>
+
+            <!-- Rewards -->
+            <div class="mb-4">
+                <h4 class="text-sm font-semibold text-gray-900 mb-2">🏅 الجوائز:</h4>
+                <div class="grid grid-cols-4 gap-2 text-xs">
+                    <div class="text-center p-2 bg-yellow-50 rounded">
+                        <div class="font-bold text-yellow-700">🥇 الأول</div>
+                        <div class="text-yellow-600">{{ competition.first_place_points }} نقطة</div>
+                    </div>
+                    <div class="text-center p-2 bg-gray-50 rounded">
+                        <div class="font-bold text-gray-700">🥈 الثاني</div>
+                        <div class="text-gray-600">{{ competition.second_place_points }} نقطة</div>
+                    </div>
+                    <div class="text-center p-2 bg-orange-50 rounded">
+                        <div class="font-bold text-orange-700">🥉 الثالث</div>
+                        <div class="text-orange-600">{{ competition.third_place_points }} نقطة</div>
+                    </div>
+                    <div class="text-center p-2 bg-blue-50 rounded">
+                        <div class="font-bold text-blue-700">👥 المشاركة</div>
+                        <div class="text-blue-600">{{ competition.participation_points }} نقطة</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex space-x-3 rtl:space-x-reverse">
+                {% if competition.status.value == 'active' or competition.status.value == 'upcoming' %}
+                    {% if not comp_data.is_participating %}
+                    <button onclick="joinCompetition({{ competition.id }})" 
+                            class="flex-1 bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors">
+                        🎯 انضم للمسابقة
+                    </button>
+                    {% else %}
+                    <button class="flex-1 bg-green-100 text-green-700 py-2 px-4 rounded-lg cursor-not-allowed">
+                        ✅ مشارك بالفعل
+                    </button>
+                    {% endif %}
+                {% endif %}
+                
+                <button onclick="viewLeaderboard({{ competition.id }})" 
+                        class="bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors">
+                    📊 لوحة المتصدرين
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+        <div class="text-gray-400 text-6xl mb-4">🎯</div>
+        <h3 class="text-xl font-semibold text-gray-900 mb-2">لا توجد مسابقات</h3>
+        <p class="text-gray-500 mb-6">
+            {% if current_status == 'active' %}
+            لا توجد مسابقات نشطة حالياً. تحقق من المسابقات القادمة!
+            {% elif current_status == 'upcoming' %}
+            لا توجد مسابقات قادمة حالياً. ترقب المسابقات الجديدة!
+            {% elif current_status == 'completed' %}
+            لا توجد مسابقات منتهية للعرض.
+            {% endif %}
+        </p>
+        <a href="/achievements" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+            العودة للإنجازات
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Competition Leaderboard Modal -->
+<div id="leaderboardModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-96 overflow-hidden">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-bold text-gray-900">📊 لوحة المتصدرين</h3>
+                    <button onclick="closeLeaderboard()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div id="leaderboardContent" class="p-6 overflow-y-auto max-h-80">
+                <!-- Leaderboard content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Join competition
+function joinCompetition(competitionId) {
+    fetch(`/competitions/${competitionId}/join`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            location.reload(); // Refresh to show updated status
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ أثناء الانضمام للمسابقة');
+    });
+}
+
+// View competition leaderboard
+function viewLeaderboard(competitionId) {
+    fetch(`/competitions/${competitionId}/leaderboard`)
+        .then(response => response.json())
+        .then(data => {
+            displayLeaderboard(data.leaderboard);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء تحميل لوحة المتصدرين');
+        });
+}
+
+function displayLeaderboard(leaderboard) {
+    const content = document.getElementById('leaderboardContent');
+    
+    if (leaderboard.length === 0) {
+        content.innerHTML = `
+            <div class="text-center py-8">
+                <div class="text-gray-400 text-4xl mb-3">📊</div>
+                <p class="text-gray-500">لا توجد مشاركات بعد</p>
+            </div>
+        `;
+    } else {
+        content.innerHTML = leaderboard.map((entry, index) => {
+            const rankClass = entry.rank === 1 ? 'bg-yellow-500' : 
+                             entry.rank === 2 ? 'bg-gray-400' : 
+                             entry.rank === 3 ? 'bg-orange-500' : 'bg-gray-300';
+            
+            return `
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg mb-2">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full ${rankClass} flex items-center justify-center text-white text-sm font-bold ml-3">
+                            ${entry.rank}
+                        </div>
+                        <div>
+                            <div class="font-medium text-gray-900">${entry.full_name}</div>
+                            <div class="text-sm text-gray-500">@${entry.username}</div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-bold text-gray-900">${entry.progress}</div>
+                        <div class="text-sm text-gray-500">نقطة</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    document.getElementById('leaderboardModal').classList.remove('hidden');
+}
+
+function closeLeaderboard() {
+    document.getElementById('leaderboardModal').classList.add('hidden');
+}
+
+// Close modal when clicking outside
+document.getElementById('leaderboardModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeLeaderboard();
+    }
+});
+</script>
+{% endblock %}

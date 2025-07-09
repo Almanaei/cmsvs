@@ -1,0 +1,308 @@
+{% extends "base.html" %}
+
+{% block title %}لوحة الإدارة - CMSVS{% endblock %}
+
+{% block content %}
+<style>
+/* Professional Admin Dashboard Styling */
+.page-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px;
+    background: #f8fafc;
+    min-height: 100vh;
+}
+
+.page-header {
+    text-align: right;
+    padding: 32px 24px;
+    margin-bottom: 32px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.page-title {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+    color: #1f2937;
+}
+
+.page-subtitle {
+    font-size: 16px;
+    color: #6b7280;
+    margin: 0;
+}
+
+.btn {
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+}
+
+.btn-secondary {
+    background: #6b7280;
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: #4b5563;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid #d1d5db;
+    color: #374151;
+}
+
+.btn-outline:hover {
+    background: #f9fafb;
+}
+
+@media (max-width: 768px) {
+    .page-container {
+        padding: 16px;
+    }
+}
+</style>
+
+<div class="page-container">
+    <!-- Page Header -->
+    <header class="page-header">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px;">
+            <div style="flex: 1;">
+                <h1 class="page-title">لوحة الإدارة</h1>
+                <p class="page-subtitle">نظرة عامة على النظام والإحصائيات</p>
+            </div>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+            </div>
+        </div>
+    </header>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="card">
+            <div class="card-body">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-2xl font-bold text-gray-900">{{ request_stats.total }}</h3>
+                        <p class="text-sm text-gray-600">إجمالي الطلبات</p>
+                        <small class="text-xs text-gray-500">جميع الطلبات المسجلة</small>
+                    </div>
+                    <div class="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-2xl font-bold text-gray-900">{{ request_stats.pending }}</h3>
+                        <p class="text-sm text-gray-600">قيد المراجعة</p>
+                        <small class="text-xs text-gray-500">في انتظار المراجعة</small>
+                    </div>
+                    <div class="w-12 h-12 bg-warning-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-warning-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-2xl font-bold text-gray-900">{{ request_stats.in_progress }}</h3>
+                        <p class="text-sm text-gray-600">قيد التنفيذ</p>
+                        <small class="text-xs text-gray-500">جاري العمل عليها</small>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-2xl font-bold text-gray-900">{{ request_stats.completed }}</h3>
+                        <p class="text-sm text-gray-600">مكتملة</p>
+                        <small class="text-xs text-gray-500">تم إنجازها بنجاح</small>
+                    </div>
+                    <div class="w-12 h-12 bg-success-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Requests -->
+    <div class="card">
+        <div class="card-header">
+            <div class="flex justify-between items-center">
+                <h4 class="text-lg font-semibold text-gray-900">الطلبات الأخيرة</h4>
+                <a href="/admin/requests" class="text-primary-600 hover:text-primary-500 text-sm">
+                    عرض الكل
+                </a>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            {% if recent_requests %}
+            <div class="overflow-x-auto">
+                <table class="table">
+                    <thead class="table-header">
+                        <tr>
+                            <th class="table-header-cell">رقم الطلب</th>
+                            <th class="table-header-cell">رقم الهاتف</th>
+                            <th class="table-header-cell">الإسم الثلاثي</th>
+                            <th class="table-header-cell">الحالة</th>
+                            <th class="table-header-cell">التاريخ</th>
+                            <th class="table-header-cell">الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-body">
+                        {% for req in recent_requests %}
+                        <tr>
+                            <td class="table-cell">
+                                <code class="text-xs bg-gray-100 px-2 py-1 rounded">{{ req.request_number }}</code>
+                            </td>
+                            <td class="table-cell">
+                                <div class="max-w-xs truncate">{{ req.phone_number or 'غير محدد' }}</div>
+                            </td>
+                            <td class="table-cell">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-xs font-medium">
+                                        {{ req.full_name[0] if req.full_name else 'م' }}
+                                    </div>
+                                    <div class="mr-3">
+                                        <div class="text-sm font-medium text-gray-900">{{ req.full_name or 'غير محدد' }}</div>
+                                        <div class="text-xs text-gray-500">{{ req.user.email }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="table-cell">
+                                {% if req.status.value == 'pending' %}
+                                <span class="badge-warning">قيد المراجعة</span>
+                                {% elif req.status.value == 'in_progress' %}
+                                <span class="badge-info">قيد التنفيذ</span>
+                                {% elif req.status.value == 'completed' %}
+                                <span class="badge-success">مكتمل</span>
+                                {% elif req.status.value == 'rejected' %}
+                                <span class="badge-danger">مرفوض</span>
+                                {% endif %}
+                            </td>
+                            <td class="table-cell">
+                                <div class="text-sm text-gray-900">{{ req.created_at.strftime('%Y-%m-%d') }}</div>
+                                <div class="text-xs text-gray-500">{{ req.created_at.strftime('%H:%M') }}</div>
+                            </td>
+                            <td class="table-cell">
+                                <div class="flex space-x-2 rtl:space-x-reverse">
+                                    <a href="/requests/{{ req.id }}" class="text-primary-600 hover:text-primary-500 text-sm">
+                                        عرض
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <h5 class="mt-2 text-lg font-medium text-gray-900">لا توجد طلبات</h5>
+                <p class="mt-1 text-sm text-gray-600">لم يتم تقديم أي طلبات حتى الآن</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="card">
+            <div class="card-body text-center">
+                <div class="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">إدارة المستخدمين</h3>
+                <p class="text-sm text-gray-600 mb-4">عرض وإدارة حسابات المستخدمين</p>
+                <a href="/admin/users" class="btn-primary">
+                    عرض المستخدمين
+                </a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body text-center">
+                <div class="w-12 h-12 bg-success-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-6 h-6 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">إدارة الطلبات</h3>
+                <p class="text-sm text-gray-600 mb-4">مراجعة ومعالجة الطلبات</p>
+                <a href="/admin/requests" class="btn-success">
+                    عرض الطلبات
+                </a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body text-center">
+                <div class="w-12 h-12 bg-warning-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-6 h-6 text-warning-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">النشاطات</h3>
+                <p class="text-sm text-gray-600 mb-4">مراقبة نشاطات النظام</p>
+                <a href="/admin/activities" class="btn-warning">
+                    عرض النشاطات
+                </a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body text-center">
+                <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">سجل طلبات المستخدمين</h3>
+                <p class="text-sm text-gray-600 mb-4">تتبع تفاعلات المستخدمين مع الطلبات</p>
+                <a href="/admin/requests-records" class="btn" style="background: #6366f1; color: white;">
+                    عرض السجل
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,941 @@
+{% extends "base.html" %}
+
+{% block title %}إدارة المستخدمين - CMSVS{% endblock %}
+
+{% block content %}
+<style>
+        /* Professional Admin Users Styling */
+        .page-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+            background: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            text-align: right;
+            padding: 32px 24px;
+            margin-bottom: 32px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .page-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+            color: #1f2937;
+        }
+
+        .page-subtitle {
+            font-size: 16px;
+            color: #6b7280;
+            margin: 0;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: #ffffff;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        /* Modern Arabic font stack */
+        body {
+            font-family: 'Segoe UI', 'Tahoma', 'Geneva', 'Verdana', sans-serif, 'Arabic UI Text', 'Geeza Pro', 'Traditional Arabic', 'Simplified Arabic';
+        }
+
+        /* Enhanced buttons */
+        .primary-btn {
+            background: #3b82f6;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .primary-btn:hover {
+            background: #2563eb;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .secondary-btn {
+            background: #6b7280;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .secondary-btn:hover {
+            background: #4b5563;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Enhanced form styling */
+        .form-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+        }
+
+        .form-section {
+            padding: 2rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .form-section:last-child {
+            border-bottom: none;
+        }
+
+        /* Header styling */
+        .page-header {
+            background: #ffffff;
+            color: #1f2937;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            padding: 2.5rem;
+        }
+
+        /* Stats cards */
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        }
+
+        /* Tab styling */
+        .tab-button {
+            padding: 12px 24px;
+            border-radius: 12px 12px 0 0;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        .tab-button.active {
+            background: #3b82f6;
+            color: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* File upload styling */
+        .file-upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .file-upload-area:hover {
+            border-color: #3b82f6;
+            background-color: #f8fafc;
+        }
+
+        .file-upload-area.dragover {
+            border-color: #3b82f6;
+            background-color: #f1f5f9;
+        }
+
+        /* Success/Error messages */
+        .alert {
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .alert-success {
+            background-color: #ecfdf5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .alert-error {
+            background-color: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        /* Responsive improvements */
+        @media (max-width: 768px) {
+            .form-section {
+                padding: 1.5rem;
+            }
+            
+            .page-header {
+                padding: 2rem;
+            }
+            
+            .stat-card {
+                padding: 1rem;
+            }
+        }
+    </style>
+
+<div class="page-container">
+        <!-- Page Header -->
+        <header class="page-header">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px;">
+                <div style="flex: 1;">
+                    <h1 class="page-title">إدارة المستخدمين</h1>
+                    <p class="page-subtitle">إدارة شاملة للمستخدمين مع إمكانية رفع الطلبات مباشرة</p>
+                </div>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    <a href="/admin/dashboard" class="btn btn-secondary">
+                        <i class="fas fa-arrow-right"></i>
+                        العودة للوحة التحكم
+                    </a>
+                    <a href="/admin/users/new" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        إضافة مستخدم جديد
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Success/Error Messages -->
+        {% if request.query_params.get('success') %}
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle"></i>
+            <span>{{ request.query_params.get('success') }}</span>
+        </div>
+        {% endif %}
+
+        {% if request.query_params.get('error') %}
+        <div class="alert alert-error">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>{{ request.query_params.get('error') }}</span>
+        </div>
+        {% endif %}
+
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Total Users -->
+            <div class="stat-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">إجمالي المستخدمين</p>
+                        <p class="text-3xl font-bold text-blue-600">{{ total_users }}</p>
+                        <p class="text-xs text-gray-500 mt-1">جميع المستخدمين المسجلين</p>
+                    </div>
+                    <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                        <i class="fas fa-users text-white text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Users -->
+            <div class="stat-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">المستخدمون النشطون</p>
+                        <p class="text-3xl font-bold text-green-600">{{ users|selectattr("is_active")|list|length }}</p>
+                        <p class="text-xs text-gray-500 mt-1">حسابات نشطة</p>
+                    </div>
+                    <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user-check text-white text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Requests -->
+            <div class="stat-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">إجمالي الطلبات</p>
+                        <p class="text-3xl font-bold text-purple-600">{{ request_stats.total if request_stats else 0 }}</p>
+                        <p class="text-xs text-gray-500 mt-1">جميع الطلبات في النظام</p>
+                    </div>
+                    <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
+                        <i class="fas fa-file-alt text-white text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Requests -->
+            <div class="stat-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">الطلبات المعلقة</p>
+                        <p class="text-3xl font-bold text-yellow-600">{{ request_stats.pending if request_stats else 0 }}</p>
+                        <p class="text-xs text-gray-500 mt-1">تحتاج للمراجعة</p>
+                    </div>
+                    <div class="w-14 h-14 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-full flex items-center justify-center">
+                        <i class="fas fa-clock text-white text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content with Tabs -->
+        <div class="form-container">
+            <!-- Tab Navigation -->
+            <div class="flex border-b border-gray-200">
+                <button class="tab-button active" onclick="switchTab('users-tab', this)">
+                    <i class="fas fa-users mr-2"></i>
+                    إدارة المستخدمين
+                </button>
+                <button class="tab-button" onclick="switchTab('recent-tab', this)">
+                    <i class="fas fa-history mr-2"></i>
+                    الطلبات الحديثة
+                </button>
+            </div>
+
+            <!-- Tab Content -->
+
+            <!-- Filters Section -->
+            <div class="bg-gray-50 p-4 border-b border-gray-200">
+                <form method="get" class="flex flex-wrap items-center gap-4">
+                    <!-- Hidden inputs to preserve pagination -->
+                    <input type="hidden" name="page" value="1">
+
+                    <!-- Search Input -->
+                    <div class="flex-1 min-w-64">
+                        <div class="relative">
+                            <input type="text"
+                                   name="search"
+                                   value="{{ current_search or '' }}"
+                                   placeholder="البحث بالاسم أو البريد الإلكتروني أو اسم المستخدم..."
+                                   class="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                    </div>
+
+                    <!-- Role Filter -->
+                    <div>
+                        <select name="role_filter" style="color: #374151 !important; background-color: #ffffff !important;" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="" style="color: #9ca3af !important; background-color: #ffffff !important;">جميع الأدوار</option>
+                            {% for role in available_roles %}
+                            <option value="{{ role }}" style="color: #374151 !important; background-color: #ffffff !important;" {% if current_role_filter == role %}selected{% endif %}>
+                                {% if role == 'admin' %}مدير{% elif role == 'user' %}مستخدم{% else %}{{ role }}{% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Status Filter -->
+                    <div>
+                        <select name="status_filter" style="color: #374151 !important; background-color: #ffffff !important;" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="" style="color: #9ca3af !important; background-color: #ffffff !important;">جميع الحالات</option>
+                            <option value="active" style="color: #374151 !important; background-color: #ffffff !important;" {% if current_status_filter == 'active' %}selected{% endif %}>نشط</option>
+                            <option value="inactive" style="color: #374151 !important; background-color: #ffffff !important;" {% if current_status_filter == 'inactive' %}selected{% endif %}>غير نشط</option>
+                        </select>
+                    </div>
+
+                    <!-- Per Page -->
+                    <div>
+                        <select name="per_page" style="color: #374151 !important; background-color: #ffffff !important;" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="10" style="color: #374151 !important; background-color: #ffffff !important;" {% if per_page == 10 %}selected{% endif %}>10</option>
+                            <option value="20" style="color: #374151 !important; background-color: #ffffff !important;" {% if per_page == 20 %}selected{% endif %}>20</option>
+                            <option value="50" style="color: #374151 !important; background-color: #ffffff !important;" {% if per_page == 50 %}selected{% endif %}>50</option>
+                            <option value="100" style="color: #374151 !important; background-color: #ffffff !important;" {% if per_page == 100 %}selected{% endif %}>100</option>
+                        </select>
+                    </div>
+
+                    <!-- Filter Buttons -->
+                    <div class="flex gap-2">
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-search mr-2"></i>
+                            بحث
+                        </button>
+                        <a href="/admin/users" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
+                            <i class="fas fa-times mr-2"></i>
+                            إزالة الفلاتر
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Users Management Tab -->
+            <div id="users-tab" class="tab-content active">
+                <div class="form-section">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center space-x-4 space-x-reverse">
+                            <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-users text-gray-600 text-lg"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-bold text-gray-900">قائمة المستخدمين</h2>
+                                <p class="text-gray-600">إدارة وتتبع جميع المستخدمين في النظام</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2 space-x-reverse text-sm text-gray-500">
+                            <i class="fas fa-info-circle"></i>
+                            <span>{{ users|length }} مستخدم</span>
+                        </div>
+                    </div>
+
+                    <!-- Users Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b border-gray-200">
+                                    <th class="text-right py-3 px-4 font-semibold text-gray-700">المستخدم</th>
+                                    <th class="text-right py-3 px-4 font-semibold text-gray-700">البريد الإلكتروني</th>
+                                    <th class="text-center py-3 px-4 font-semibold text-gray-700">الدور</th>
+                                    <th class="text-center py-3 px-4 font-semibold text-gray-700">الحالة</th>
+                                    <th class="text-center py-3 px-4 font-semibold text-gray-700">تاريخ التسجيل</th>
+                                    <th class="text-center py-3 px-4 font-semibold text-gray-700">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                                    <td class="py-4 px-4">
+                                        <div class="flex items-center space-x-3 space-x-reverse">
+                                            <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                                                <span class="text-gray-700 font-semibold text-sm">
+                                                    {{ user.full_name[0] if user.full_name else user.username[0] }}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <p class="font-semibold text-gray-900">{{ user.full_name or user.username }}</p>
+                                                <p class="text-sm text-gray-500">@{{ user.username }}</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-4 px-4">
+                                        <span class="text-gray-900">{{ user.email }}</span>
+                                    </td>
+                                    <td class="py-4 px-4 text-center">
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                                            {% if user.role.value == 'admin' %}bg-red-100 text-red-800
+                                            {% elif user.role.value == 'manager' %}bg-blue-100 text-blue-800
+                                            {% else %}bg-green-100 text-green-800
+                                            {% endif %}">
+                                            {% if user.role.value == 'admin' %}
+                                                <i class="fas fa-crown mr-1"></i>
+                                                مدير النظام
+                                            {% elif user.role.value == 'manager' %}
+                                                <i class="fas fa-user-tie mr-1"></i>
+                                                مدير المشاريع
+                                            {% else %}
+                                                <i class="fas fa-user mr-1"></i>
+                                                مستخدم
+                                            {% endif %}
+                                        </span>
+                                    </td>
+                                    <td class="py-4 px-4 text-center">
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                                            {% if user.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                            {% if user.is_active %}
+                                                <i class="fas fa-check-circle mr-1"></i>
+                                                نشط
+                                            {% else %}
+                                                <i class="fas fa-times-circle mr-1"></i>
+                                                غير نشط
+                                            {% endif %}
+                                        </span>
+                                    </td>
+                                    <td class="py-4 px-4 text-center">
+                                        <div class="text-sm">
+                                            <div class="font-medium text-gray-900">{{ user.created_at.strftime('%Y-%m-%d') }}</div>
+                                            <div class="text-gray-500">{{ user.created_at.strftime('%H:%M') }}</div>
+                                        </div>
+                                    </td>
+                                    <td class="py-4 px-4 text-center">
+                                        <div class="flex items-center justify-center space-x-2 space-x-reverse">
+                                            <a href="/admin/users/{{ user.id }}/edit"
+                                               class="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm">
+                                                <i class="fas fa-edit mr-1"></i>
+                                                تعديل
+                                            </a>
+                                            <a href="/admin/users/{{ user.id }}/requests"
+                                               class="inline-flex items-center px-3 py-1 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm">
+                                                <i class="fas fa-file-alt mr-1"></i>
+                                                الطلبات
+                                            </a>
+                                            <a href="/admin/users/{{ user.id }}/activities"
+                                               class="inline-flex items-center px-3 py-1 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm">
+                                                <i class="fas fa-history mr-1"></i>
+                                                الأنشطة
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination Controls -->
+                    {% if total_pages > 1 %}
+                    <div class="flex items-center justify-between mt-6 p-4 bg-gray-50 rounded-lg">
+                        <!-- Results Info -->
+                        <div class="text-sm text-gray-600">
+                            عرض {{ ((current_page - 1) * per_page) + 1 }} إلى {{ min(current_page * per_page, total_users) }} من أصل {{ total_users }} مستخدم
+                        </div>
+
+                        <!-- Pagination Buttons -->
+                        <div class="flex items-center space-x-2 space-x-reverse">
+                            <!-- Previous Page -->
+                            {% if has_prev %}
+                            <a href="?page={{ current_page - 1 }}&per_page={{ per_page }}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_role_filter %}&role_filter={{ current_role_filter }}{% endif %}{% if current_status_filter %}&status_filter={{ current_status_filter }}{% endif %}"
+                               class="px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                            {% else %}
+                            <span class="px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-400 cursor-not-allowed">
+                                <i class="fas fa-chevron-right"></i>
+                            </span>
+                            {% endif %}
+
+                            <!-- Page Numbers -->
+                            {% set start_page = max(1, current_page - 2) %}
+                            {% set end_page = min(total_pages, current_page + 2) %}
+
+                            {% if start_page > 1 %}
+                            <a href="?page=1&per_page={{ per_page }}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_role_filter %}&role_filter={{ current_role_filter }}{% endif %}{% if current_status_filter %}&status_filter={{ current_status_filter }}{% endif %}"
+                               class="px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">1</a>
+                            {% if start_page > 2 %}
+                            <span class="px-3 py-2 text-gray-500">...</span>
+                            {% endif %}
+                            {% endif %}
+
+                            {% for page_num in range(start_page, end_page + 1) %}
+                            {% if page_num == current_page %}
+                            <span class="px-3 py-2 bg-blue-600 text-white rounded-lg">{{ page_num }}</span>
+                            {% else %}
+                            <a href="?page={{ page_num }}&per_page={{ per_page }}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_role_filter %}&role_filter={{ current_role_filter }}{% endif %}{% if current_status_filter %}&status_filter={{ current_status_filter }}{% endif %}"
+                               class="px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">{{ page_num }}</a>
+                            {% endif %}
+                            {% endfor %}
+
+                            {% if end_page < total_pages %}
+                            {% if end_page < total_pages - 1 %}
+                            <span class="px-3 py-2 text-gray-500">...</span>
+                            {% endif %}
+                            <a href="?page={{ total_pages }}&per_page={{ per_page }}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_role_filter %}&role_filter={{ current_role_filter }}{% endif %}{% if current_status_filter %}&status_filter={{ current_status_filter }}{% endif %}"
+                               class="px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">{{ total_pages }}</a>
+                            {% endif %}
+
+                            <!-- Next Page -->
+                            {% if has_next %}
+                            <a href="?page={{ current_page + 1 }}&per_page={{ per_page }}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_role_filter %}&role_filter={{ current_role_filter }}{% endif %}{% if current_status_filter %}&status_filter={{ current_status_filter }}{% endif %}"
+                               class="px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                            {% else %}
+                            <span class="px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-400 cursor-not-allowed">
+                                <i class="fas fa-chevron-left"></i>
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+
+
+
+            <!-- Recent Requests Tab -->
+            <div id="recent-tab" class="tab-content">
+                <div class="form-section">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center space-x-4 space-x-reverse">
+                            <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-history text-gray-600 text-lg"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-bold text-gray-900">الطلبات الحديثة</h2>
+                                <p class="text-gray-600">آخر الطلبات المرفوعة في النظام</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2 space-x-reverse text-sm text-gray-500">
+                            <i class="fas fa-info-circle"></i>
+                            <span>{{ recent_requests|length }} طلب</span>
+                        </div>
+                    </div>
+
+                    {% if recent_requests %}
+                    <!-- Recent Requests Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b border-gray-200">
+                                    <th class="text-right py-3 px-4 font-semibold text-gray-700">رقم الطلب</th>
+                                    <th class="text-right py-3 px-4 font-semibold text-gray-700">المستخدم</th>
+                                    <th class="text-right py-3 px-4 font-semibold text-gray-700">اسم الطلب</th>
+                                    <th class="text-center py-3 px-4 font-semibold text-gray-700">الحالة</th>
+                                    <th class="text-center py-3 px-4 font-semibold text-gray-700">تاريخ الإنشاء</th>
+                                    <th class="text-center py-3 px-4 font-semibold text-gray-700">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for request in recent_requests %}
+                                <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                                    <td class="py-4 px-4">
+                                        <code class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-mono">{{ request.request_number }}</code>
+                                    </td>
+                                    <td class="py-4 px-4">
+                                        <div class="flex items-center space-x-2 space-x-reverse">
+                                            <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                                                <span class="text-gray-700 font-semibold text-xs">
+                                                    {{ request.user.full_name[0] if request.user.full_name else request.user.username[0] }}
+                                                </span>
+                                            </div>
+                                            <span class="font-medium text-gray-900">{{ request.user.full_name or request.user.username }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-4 px-4">
+                                        <span class="text-gray-900">{{ request.request_name or request.full_name }}</span>
+                                    </td>
+                                    <td class="py-4 px-4 text-center">
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                                            {% if request.status.value == 'pending' %}bg-yellow-100 text-yellow-800
+                                            {% elif request.status.value == 'in_progress' %}bg-blue-100 text-blue-800
+                                            {% elif request.status.value == 'completed' %}bg-green-100 text-green-800
+                                            {% elif request.status.value == 'rejected' %}bg-red-100 text-red-800
+                                            {% endif %}">
+                                            {% if request.status.value == 'pending' %}
+                                                <i class="fas fa-clock mr-1"></i>
+                                                قيد الانتظار
+                                            {% elif request.status.value == 'in_progress' %}
+                                                <i class="fas fa-cog mr-1"></i>
+                                                قيد المعالجة
+                                            {% elif request.status.value == 'completed' %}
+                                                <i class="fas fa-check mr-1"></i>
+                                                مكتمل
+                                            {% elif request.status.value == 'rejected' %}
+                                                <i class="fas fa-times mr-1"></i>
+                                                مرفوض
+                                            {% endif %}
+                                        </span>
+                                    </td>
+                                    <td class="py-4 px-4 text-center">
+                                        <div class="text-sm">
+                                            <div class="font-medium text-gray-900">{{ request.created_at.strftime('%Y-%m-%d') }}</div>
+                                            <div class="text-gray-500">{{ request.created_at.strftime('%H:%M') }}</div>
+                                        </div>
+                                    </td>
+                                    <td class="py-4 px-4 text-center">
+                                        <div class="flex items-center justify-center space-x-2 space-x-reverse">
+                                            <a href="/admin/requests/{{ request.id }}/view"
+                                               class="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm">
+                                                <i class="fas fa-eye mr-1"></i>
+                                                عرض
+                                            </a>
+                                            <a href="/admin/requests/{{ request.id }}/edit"
+                                               class="inline-flex items-center px-3 py-1 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm">
+                                                <i class="fas fa-edit mr-1"></i>
+                                                تعديل
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <!-- Empty State -->
+                    <div class="text-center py-12">
+                        <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-file-alt text-4xl text-gray-400"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-4">لا توجد طلبات حديثة</h3>
+                        <p class="text-gray-600 mb-8 max-w-md mx-auto">لم يتم رفع أي طلبات حديثة في النظام.</p>
+
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching functionality
+        function switchTab(tabId, buttonElement) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // Remove active class from all tab buttons
+            const tabButtons = document.querySelectorAll('.tab-button');
+            tabButtons.forEach(button => {
+                button.classList.remove('active');
+            });
+
+            // Show selected tab content
+            document.getElementById(tabId).classList.add('active');
+
+            // Add active class to clicked button
+            buttonElement.classList.add('active');
+        }
+
+        // File upload functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('files');
+            const fileUploadArea = document.getElementById('fileUploadArea');
+            const fileList = document.getElementById('fileList');
+
+            // Only initialize file upload functionality if elements exist
+            if (fileInput && fileUploadArea && fileList) {
+                // Handle file selection
+                fileInput.addEventListener('change', function(e) {
+                    displaySelectedFiles(e.target.files);
+                });
+
+                // Handle drag and drop
+                fileUploadArea.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    fileUploadArea.classList.add('dragover');
+                });
+
+                fileUploadArea.addEventListener('dragleave', function(e) {
+                    e.preventDefault();
+                    fileUploadArea.classList.remove('dragover');
+                });
+
+                fileUploadArea.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    fileUploadArea.classList.remove('dragover');
+
+                    const files = e.dataTransfer.files;
+                    fileInput.files = files;
+                    displaySelectedFiles(files);
+                });
+
+                function displaySelectedFiles(files) {
+                    fileList.innerHTML = '';
+
+                    if (files.length === 0) {
+                        return;
+                    }
+
+                    Array.from(files).forEach((file, index) => {
+                        const fileItem = document.createElement('div');
+                        fileItem.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200';
+
+                        fileItem.innerHTML = `
+                            <div class="flex items-center space-x-3 space-x-reverse">
+                                <i class="fas fa-file text-blue-500"></i>
+                                <div>
+                                    <p class="font-medium text-gray-900">${file.name}</p>
+                                    <p class="text-sm text-gray-500">${formatFileSize(file.size)}</p>
+                                </div>
+                            </div>
+                            <button type="button" onclick="removeFile(${index})" class="text-red-500 hover:text-red-700">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `;
+
+                        fileList.appendChild(fileItem);
+                    });
+                }
+
+                function formatFileSize(bytes) {
+                    if (bytes === 0) return '0 Bytes';
+                    const k = 1024;
+                    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                    const i = Math.floor(Math.log(bytes) / Math.log(k));
+                    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+                }
+
+                // Auto-fill user data when user is selected
+                const userSelect = document.getElementById('user_id');
+                const fullNameInput = document.getElementById('full_name');
+
+                if (userSelect && fullNameInput) {
+                    userSelect.addEventListener('change', function() {
+                        const selectedOption = this.options[this.selectedIndex];
+                        if (selectedOption.value) {
+                            const userName = selectedOption.text.split(' (')[0];
+                            fullNameInput.value = userName;
+                        }
+                    });
+                }
+            }
+        });
+
+        // Remove file function
+        function removeFile(index) {
+            const fileInput = document.getElementById('files');
+            if (!fileInput) return;
+
+            const dt = new DataTransfer();
+
+            Array.from(fileInput.files).forEach((file, i) => {
+                if (i !== index) {
+                    dt.items.add(file);
+                }
+            });
+
+            fileInput.files = dt.files;
+
+            // Trigger change event to update display
+            fileInput.dispatchEvent(new Event('change'));
+        }
+
+        // Reset form function
+        function resetForm() {
+            const form = document.querySelector('form');
+            const fileList = document.getElementById('fileList');
+
+            if (form) {
+                form.reset();
+            }
+            if (fileList) {
+                fileList.innerHTML = '';
+            }
+        }
+
+        // Show success/error messages
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('success')) {
+                showAlert(urlParams.get('success'), 'success');
+            }
+            if (urlParams.get('error')) {
+                showAlert(urlParams.get('error'), 'error');
+            }
+        });
+
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.innerHTML = `
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i>
+                <span>${message}</span>
+            `;
+
+            const container = document.querySelector('.max-w-7xl');
+            container.insertBefore(alertDiv, container.firstChild);
+
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        // Search functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.querySelector('input[name="search"]');
+            const roleFilter = document.querySelector('select[name="role_filter"]');
+            const statusFilter = document.querySelector('select[name="status_filter"]');
+            const perPageSelect = document.querySelector('select[name="per_page"]');
+
+            let searchTimeout;
+
+            // Auto-submit search after typing stops
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => {
+                        if (this.value.length >= 3 || this.value.length === 0) {
+                            const pageInput = document.querySelector('input[name="page"]');
+                            if (pageInput) {
+                                pageInput.value = '1';
+                            }
+                            this.form.submit();
+                        }
+                    }, 500);
+                });
+            }
+
+            // Auto-submit when filters change
+            if (roleFilter) {
+                roleFilter.addEventListener('change', function() {
+                    const pageInput = document.querySelector('input[name="page"]');
+                    if (pageInput) {
+                        pageInput.value = '1';
+                    }
+                    this.form.submit();
+                });
+            }
+
+            if (statusFilter) {
+                statusFilter.addEventListener('change', function() {
+                    const pageInput = document.querySelector('input[name="page"]');
+                    if (pageInput) {
+                        pageInput.value = '1';
+                    }
+                    this.form.submit();
+                });
+            }
+
+            if (perPageSelect) {
+                perPageSelect.addEventListener('change', function() {
+                    document.querySelector('input[name="page"]').value = '1';
+                    this.form.submit();
+                });
+            }
+        });
+    </script>
+
+</div>
+{% endblock %}

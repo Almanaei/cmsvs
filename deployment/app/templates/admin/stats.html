@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة الإحصائيات الإدارية - نظام إدارة الطلبات</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .header-card {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .metric-card {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .chart-container {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+        }
+
+        .trend-up {
+            color: #10b981;
+        }
+
+        .trend-down {
+            color: #ef4444;
+        }
+
+        .activity-item {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .activity-item:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-link {
+            color: #6b7280;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: #3b82f6;
+            background: #f3f4f6;
+        }
+
+        .nav-link.active {
+            color: #3b82f6;
+            background: #dbeafe;
+        }
+
+        .export-btn {
+            background: #3b82f6;
+            border: 1px solid #3b82f6;
+            color: white;
+            font-weight: 500;
+        }
+
+        .export-btn:hover {
+            background: #2563eb;
+            border-color: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+        }
+
+        .primary-text {
+            color: #3b82f6;
+        }
+
+        .secondary-text {
+            color: #6b7280;
+        }
+
+        .muted-text {
+            color: #9ca3af;
+        }
+
+        .page-title {
+            color: #1f2937;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header-card mx-4 mt-4 p-6">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4 space-x-reverse">
+                <h1 class="text-2xl font-bold page-title">لوحة الإحصائيات الإدارية</h1>
+                <p class="text-sm muted-text mt-1">آخر 30 يوماً</p>
+            </div>
+            <div class="flex items-center space-x-4 space-x-reverse">
+                <div class="flex space-x-2 space-x-reverse">
+                    <a href="/admin/dashboard" class="nav-link px-4 py-2 rounded-md text-sm font-medium">
+                        <i class="fas fa-tachometer-alt ml-2"></i>
+                        الرئيسية
+                    </a>
+                    <a href="/admin/stats" class="nav-link active px-4 py-2 rounded-md text-sm font-medium">
+                        <i class="fas fa-chart-bar ml-2"></i>
+                        الإحصائيات
+                    </a>
+                    <a href="/admin/users" class="nav-link px-4 py-2 rounded-md text-sm font-medium">
+                        <i class="fas fa-users ml-2"></i>
+                        المستخدمون
+                    </a>
+                </div>
+                <button onclick="exportData()" class="export-btn px-4 py-2 rounded-md text-sm font-medium transition-all duration-300">
+                    <i class="fas fa-download ml-2"></i>
+                    تصدير البيانات
+                </button>
+                <span class="secondary-text">مرحباً، {{ current_user.full_name or current_user.username }}</span>
+                <a href="/auth/logout" class="nav-link px-4 py-2 rounded-md text-sm font-medium">
+                    <i class="fas fa-sign-out-alt ml-2"></i>
+                    تسجيل الخروج
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Total Users Card -->
+            <div class="metric-card p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium secondary-text">إجمالي المستخدمين</p>
+                        <p class="text-2xl font-bold primary-text mt-2">{{ stats_data.kpi_cards.total_users.current }}</p>
+                        <p class="text-xs muted-text mt-1">من {{ stats_data.kpi_cards.total_users.previous }}</p>
+                    </div>
+                    <div class="flex items-center {% if stats_data.kpi_cards.total_users.trend == 'up' %}trend-up{% else %}trend-down{% endif %}">
+                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            {% if stats_data.kpi_cards.total_users.trend == 'up' %}
+                            <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                            {% else %}
+                            <path fill-rule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            {% endif %}
+                        </svg>
+                        <span class="text-sm font-medium">{{ stats_data.kpi_cards.total_users.change_percent }}%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Completion Rate Card -->
+            <div class="metric-card p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium secondary-text">معدل الإنجاز</p>
+                        <p class="text-2xl font-bold primary-text mt-2">{{ stats_data.kpi_cards.completion_rate.current }}%</p>
+                        <p class="text-xs muted-text mt-1">من {{ stats_data.kpi_cards.completion_rate.previous }}%</p>
+                    </div>
+                    <div class="flex items-center {% if stats_data.kpi_cards.completion_rate.trend == 'up' %}trend-up{% else %}trend-down{% endif %}">
+                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            {% if stats_data.kpi_cards.completion_rate.trend == 'up' %}
+                            <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                            {% else %}
+                            <path fill-rule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            {% endif %}
+                        </svg>
+                        <span class="text-sm font-medium">{{ stats_data.kpi_cards.completion_rate.change_percent }}%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Engagement Rate Card -->
+            <div class="metric-card p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium secondary-text">معدل المشاركة</p>
+                        <p class="text-2xl font-bold primary-text mt-2">{{ stats_data.kpi_cards.engagement_rate.current }}%</p>
+                        <p class="text-xs muted-text mt-1">من {{ stats_data.kpi_cards.engagement_rate.previous }}%</p>
+                    </div>
+                    <div class="flex items-center {% if stats_data.kpi_cards.engagement_rate.trend == 'up' %}trend-up{% else %}trend-down{% endif %}">
+                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            {% if stats_data.kpi_cards.engagement_rate.trend == 'up' %}
+                            <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                            {% else %}
+                            <path fill-rule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            {% endif %}
+                        </svg>
+                        <span class="text-sm font-medium">{{ stats_data.kpi_cards.engagement_rate.change_percent }}%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Efficiency Score Card -->
+            <div class="metric-card p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium secondary-text">نقاط الكفاءة</p>
+                        <p class="text-2xl font-bold primary-text mt-2">{{ stats_data.kpi_cards.efficiency_score.current }}</p>
+                        <p class="text-xs muted-text mt-1">من {{ stats_data.kpi_cards.efficiency_score.previous }}</p>
+                    </div>
+                    <div class="flex items-center {% if stats_data.kpi_cards.efficiency_score.trend == 'up' %}trend-up{% else %}trend-down{% endif %}">
+                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            {% if stats_data.kpi_cards.efficiency_score.trend == 'up' %}
+                            <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                            {% else %}
+                            <path fill-rule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            {% endif %}
+                        </svg>
+                        <span class="text-sm font-medium">{{ stats_data.kpi_cards.efficiency_score.change_percent }}%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Requests Growth Chart -->
+            <div class="chart-container">
+                <h3 class="text-lg font-semibold page-title mb-6">نمو الطلبات الشهري</h3>
+                <div class="h-64">
+                    <canvas id="userGrowthChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Request Status Distribution -->
+            <div class="chart-container">
+                <h3 class="text-lg font-semibold page-title mb-6">توزيع حالات الطلبات</h3>
+                <div class="h-64 flex items-center justify-center">
+                    <canvas id="statusDistributionChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Tables and Additional Metrics -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Top Performing Request Types -->
+            <div class="lg:col-span-2 chart-container">
+                <h3 class="text-lg font-semibold page-title mb-6">أفضل أنواع الطلبات أداءً</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-right text-xs font-medium secondary-text uppercase tracking-wider">نوع الطلب</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium secondary-text uppercase tracking-wider">العدد</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium secondary-text uppercase tracking-wider">معدل الإنجاز</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium secondary-text uppercase tracking-wider">الفئة</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for request_type in stats_data.top_request_types %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium page-title">{{ request_type.name }}</div>
+                                    <div class="text-sm muted-text">{{ request_type.category }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm page-title">{{ request_type.count }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        {{ request_type.completion_rate }}%
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm secondary-text">{{ request_type.category }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="chart-container">
+                <h3 class="text-lg font-semibold page-title mb-6">الأنشطة الحديثة</h3>
+                <div class="space-y-4">
+                    {% for activity in stats_data.recent_activities %}
+                    <div class="flex items-start space-x-3 space-x-reverse">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                                <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm font-medium page-title">{{ activity.title }}</p>
+                            <p class="text-sm secondary-text">{{ activity.description }}</p>
+                            <p class="text-xs muted-text mt-1">{{ activity.time.strftime('%Y-%m-%d %H:%M') if activity.time else 'منذ قليل' }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Requests Growth Chart
+        const userGrowthCtx = document.getElementById('userGrowthChart').getContext('2d');
+        const userGrowthChart = new Chart(userGrowthCtx, {
+            type: 'line',
+            data: {
+                labels: [
+                    {% for month_data in stats_data.monthly_growth %}
+                        '{{ month_data.month }}'{% if not loop.last %},{% endif %}
+                    {% endfor %}
+                ],
+                datasets: [{
+                    label: 'عدد الطلبات',
+                    data: [
+                        {% for month_data in stats_data.monthly_growth %}
+                            {{ month_data.count }}{% if not loop.last %},{% endif %}
+                        {% endfor %}
+                    ],
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Status Distribution Chart
+        const statusDistributionCtx = document.getElementById('statusDistributionChart').getContext('2d');
+        const statusDistributionChart = new Chart(statusDistributionCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['مكتملة', 'معلقة', 'قيد المعالجة', 'مرفوضة'],
+                datasets: [{
+                    data: [
+                        {{ stats_data.status_distribution.completed }},
+                        {{ stats_data.status_distribution.pending }},
+                        {{ stats_data.status_distribution.in_progress }},
+                        {{ stats_data.status_distribution.rejected }}
+                    ],
+                    backgroundColor: [
+                        '#10b981',
+                        '#f59e0b',
+                        '#3b82f6',
+                        '#ef4444'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+
+    <script>
+        // Export Data Functionality
+        function exportData() {
+            // Show loading state
+            const exportBtn = document.querySelector('.export-btn');
+            const originalText = exportBtn.innerHTML;
+            exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin ml-2"></i>جاري التصدير...';
+            exportBtn.disabled = true;
+
+            // Make request to export endpoint
+            fetch('/admin/stats/export', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                // Create download link
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+
+                // Generate filename with current date
+                const now = new Date();
+                const dateStr = now.toISOString().split('T')[0];
+                a.download = `admin_stats_${dateStr}.xlsx`;
+
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+                // Show success message
+                showNotification('تم تصدير البيانات بنجاح!', 'success');
+            })
+            .catch(error => {
+                console.error('Export error:', error);
+                showNotification('حدث خطأ أثناء تصدير البيانات', 'error');
+            })
+            .finally(() => {
+                // Restore button state
+                exportBtn.innerHTML = originalText;
+                exportBtn.disabled = false;
+            });
+        }
+
+        // Show notification function
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 ${
+                type === 'success' ? 'bg-green-500' : 'bg-red-500'
+            } text-white`;
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} ml-2"></i>
+                    ${message}
+                </div>
+            `;
+
+            document.body.appendChild(notification);
+
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+    </script>
+
+    <!-- Users Competition Bubble Chart Section -->
+    <div class="mt-12 mb-8">
+        <div class="chart-container">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold page-title">🏆 التنافس بين المستخدمين</h3>
+                <div class="flex items-center space-x-4 space-x-reverse">
+                    <!-- Legend -->
+                    <div class="flex items-center space-x-2 space-x-reverse text-sm">
+                        <div class="flex items-center space-x-1 space-x-reverse">
+                            <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                            <span class="secondary-text">ممتاز (80%+)</span>
+                        </div>
+                        <div class="flex items-center space-x-1 space-x-reverse">
+                            <div class="w-3 h-3 rounded-full bg-blue-500"></div>
+                            <span class="secondary-text">جيد جداً (60%+)</span>
+                        </div>
+                        <div class="flex items-center space-x-1 space-x-reverse">
+                            <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                            <span class="secondary-text">جيد (40%+)</span>
+                        </div>
+                        <div class="flex items-center space-x-1 space-x-reverse">
+                            <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                            <span class="secondary-text">مقبول (20%+)</span>
+                        </div>
+                    </div>
+
+                    <!-- View Toggle -->
+                    <div class="flex bg-gray-100 rounded-lg p-1">
+                        <button onclick="toggleCompetitionView('performance')"
+                                class="competition-view-btn px-3 py-1 text-xs font-medium rounded-md transition-all duration-200 bg-blue-500 text-white"
+                                data-view="performance">
+                            الأداء
+                        </button>
+                        <button onclick="toggleCompetitionView('total')"
+                                class="competition-view-btn px-3 py-1 text-xs font-medium rounded-md transition-all duration-200 text-gray-600 hover:text-gray-800"
+                                data-view="total">
+                            الإجمالي
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Competition Chart Container -->
+            <div class="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl p-8 border border-blue-200">
+                <div id="competitionChart" class="relative w-full h-96 overflow-hidden rounded-lg bg-white shadow-inner border border-gray-200">
+                    <!-- Chart will be rendered here -->
+                </div>
+
+                <!-- Chart Info -->
+                <div class="mt-4 text-center">
+                    <p class="text-sm text-gray-600">
+                        حجم الدائرة يمثل إجمالي الطلبات المكتملة • اللون يمثل مستوى الأداء الحالي • الخطوط تُظهر اتجاهات الأداء • انقر على أي دائرة للانتقال إلى طلبات المستخدم
+                    </p>
+                </div>
+            </div>
+
+            <!-- Top Performers -->
+            <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                {% if users_competition_data %}
+                {% for user in users_competition_data[:3] %}
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                    <div class="flex items-center space-x-3 space-x-reverse">
+                        <div class="relative">
+                            <div class="w-12 h-12 rounded-full bg-cover bg-center border-2 border-gray-200"
+                                 style="background-image: url('{{ user.avatar_url }}');"></div>
+                            {% if loop.index == 1 %}
+                            <div class="absolute -top-1 -right-1 w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center">
+                                <span class="text-xs text-white font-bold">🥇</span>
+                            </div>
+                            {% elif loop.index == 2 %}
+                            <div class="absolute -top-1 -right-1 w-6 h-6 bg-gray-400 rounded-full flex items-center justify-center">
+                                <span class="text-xs text-white font-bold">🥈</span>
+                            </div>
+                            {% elif loop.index == 3 %}
+                            <div class="absolute -top-1 -right-1 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
+                                <span class="text-xs text-white font-bold">🥉</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-gray-900">{{ user.name }}</h4>
+                            <p class="text-sm text-gray-600">{{ user.level }}</p>
+                            <div class="flex items-center space-x-2 space-x-reverse mt-1">
+                                <span class="text-xs font-medium text-blue-600">{{ user.performance_score }}%</span>
+                                <span class="text-xs text-gray-500">{{ user.total_completed }} طلب</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Competition Chart JavaScript -->
+    <script>
+        // Competition data from backend
+        const competitionData = {{ users_competition_data | tojson | safe }};
+        let currentView = 'performance';
+        let chartSvg = null;
+
+        // Initialize competition chart
+        document.addEventListener('DOMContentLoaded', function() {
+            renderCompetitionChart();
+        });
+
+        function renderCompetitionChart() {
+            const container = document.getElementById('competitionChart');
+            if (!container || !competitionData || competitionData.length === 0) {
+                container.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">لا توجد بيانات للعرض</div>';
+                return;
+            }
+
+            // Clear container
+            container.innerHTML = '';
+
+            // Chart dimensions
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            const padding = 60;
+
+            // Create SVG
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', width);
+            svg.setAttribute('height', height);
+            svg.setAttribute('class', 'w-full h-full');
+            svg.setAttribute('style', 'background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);');
+
+            // Add definitions for gradients and filters
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+
+            // Create gradient for each performance level
+            const gradients = [
+                { id: 'excellent', color1: '#10B981', color2: '#059669' },
+                { id: 'verygood', color1: '#3B82F6', color2: '#2563EB' },
+                { id: 'good', color1: '#F59E0B', color2: '#D97706' },
+                { id: 'acceptable', color1: '#EF4444', color2: '#DC2626' },
+                { id: 'poor', color1: '#6B7280', color2: '#4B5563' }
+            ];
+
+            gradients.forEach(grad => {
+                const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
+                gradient.setAttribute('id', grad.id);
+                gradient.setAttribute('cx', '30%');
+                gradient.setAttribute('cy', '30%');
+
+                const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+                stop1.setAttribute('offset', '0%');
+                stop1.setAttribute('stop-color', grad.color1);
+
+                const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+                stop2.setAttribute('offset', '100%');
+                stop2.setAttribute('stop-color', grad.color2);
+
+                gradient.appendChild(stop1);
+                gradient.appendChild(stop2);
+                defs.appendChild(gradient);
+            });
+
+            // Add drop shadow filter
+            const filter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+            filter.setAttribute('id', 'dropshadow');
+            filter.setAttribute('x', '-50%');
+            filter.setAttribute('y', '-50%');
+            filter.setAttribute('width', '200%');
+            filter.setAttribute('height', '200%');
+
+            const feDropShadow = document.createElementNS('http://www.w3.org/2000/svg', 'feDropShadow');
+            feDropShadow.setAttribute('dx', '2');
+            feDropShadow.setAttribute('dy', '4');
+            feDropShadow.setAttribute('stdDeviation', '4');
+            feDropShadow.setAttribute('flood-opacity', '0.3');
+
+            filter.appendChild(feDropShadow);
+            defs.appendChild(filter);
+
+            svg.appendChild(defs);
+
+            // Draw grid lines
+            drawGridLines(svg, width, height, padding);
+
+            // Calculate positions for bubbles
+            const positions = calculateBubblePositions(competitionData, width - padding * 2, height - padding * 2);
+
+            // Draw performance trend lines
+            drawTrendLines(svg, competitionData, positions, padding);
+
+            // Create bubbles
+            competitionData.forEach((user, index) => {
+                const position = positions[index];
+                const x = position.x + padding;
+                const y = position.y + padding;
+
+                createUserBubble(svg, user, x, y);
+            });
+
+            // Add axes labels
+            addAxesLabels(svg, width, height, padding);
+
+            // Add SVG to container
+            container.appendChild(svg);
+            chartSvg = svg;
+        }
+
+        function drawGridLines(svg, width, height, padding) {
+            const gridGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            gridGroup.setAttribute('class', 'grid-lines');
+            gridGroup.setAttribute('opacity', '0.1');
+
+            // Vertical lines
+            for (let i = 0; i <= 10; i++) {
+                const x = padding + (i * (width - padding * 2) / 10);
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', x);
+                line.setAttribute('y1', padding);
+                line.setAttribute('x2', x);
+                line.setAttribute('y2', height - padding);
+                line.setAttribute('stroke', '#64748B');
+                line.setAttribute('stroke-width', '1');
+                gridGroup.appendChild(line);
+            }
+
+            // Horizontal lines
+            for (let i = 0; i <= 8; i++) {
+                const y = padding + (i * (height - padding * 2) / 8);
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', padding);
+                line.setAttribute('y1', y);
+                line.setAttribute('x2', width - padding);
+                line.setAttribute('y2', y);
+                line.setAttribute('stroke', '#64748B');
+                line.setAttribute('stroke-width', '1');
+                gridGroup.appendChild(line);
+            }
+
+            svg.appendChild(gridGroup);
+        }
+
+        function drawTrendLines(svg, data, positions, padding) {
+            if (data.length < 2) return;
+
+            // Sort users by performance score for trend line
+            const sortedData = data.map((user, index) => ({
+                ...user,
+                position: positions[index]
+            })).sort((a, b) => a.performance_score - b.performance_score);
+
+            // Create trend line path
+            const trendGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            trendGroup.setAttribute('class', 'trend-lines');
+
+            // Performance trend line
+            const performancePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            let pathData = '';
+
+            sortedData.forEach((user, index) => {
+                const x = user.position.x + padding;
+                const y = user.position.y + padding;
+
+                if (index === 0) {
+                    pathData += `M ${x} ${y}`;
+                } else {
+                    pathData += ` L ${x} ${y}`;
+                }
+            });
+
+            performancePath.setAttribute('d', pathData);
+            performancePath.setAttribute('stroke', '#3B82F6');
+            performancePath.setAttribute('stroke-width', '2');
+            performancePath.setAttribute('fill', 'none');
+            performancePath.setAttribute('opacity', '0.6');
+            performancePath.setAttribute('stroke-dasharray', '5,5');
+
+            trendGroup.appendChild(performancePath);
+            svg.appendChild(trendGroup);
+        }
+
+        function createUserBubble(svg, user, x, y) {
+            const bubbleGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            bubbleGroup.setAttribute('class', 'user-bubble');
+            bubbleGroup.setAttribute('transform', `translate(${x}, ${y})`);
+            bubbleGroup.setAttribute('cursor', 'pointer');
+
+            const radius = user.bubble_size / 2;
+
+            // Determine gradient based on performance level
+            let gradientId = 'poor';
+            if (user.performance_score >= 80) gradientId = 'excellent';
+            else if (user.performance_score >= 60) gradientId = 'verygood';
+            else if (user.performance_score >= 40) gradientId = 'good';
+            else if (user.performance_score >= 20) gradientId = 'acceptable';
+
+            // Main bubble circle with gradient
+            const mainCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            mainCircle.setAttribute('r', radius);
+            mainCircle.setAttribute('fill', `url(#${gradientId})`);
+            mainCircle.setAttribute('stroke', '#ffffff');
+            mainCircle.setAttribute('stroke-width', '4');
+            mainCircle.setAttribute('filter', 'url(#dropshadow)');
+            mainCircle.setAttribute('class', 'bubble-circle');
+
+            // Avatar circle (smaller, inside the main circle)
+            const avatarRadius = radius * 0.65;
+            const avatarCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            avatarCircle.setAttribute('r', avatarRadius);
+            avatarCircle.setAttribute('fill', '#ffffff');
+            avatarCircle.setAttribute('stroke', '#e5e7eb');
+            avatarCircle.setAttribute('stroke-width', '2');
+
+            // Avatar image
+            const avatarImage = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+            avatarImage.setAttribute('x', -avatarRadius);
+            avatarImage.setAttribute('y', -avatarRadius);
+            avatarImage.setAttribute('width', avatarRadius * 2);
+            avatarImage.setAttribute('height', avatarRadius * 2);
+            avatarImage.setAttribute('href', user.avatar_url);
+            avatarImage.setAttribute('clip-path', `circle(${avatarRadius}px at center)`);
+            avatarImage.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+
+            // Score background
+            const scoreRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            const scoreText = currentView === 'performance' ? `${user.performance_score}%` : `${user.total_completed}`;
+            const scoreWidth = scoreText.length * 8 + 12;
+            scoreRect.setAttribute('x', -scoreWidth / 2);
+            scoreRect.setAttribute('y', radius + 8);
+            scoreRect.setAttribute('width', scoreWidth);
+            scoreRect.setAttribute('height', 20);
+            scoreRect.setAttribute('rx', '10');
+            scoreRect.setAttribute('fill', 'rgba(255, 255, 255, 0.95)');
+            scoreRect.setAttribute('stroke', '#e5e7eb');
+            scoreRect.setAttribute('stroke-width', '1');
+
+            // Score text
+            const scoreTextElement = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            scoreTextElement.setAttribute('x', 0);
+            scoreTextElement.setAttribute('y', radius + 22);
+            scoreTextElement.setAttribute('text-anchor', 'middle');
+            scoreTextElement.setAttribute('font-family', 'Arial, sans-serif');
+            scoreTextElement.setAttribute('font-size', '12');
+            scoreTextElement.setAttribute('font-weight', 'bold');
+            scoreTextElement.setAttribute('fill', '#1f2937');
+            scoreTextElement.textContent = scoreText;
+
+            // Name background
+            const nameText = user.name.length > 12 ? user.name.substring(0, 12) + '...' : user.name;
+            const nameWidth = nameText.length * 6 + 12;
+            const nameRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            nameRect.setAttribute('x', -nameWidth / 2);
+            nameRect.setAttribute('y', radius + 32);
+            nameRect.setAttribute('width', nameWidth);
+            nameRect.setAttribute('height', 16);
+            nameRect.setAttribute('rx', '8');
+            nameRect.setAttribute('fill', 'rgba(255, 255, 255, 0.9)');
+            nameRect.setAttribute('stroke', '#e5e7eb');
+            nameRect.setAttribute('stroke-width', '1');
+
+            // Name text
+            const nameTextElement = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            nameTextElement.setAttribute('x', 0);
+            nameTextElement.setAttribute('y', radius + 43);
+            nameTextElement.setAttribute('text-anchor', 'middle');
+            nameTextElement.setAttribute('font-family', 'Arial, sans-serif');
+            nameTextElement.setAttribute('font-size', '10');
+            nameTextElement.setAttribute('fill', '#6b7280');
+            nameTextElement.textContent = nameText;
+
+            // Add hover effects
+            bubbleGroup.addEventListener('mouseenter', function() {
+                mainCircle.setAttribute('stroke-width', '6');
+                mainCircle.setAttribute('filter', 'url(#dropshadow) brightness(1.1)');
+                showUserTooltip(user, x, y);
+            });
+
+            bubbleGroup.addEventListener('mouseleave', function() {
+                mainCircle.setAttribute('stroke-width', '4');
+                mainCircle.setAttribute('filter', 'url(#dropshadow)');
+                hideUserTooltip();
+            });
+
+            // Add click handler
+            bubbleGroup.addEventListener('click', function() {
+                window.location.href = `/admin/users/${user.user_id}/requests`;
+            });
+
+            // Append all elements
+            bubbleGroup.appendChild(mainCircle);
+            bubbleGroup.appendChild(avatarCircle);
+            bubbleGroup.appendChild(avatarImage);
+            bubbleGroup.appendChild(scoreRect);
+            bubbleGroup.appendChild(scoreTextElement);
+            bubbleGroup.appendChild(nameRect);
+            bubbleGroup.appendChild(nameTextElement);
+
+            svg.appendChild(bubbleGroup);
+        }
+
+        function addAxesLabels(svg, width, height, padding) {
+            const labelsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            labelsGroup.setAttribute('class', 'axes-labels');
+
+            // X-axis label (Performance Score)
+            const xLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            xLabel.setAttribute('x', width / 2);
+            xLabel.setAttribute('y', height - 20);
+            xLabel.setAttribute('text-anchor', 'middle');
+            xLabel.setAttribute('font-family', 'Arial, sans-serif');
+            xLabel.setAttribute('font-size', '14');
+            xLabel.setAttribute('font-weight', 'bold');
+            xLabel.setAttribute('fill', '#4b5563');
+            xLabel.textContent = 'مستوى الأداء والنشاط';
+
+            // Y-axis label (Total Requests)
+            const yLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            yLabel.setAttribute('x', 20);
+            yLabel.setAttribute('y', height / 2);
+            yLabel.setAttribute('text-anchor', 'middle');
+            yLabel.setAttribute('font-family', 'Arial, sans-serif');
+            yLabel.setAttribute('font-size', '14');
+            yLabel.setAttribute('font-weight', 'bold');
+            yLabel.setAttribute('fill', '#4b5563');
+            yLabel.setAttribute('transform', `rotate(-90, 20, ${height / 2})`);
+            yLabel.textContent = 'إجمالي الطلبات المكتملة';
+
+            // Performance scale indicators
+            const scaleGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            scaleGroup.setAttribute('class', 'performance-scale');
+
+            const scales = [
+                { value: '0%', x: padding, label: 'ضعيف' },
+                { value: '25%', x: padding + (width - padding * 2) * 0.25, label: 'مقبول' },
+                { value: '50%', x: padding + (width - padding * 2) * 0.5, label: 'جيد' },
+                { value: '75%', x: padding + (width - padding * 2) * 0.75, label: 'جيد جداً' },
+                { value: '100%', x: width - padding, label: 'ممتاز' }
+            ];
+
+            scales.forEach(scale => {
+                const scaleText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                scaleText.setAttribute('x', scale.x);
+                scaleText.setAttribute('y', height - padding + 15);
+                scaleText.setAttribute('text-anchor', 'middle');
+                scaleText.setAttribute('font-family', 'Arial, sans-serif');
+                scaleText.setAttribute('font-size', '10');
+                scaleText.setAttribute('fill', '#6b7280');
+                scaleText.textContent = scale.label;
+                scaleGroup.appendChild(scaleText);
+
+                const scaleValue = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                scaleValue.setAttribute('x', scale.x);
+                scaleValue.setAttribute('y', height - padding + 30);
+                scaleValue.setAttribute('text-anchor', 'middle');
+                scaleValue.setAttribute('font-family', 'Arial, sans-serif');
+                scaleValue.setAttribute('font-size', '8');
+                scaleValue.setAttribute('fill', '#9ca3af');
+                scaleValue.textContent = scale.value;
+                scaleGroup.appendChild(scaleValue);
+            });
+
+            labelsGroup.appendChild(xLabel);
+            labelsGroup.appendChild(yLabel);
+            labelsGroup.appendChild(scaleGroup);
+            svg.appendChild(labelsGroup);
+        }
+
+        function showUserTooltip(user, x, y) {
+            // Remove existing tooltip
+            hideUserTooltip();
+
+            const tooltip = document.createElement('div');
+            tooltip.id = 'user-tooltip';
+            tooltip.className = 'absolute z-50 bg-white rounded-lg shadow-xl border border-gray-200 p-4 min-w-64 pointer-events-none';
+            tooltip.style.left = `${x + 20}px`;
+            tooltip.style.top = `${y - 50}px`;
+
+            tooltip.innerHTML = `
+                <div class="flex items-center space-x-3 space-x-reverse mb-3">
+                    <div class="w-10 h-10 rounded-full bg-cover bg-center border-2 border-gray-200"
+                         style="background-image: url('${user.avatar_url}');"></div>
+                    <div>
+                        <h4 class="font-semibold text-gray-900">${user.name}</h4>
+                        <p class="text-sm text-gray-600">${user.email}</p>
+                    </div>
+                </div>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">مستوى الأداء:</span>
+                        <span class="font-medium" style="color: ${user.color}">${user.level}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">نقاط الأداء:</span>
+                        <span class="font-medium">${user.performance_score}%</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">اليوم:</span>
+                        <span class="font-medium">${user.daily_completed} طلب</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">هذا الأسبوع:</span>
+                        <span class="font-medium">${user.weekly_completed} طلب</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">هذا الشهر:</span>
+                        <span class="font-medium">${user.monthly_completed} طلب</span>
+                    </div>
+                    <div class="flex justify-between border-t pt-2">
+                        <span class="text-gray-600">الإجمالي:</span>
+                        <span class="font-bold text-blue-600">${user.total_completed} طلب</span>
+                    </div>
+                </div>
+                <div class="mt-3 text-xs text-gray-500 text-center">
+                    انقر للانتقال إلى طلبات المستخدم
+                </div>
+            `;
+
+            document.getElementById('competitionChart').appendChild(tooltip);
+        }
+
+        function hideUserTooltip() {
+            const tooltip = document.getElementById('user-tooltip');
+            if (tooltip) {
+                tooltip.remove();
+            }
+        }
+
+
+
+        function calculateBubblePositions(data, width, height) {
+            const positions = [];
+
+            // Sort users by performance score for better positioning
+            const sortedData = [...data].sort((a, b) => b.performance_score - a.performance_score);
+
+            for (let i = 0; i < sortedData.length; i++) {
+                const user = sortedData[i];
+                const radius = user.bubble_size / 2;
+                let bestPosition = null;
+                let minOverlap = Infinity;
+                const attempts = 500;
+
+                // Try to position based on performance score (x-axis) and total requests (y-axis)
+                const performanceX = (user.performance_score / 100) * width;
+                const totalRequestsY = Math.min(user.total_completed / 100, 1) * height;
+
+                for (let attempt = 0; attempt < attempts; attempt++) {
+                    // Add some randomness around the ideal position
+                    const randomOffsetX = (Math.random() - 0.5) * width * 0.3;
+                    const randomOffsetY = (Math.random() - 0.5) * height * 0.3;
+
+                    let x = performanceX + randomOffsetX;
+                    let y = totalRequestsY + randomOffsetY;
+
+                    // Keep within bounds
+                    x = Math.max(radius, Math.min(width - radius, x));
+                    y = Math.max(radius, Math.min(height - radius, y));
+
+                    // Check overlap with existing bubbles
+                    let overlap = 0;
+                    for (let j = 0; j < positions.length; j++) {
+                        const other = positions[j];
+                        const otherRadius = sortedData[j].bubble_size / 2;
+                        const distance = Math.sqrt(Math.pow(x - other.x, 2) + Math.pow(y - other.y, 2));
+                        const minDistance = radius + otherRadius + 20; // 20px padding
+
+                        if (distance < minDistance) {
+                            overlap += minDistance - distance;
+                        }
+                    }
+
+                    if (overlap === 0) {
+                        bestPosition = { x, y };
+                        break;
+                    } else if (overlap < minOverlap) {
+                        minOverlap = overlap;
+                        bestPosition = { x, y };
+                    }
+                }
+
+                positions.push(bestPosition || {
+                    x: radius + Math.random() * (width - radius * 2),
+                    y: radius + Math.random() * (height - radius * 2)
+                });
+            }
+
+            // Map back to original order
+            const originalOrderPositions = [];
+            for (let i = 0; i < data.length; i++) {
+                const originalUser = data[i];
+                const sortedIndex = sortedData.findIndex(u => u.user_id === originalUser.user_id);
+                originalOrderPositions[i] = positions[sortedIndex];
+            }
+
+            return originalOrderPositions;
+        }
+
+
+
+        function toggleCompetitionView(view) {
+            currentView = view;
+
+            // Update button states
+            document.querySelectorAll('.competition-view-btn').forEach(btn => {
+                if (btn.dataset.view === view) {
+                    btn.className = 'competition-view-btn px-3 py-1 text-xs font-medium rounded-md transition-all duration-200 bg-blue-500 text-white';
+                } else {
+                    btn.className = 'competition-view-btn px-3 py-1 text-xs font-medium rounded-md transition-all duration-200 text-gray-600 hover:text-gray-800';
+                }
+            });
+
+            // Re-render chart with new view
+            renderCompetitionChart();
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            setTimeout(renderCompetitionChart, 200);
+        });
+    </script>
+</body>
+</html>

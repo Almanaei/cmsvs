@@ -1,0 +1,540 @@
+{% extends "base.html" %}
+
+{% block title %}تعديل المستخدم {{ user.username }} - لوحة الإدارة{% endblock %}
+
+{% block content %}
+<style>
+/* Professional Admin User Edit Styling */
+.page-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px;
+    background: #f8fafc;
+    min-height: 100vh;
+}
+
+.page-header {
+    text-align: center;
+    padding: 32px 24px;
+    margin-bottom: 32px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.page-title {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+    color: #1f2937;
+}
+
+.page-subtitle {
+    font-size: 16px;
+    color: #6b7280;
+    margin: 0;
+}
+
+.section {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-bottom: 24px;
+    overflow: hidden;
+}
+
+.section-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f9fafb;
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.section-content {
+    padding: 24px;
+}
+
+.btn {
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+}
+
+.btn-secondary {
+    background: #6b7280;
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: #4b5563;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid #d1d5db;
+    color: #374151;
+}
+
+.btn-outline:hover {
+    background: #f9fafb;
+}
+
+.btn-primary {
+    background: #3b82f6;
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: #2563eb;
+}
+
+.btn-danger {
+    background: #ef4444;
+    color: #ffffff;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+}
+
+.form-control {
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    background: #ffffff;
+    transition: border-color 0.2s;
+    width: 100%;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 6px;
+    display: block;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+@media (max-width: 768px) {
+    .page-container {
+        padding: 16px;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<div class="page-container">
+    <!-- Page Header -->
+    <header class="page-header">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px;">
+            <div style="flex: 1;">
+                <h1 class="page-title">تعديل المستخدم</h1>
+                <p class="page-subtitle">إدارة وتحديث معلومات المستخدم {{ user.full_name or user.username }}</p>
+            </div>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <a href="/admin/users" class="btn btn-secondary">
+                    <i class="fas fa-arrow-right"></i>
+                    العودة لإدارة المستخدمين
+                </a>
+                <a href="/admin/dashboard" class="btn btn-outline">
+                    <i class="fas fa-tachometer-alt"></i>
+                    لوحة التحكم
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- User Profile Section -->
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-user-circle" style="color: #6b7280;"></i>
+                معلومات المستخدم
+            </h2>
+        </div>
+        <div class="section-content">
+            <div style="display: flex; align-items: center; gap: 24px; margin-bottom: 24px;">
+                <!-- Avatar -->
+                <div style="position: relative;">
+                    <div style="width: 80px; height: 80px; border-radius: 50%; background: #f3f4f6; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                        {% if user_avatar_url %}
+                        <img src="{{ user_avatar_url }}" alt="صورة المستخدم" style="width: 100%; height: 100%; object-fit: cover;">
+                        {% else %}
+                        <i class="fas fa-user" style="font-size: 32px; color: #9ca3af;"></i>
+                        {% endif %}
+                    </div>
+                    <button type="button" onclick="document.getElementById('avatarInput').click()"
+                            style="position: absolute; bottom: 0; right: 0; width: 28px; height: 28px; background: #3b82f6; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; transition: background-color 0.2s;"
+                            onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#3b82f6'">
+                        <i class="fas fa-camera" style="font-size: 12px;"></i>
+                    </button>
+                </div>
+
+                <!-- User Info -->
+                <div style="flex: 1;">
+                    <h3 style="font-size: 24px; font-weight: 700; color: #1f2937; margin: 0 0 4px 0;">{{ user.full_name or user.username }}</h3>
+                    <p style="color: #6b7280; margin: 0 0 12px 0;">{{ user.email }}</p>
+                    <div style="display: flex; gap: 12px;">
+                        <span style="display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+                                     {% if user.role.value == 'admin' %}background: #fef3c7; color: #92400e;
+                                     {% elif user.role.value == 'manager' %}background: #dbeafe; color: #1e40af;
+                                     {% else %}background: #f3f4f6; color: #374151;{% endif %}">
+                            {% if user.role.value == 'admin' %}
+                                <i class="fas fa-crown" style="margin-left: 4px;"></i>
+                                مدير النظام
+                            {% elif user.role.value == 'manager' %}
+                                <i class="fas fa-user-tie" style="margin-left: 4px;"></i>
+                                مدير المشاريع
+                            {% else %}
+                                <i class="fas fa-user" style="margin-left: 4px;"></i>
+                                مستخدم عادي
+                            {% endif %}
+                        </span>
+                        <span style="display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+                                     {% if user.is_active %}background: #dcfce7; color: #166534;{% else %}background: #fee2e2; color: #991b1b;{% endif %}">
+                            {% if user.is_active %}
+                                <i class="fas fa-check-circle" style="margin-left: 4px;"></i>
+                                نشط
+                            {% else %}
+                                <i class="fas fa-times-circle" style="margin-left: 4px;"></i>
+                                غير نشط
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div>
+                    <button type="button" onclick="deleteAvatar()" class="btn btn-danger">
+                        <i class="fas fa-trash"></i>
+                        حذف الصورة
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Form Section -->
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-user-edit" style="color: #6b7280;"></i>
+                تعديل بيانات المستخدم
+            </h2>
+        </div>
+        <div class="section-content">
+            {% if error %}
+            <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+                <div style="display: flex; align-items: center;">
+                    <i class="fas fa-exclamation-circle" style="color: #f87171; margin-left: 8px;"></i>
+                    <div style="color: #b91c1c;">{{ error }}</div>
+                </div>
+            </div>
+            {% endif %}
+
+            <form method="post" action="/admin/users/{{ user.id }}/edit" id="editUserForm">
+                <div class="form-grid" style="margin-bottom: 24px;">
+                    <div>
+                        <label for="username" class="form-label">
+                            اسم المستخدم <span style="color: #ef4444;">*</span>
+                        </label>
+                        <input type="text"
+                               id="username"
+                               name="username"
+                               value="{{ user.username }}"
+                               required
+                               pattern="[a-zA-Z0-9_]{3,20}"
+                               class="form-control">
+                        <p style="font-size: 12px; color: #6b7280; margin-top: 4px;">3-20 حرف، يمكن استخدام الأرقام والشرطة السفلية</p>
+                    </div>
+                    <div>
+                        <label for="email" class="form-label">
+                            البريد الإلكتروني <span style="color: #ef4444;">*</span>
+                        </label>
+                        <input type="email"
+                               id="email"
+                               name="email"
+                               value="{{ user.email }}"
+                               required
+                               class="form-control">
+                    </div>
+                </div>
+
+                <div class="form-grid" style="margin-bottom: 24px;">
+                    <div>
+                        <label for="full_name" class="form-label">
+                            الاسم الكامل <span style="color: #ef4444;">*</span>
+                        </label>
+                        <input type="text"
+                               id="full_name"
+                               name="full_name"
+                               value="{{ user.full_name or '' }}"
+                               required
+                               class="form-control">
+                    </div>
+                    <div>
+                        <label for="role" class="form-label">
+                            الدور <span style="color: #ef4444;">*</span>
+                        </label>
+                        <select id="role" name="role" required class="admin-form-select">
+                            {% for role_option in roles %}
+                            <option value="{{ role_option }}" {% if user.role.value == role_option %}selected{% endif %}>
+                                {% if role_option == 'user' %}مستخدم عادي
+                                {% elif role_option == 'admin' %}مدير النظام
+                                {% elif role_option == 'manager' %}مدير المشاريع
+                                {% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 24px;">
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox"
+                               name="is_active"
+                               value="true"
+                               {% if user.is_active %}checked{% endif %}
+                               style="margin-left: 8px; width: 16px; height: 16px; border-radius: 4px; border: 1px solid #d1d5db;">
+                        <span class="form-label" style="margin: 0;">المستخدم نشط</span>
+                    </label>
+                    <p style="font-size: 12px; color: #6b7280; margin-top: 4px;">إلغاء التفعيل يمنع المستخدم من تسجيل الدخول</p>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+                    <a href="/admin/users" class="btn btn-secondary">
+                        <i class="fas fa-times"></i>
+                        إلغاء
+                    </a>
+                    <button type="submit" id="submitBtn" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        حفظ التغييرات
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- User Statistics Section -->
+    <div class="section">
+        <div class="section-header">
+            <h3 class="section-title">
+                <i class="fas fa-chart-bar" style="color: #6b7280;"></i>
+                إحصائيات المستخدم
+            </h3>
+        </div>
+        <div class="section-content">
+            <div class="stats-grid">
+                <div style="text-align: center; padding: 16px; background: #f9fafb; border-radius: 8px;">
+                    <div style="font-size: 20px; font-weight: 700; color: #1f2937; margin-bottom: 4px;">
+                        {{ user.created_at.strftime('%Y-%m-%d') if user.created_at else 'غير محدد' }}
+                    </div>
+                    <div style="font-size: 12px; color: #6b7280; font-weight: 500;">تاريخ الإنشاء</div>
+                </div>
+                <div style="text-align: center; padding: 16px; background: #f9fafb; border-radius: 8px;">
+                    <div style="font-size: 20px; font-weight: 700; color: #1f2937; margin-bottom: 4px;">
+                        {{ user.updated_at.strftime('%Y-%m-%d') if user.updated_at else 'غير محدد' }}
+                    </div>
+                    <div style="font-size: 12px; color: #6b7280; font-weight: 500;">آخر تحديث</div>
+                </div>
+                <div style="text-align: center; padding: 16px; background: #f9fafb; border-radius: 8px;">
+                    <div style="font-size: 20px; font-weight: 700; margin-bottom: 4px; {% if user.is_active %}color: #059669;{% else %}color: #dc2626;{% endif %}">
+                        {% if user.is_active %}نشط{% else %}غير نشط{% endif %}
+                    </div>
+                    <div style="font-size: 12px; color: #6b7280; font-weight: 500;">الحالة</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Guidelines Section -->
+    <div class="section">
+        <div class="section-header">
+            <h3 class="section-title">
+                <i class="fas fa-shield-alt" style="color: #6b7280;"></i>
+                إرشادات الأمان
+            </h3>
+        </div>
+        <div class="section-content">
+            <div style="display: grid; gap: 12px;">
+                <div style="display: flex; align-items: flex-start; gap: 8px;">
+                    <i class="fas fa-check-circle" style="color: #10b981; margin-top: 2px;"></i>
+                    <div style="font-size: 14px; color: #374151;">
+                        تأكد من صحة البريد الإلكتروني للمستخدم
+                    </div>
+                </div>
+                <div style="display: flex; align-items: flex-start; gap: 8px;">
+                    <i class="fas fa-check-circle" style="color: #10b981; margin-top: 2px;"></i>
+                    <div style="font-size: 14px; color: #374151;">
+                        اختر الدور المناسب حسب احتياجات المستخدم
+                    </div>
+                </div>
+                <div style="display: flex; align-items: flex-start; gap: 8px;">
+                    <i class="fas fa-exclamation-triangle" style="color: #f59e0b; margin-top: 2px;"></i>
+                    <div style="font-size: 14px; color: #374151;">
+                        صلاحيات المدير تشمل الوصول الكامل للنظام
+                    </div>
+                </div>
+                <div style="display: flex; align-items: flex-start; gap: 8px;">
+                    <i class="fas fa-info-circle" style="color: #3b82f6; margin-top: 2px;"></i>
+                    <div style="font-size: 14px; color: #374151;">
+                        إلغاء تفعيل المستخدم يمنعه من تسجيل الدخول
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Avatar Upload Form (Hidden) -->
+<form id="avatarForm" method="post" action="/avatar/upload/{{ user.id }}" enctype="multipart/form-data" style="display: none;">
+    <input type="file" id="avatarInput" name="avatar" accept="image/*" onchange="uploadAvatar()">
+</form>
+
+<script>
+function uploadAvatar() {
+    const form = document.getElementById('avatarForm');
+    const fileInput = document.getElementById('avatarInput');
+
+    if (fileInput.files.length > 0) {
+        // Show loading state
+        const avatarButton = document.querySelector('.fa-camera').parentElement;
+        avatarButton.innerHTML = '<i class="fas fa-spinner fa-spin text-xs"></i>';
+
+        // Submit form
+        form.submit();
+    }
+}
+
+function deleteAvatar() {
+    if (confirm('هل أنت متأكد من حذف صورة هذا المستخدم؟')) {
+        window.location.href = '/avatar/delete/{{ user.id }}';
+    }
+}
+
+// Form validation
+document.addEventListener('DOMContentLoaded', function() {
+    const editForm = document.getElementById('editUserForm');
+    if (editForm) {
+        editForm.addEventListener('submit', function(e) {
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const fullName = document.getElementById('full_name').value;
+            const role = document.getElementById('role').value;
+            const submitBtn = document.getElementById('submitBtn');
+
+            // Check required fields
+            if (!username || !email || !fullName || !role) {
+                e.preventDefault();
+                alert('يرجى ملء جميع الحقول المطلوبة');
+                return false;
+            }
+
+            // Username validation
+            const usernamePattern = /^[a-zA-Z0-9_]{3,20}$/;
+            if (!usernamePattern.test(username)) {
+                e.preventDefault();
+                alert('اسم المستخدم يجب أن يكون بين 3-20 حرف ويحتوي على أحرف وأرقام وشرطة سفلية فقط');
+                return false;
+            }
+
+            // Email validation
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailPattern.test(email)) {
+                e.preventDefault();
+                alert('يرجى إدخال بريد إلكتروني صحيح');
+                return false;
+            }
+
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+            submitBtn.disabled = true;
+        });
+    }
+
+    // Real-time username validation
+    document.getElementById('username').addEventListener('input', function() {
+        const username = this.value;
+        const usernamePattern = /^[a-zA-Z0-9_]{3,20}$/;
+
+        if (username && !usernamePattern.test(username)) {
+            this.classList.add('border-red-300');
+            this.classList.remove('border-gray-300');
+        } else {
+            this.classList.remove('border-red-300');
+            this.classList.add('border-gray-300');
+        }
+    });
+
+    // Real-time email validation
+    document.getElementById('email').addEventListener('input', function() {
+        const email = this.value;
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (email && !emailPattern.test(email)) {
+            this.classList.add('border-red-300');
+            this.classList.remove('border-gray-300');
+        } else {
+            this.classList.remove('border-red-300');
+            this.classList.add('border-gray-300');
+        }
+    });
+
+    // Show alerts based on URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('avatar_updated')) {
+        alert('تم تحديث الصورة الشخصية بنجاح');
+    }
+    if (urlParams.get('avatar_deleted')) {
+        alert('تم حذف الصورة الشخصية بنجاح');
+    }
+    if (urlParams.get('updated')) {
+        alert('تم تحديث بيانات المستخدم بنجاح');
+    }
+    if (urlParams.get('error')) {
+        alert('حدث خطأ أثناء العملية');
+    }
+});
+</script>
+{% endblock %}

@@ -399,7 +399,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (activityTypeSelect) {
         activityTypeSelect.addEventListener('change', function() {
             // Reset to page 1 when filter changes
-            document.querySelector('input[name="page"]').value = '1';
+            const pageInput = document.querySelector('input[name="page"]');
+            if (pageInput) {
+                pageInput.value = '1';
+            }
             this.form.submit();
         });
     }
@@ -407,7 +410,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (perPageSelect) {
         perPageSelect.addEventListener('change', function() {
             // Reset to page 1 when per_page changes
-            document.querySelector('input[name="page"]').value = '1';
+            const pageInput = document.querySelector('input[name="page"]');
+            if (pageInput) {
+                pageInput.value = '1';
+            }
             this.form.submit();
         });
     }

@@ -375,10 +375,10 @@
 
                     <!-- Role Filter -->
                     <div>
-                        <select name="role_filter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">جميع الأدوار</option>
+                        <select name="role_filter" style="color: #374151 !important; background-color: #ffffff !important;" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="" style="color: #9ca3af !important; background-color: #ffffff !important;">جميع الأدوار</option>
                             {% for role in available_roles %}
-                            <option value="{{ role }}" {% if current_role_filter == role %}selected{% endif %}>
+                            <option value="{{ role }}" style="color: #374151 !important; background-color: #ffffff !important;" {% if current_role_filter == role %}selected{% endif %}>
                                 {% if role == 'admin' %}مدير{% elif role == 'user' %}مستخدم{% else %}{{ role }}{% endif %}
                             </option>
                             {% endfor %}
@@ -387,20 +387,20 @@
 
                     <!-- Status Filter -->
                     <div>
-                        <select name="status_filter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">جميع الحالات</option>
-                            <option value="active" {% if current_status_filter == 'active' %}selected{% endif %}>نشط</option>
-                            <option value="inactive" {% if current_status_filter == 'inactive' %}selected{% endif %}>غير نشط</option>
+                        <select name="status_filter" style="color: #374151 !important; background-color: #ffffff !important;" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="" style="color: #9ca3af !important; background-color: #ffffff !important;">جميع الحالات</option>
+                            <option value="active" style="color: #374151 !important; background-color: #ffffff !important;" {% if current_status_filter == 'active' %}selected{% endif %}>نشط</option>
+                            <option value="inactive" style="color: #374151 !important; background-color: #ffffff !important;" {% if current_status_filter == 'inactive' %}selected{% endif %}>غير نشط</option>
                         </select>
                     </div>
 
                     <!-- Per Page -->
                     <div>
-                        <select name="per_page" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
-                            <option value="20" {% if per_page == 20 %}selected{% endif %}>20</option>
-                            <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
-                            <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+                        <select name="per_page" style="color: #374151 !important; background-color: #ffffff !important;" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="10" style="color: #374151 !important; background-color: #ffffff !important;" {% if per_page == 10 %}selected{% endif %}>10</option>
+                            <option value="20" style="color: #374151 !important; background-color: #ffffff !important;" {% if per_page == 20 %}selected{% endif %}>20</option>
+                            <option value="50" style="color: #374151 !important; background-color: #ffffff !important;" {% if per_page == 50 %}selected{% endif %}>50</option>
+                            <option value="100" style="color: #374151 !important; background-color: #ffffff !important;" {% if per_page == 100 %}selected{% endif %}>100</option>
                         </select>
                     </div>
 
@@ -744,83 +744,90 @@
             const fileUploadArea = document.getElementById('fileUploadArea');
             const fileList = document.getElementById('fileList');
 
-            // Handle file selection
-            fileInput.addEventListener('change', function(e) {
-                displaySelectedFiles(e.target.files);
-            });
-
-            // Handle drag and drop
-            fileUploadArea.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                fileUploadArea.classList.add('dragover');
-            });
-
-            fileUploadArea.addEventListener('dragleave', function(e) {
-                e.preventDefault();
-                fileUploadArea.classList.remove('dragover');
-            });
-
-            fileUploadArea.addEventListener('drop', function(e) {
-                e.preventDefault();
-                fileUploadArea.classList.remove('dragover');
-
-                const files = e.dataTransfer.files;
-                fileInput.files = files;
-                displaySelectedFiles(files);
-            });
-
-            function displaySelectedFiles(files) {
-                fileList.innerHTML = '';
-
-                if (files.length === 0) {
-                    return;
-                }
-
-                Array.from(files).forEach((file, index) => {
-                    const fileItem = document.createElement('div');
-                    fileItem.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200';
-
-                    fileItem.innerHTML = `
-                        <div class="flex items-center space-x-3 space-x-reverse">
-                            <i class="fas fa-file text-blue-500"></i>
-                            <div>
-                                <p class="font-medium text-gray-900">${file.name}</p>
-                                <p class="text-sm text-gray-500">${formatFileSize(file.size)}</p>
-                            </div>
-                        </div>
-                        <button type="button" onclick="removeFile(${index})" class="text-red-500 hover:text-red-700">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    `;
-
-                    fileList.appendChild(fileItem);
+            // Only initialize file upload functionality if elements exist
+            if (fileInput && fileUploadArea && fileList) {
+                // Handle file selection
+                fileInput.addEventListener('change', function(e) {
+                    displaySelectedFiles(e.target.files);
                 });
-            }
 
-            function formatFileSize(bytes) {
-                if (bytes === 0) return '0 Bytes';
-                const k = 1024;
-                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-                const i = Math.floor(Math.log(bytes) / Math.log(k));
-                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-            }
+                // Handle drag and drop
+                fileUploadArea.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    fileUploadArea.classList.add('dragover');
+                });
 
-            // Auto-fill user data when user is selected
-            const userSelect = document.getElementById('user_id');
-            const fullNameInput = document.getElementById('full_name');
+                fileUploadArea.addEventListener('dragleave', function(e) {
+                    e.preventDefault();
+                    fileUploadArea.classList.remove('dragover');
+                });
 
-            userSelect.addEventListener('change', function() {
-                const selectedOption = this.options[this.selectedIndex];
-                if (selectedOption.value) {
-                    const userName = selectedOption.text.split(' (')[0];
-                    fullNameInput.value = userName;
+                fileUploadArea.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    fileUploadArea.classList.remove('dragover');
+
+                    const files = e.dataTransfer.files;
+                    fileInput.files = files;
+                    displaySelectedFiles(files);
+                });
+
+                function displaySelectedFiles(files) {
+                    fileList.innerHTML = '';
+
+                    if (files.length === 0) {
+                        return;
+                    }
+
+                    Array.from(files).forEach((file, index) => {
+                        const fileItem = document.createElement('div');
+                        fileItem.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200';
+
+                        fileItem.innerHTML = `
+                            <div class="flex items-center space-x-3 space-x-reverse">
+                                <i class="fas fa-file text-blue-500"></i>
+                                <div>
+                                    <p class="font-medium text-gray-900">${file.name}</p>
+                                    <p class="text-sm text-gray-500">${formatFileSize(file.size)}</p>
+                                </div>
+                            </div>
+                            <button type="button" onclick="removeFile(${index})" class="text-red-500 hover:text-red-700">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `;
+
+                        fileList.appendChild(fileItem);
+                    });
                 }
-            });
+
+                function formatFileSize(bytes) {
+                    if (bytes === 0) return '0 Bytes';
+                    const k = 1024;
+                    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                    const i = Math.floor(Math.log(bytes) / Math.log(k));
+                    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+                }
+
+                // Auto-fill user data when user is selected
+                const userSelect = document.getElementById('user_id');
+                const fullNameInput = document.getElementById('full_name');
+
+                if (userSelect && fullNameInput) {
+                    userSelect.addEventListener('change', function() {
+                        const selectedOption = this.options[this.selectedIndex];
+                        if (selectedOption.value) {
+                            const userName = selectedOption.text.split(' (')[0];
+                            fullNameInput.value = userName;
+                        }
+                    });
+                }
+            }
         });
 
         // Remove file function
         function removeFile(index) {
             const fileInput = document.getElementById('files');
+            if (!fileInput) return;
+
             const dt = new DataTransfer();
 
             Array.from(fileInput.files).forEach((file, i) => {
@@ -837,8 +844,15 @@
 
         // Reset form function
         function resetForm() {
-            document.querySelector('form').reset();
-            document.getElementById('fileList').innerHTML = '';
+            const form = document.querySelector('form');
+            const fileList = document.getElementById('fileList');
+
+            if (form) {
+                form.reset();
+            }
+            if (fileList) {
+                fileList.innerHTML = '';
+            }
         }
 
         // Show success/error messages
@@ -883,7 +897,10 @@
                     clearTimeout(searchTimeout);
                     searchTimeout = setTimeout(() => {
                         if (this.value.length >= 3 || this.value.length === 0) {
-                            document.querySelector('input[name="page"]').value = '1';
+                            const pageInput = document.querySelector('input[name="page"]');
+                            if (pageInput) {
+                                pageInput.value = '1';
+                            }
                             this.form.submit();
                         }
                     }, 500);
@@ -893,14 +910,20 @@
             // Auto-submit when filters change
             if (roleFilter) {
                 roleFilter.addEventListener('change', function() {
-                    document.querySelector('input[name="page"]').value = '1';
+                    const pageInput = document.querySelector('input[name="page"]');
+                    if (pageInput) {
+                        pageInput.value = '1';
+                    }
                     this.form.submit();
                 });
             }
 
             if (statusFilter) {
                 statusFilter.addEventListener('change', function() {
-                    document.querySelector('input[name="page"]').value = '1';
+                    const pageInput = document.querySelector('input[name="page"]');
+                    if (pageInput) {
+                        pageInput.value = '1';
+                    }
                     this.form.submit();
                 });
             }

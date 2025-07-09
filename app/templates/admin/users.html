@@ -209,14 +209,14 @@
                         <tr>
                             <td class="table-cell">
                                 <div class="flex items-center">
-                                    <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center text-sm font-medium text-primary-600 ml-3">
+                                    <div class="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center text-sm font-medium text-primary-600 ml-3">
                                         {{ user.username[:2].upper() }}
                                     </div>
                                     <div>
                                         <h6 class="text-sm font-medium text-gray-900">{{ user.username }}</h6>
-                                        <span class="text-xs text-gray-500">ID: {{ user.id }}</span>
+                                        <span class="text-sm text-gray-500">ID: {{ user.id }}</span>
                                         {% if user.id == current_user.id %}
-                                        <span class="badge-info text-xs">أنت</span>
+                                        <span class="badge-info text-sm">أنت</span>
                                         {% endif %}
                                     </div>
                                 </div>

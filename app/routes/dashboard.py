@@ -146,6 +146,76 @@ async def debug_user_role(
     return JSONResponse(debug_info)
 
 
+@router.get("/debug/mobile-nav-test", response_class=HTMLResponse)
+async def debug_mobile_nav_test(
+    request: Request,
+    current_user: User = Depends(get_current_user_cookie),
+    db: Session = Depends(get_db)
+):
+    """Debug page for testing mobile navigation functionality"""
+    return templates.TemplateResponse(
+        "debug/mobile_nav_test.html",
+        {
+            "request": request,
+            "current_user": current_user
+        }
+    )
+
+
+@router.get("/debug/mobile-file-test", response_class=HTMLResponse)
+async def debug_mobile_file_test(request: Request):
+    """Debug page for testing mobile file management improvements"""
+    return templates.TemplateResponse(
+        "debug/mobile_file_test.html",
+        {"request": request}
+    )
+
+
+@router.get("/debug/dropdown-test", response_class=HTMLResponse)
+async def debug_dropdown_test(request: Request):
+    """Debug page for testing dropdown text visibility fixes"""
+    return templates.TemplateResponse(
+        "debug/dropdown_test.html",
+        {"request": request}
+    )
+
+
+@router.get("/debug/dropdown-debug", response_class=HTMLResponse)
+async def debug_dropdown_debug(request: Request):
+    """Comprehensive dropdown debug page for testing all scenarios"""
+    return templates.TemplateResponse(
+        "debug/dropdown_debug.html",
+        {"request": request}
+    )
+
+
+@router.get("/debug/css-conflict-analyzer", response_class=HTMLResponse)
+async def debug_css_conflict_analyzer(request: Request):
+    """CSS conflict analyzer for dropdown styling issues"""
+    return templates.TemplateResponse(
+        "debug/css_conflict_analyzer.html",
+        {"request": request}
+    )
+
+
+@router.get("/debug/dropdown-fix-verification", response_class=HTMLResponse)
+async def debug_dropdown_fix_verification(request: Request):
+    """Comprehensive verification of dropdown fixes"""
+    return templates.TemplateResponse(
+        "debug/dropdown_fix_verification.html",
+        {"request": request}
+    )
+
+
+@router.get("/debug/mobile-request-view-test", response_class=HTMLResponse)
+async def debug_mobile_request_view_test(request: Request):
+    """Debug page for testing mobile request view improvements"""
+    return templates.TemplateResponse(
+        "debug/mobile_request_view_test.html",
+        {"request": request}
+    )
+
+
 @router.get("/debug/mobile/{request_id}", response_class=HTMLResponse)
 async def debug_mobile_request(
     request: Request,

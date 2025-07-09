@@ -1739,14 +1739,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // Remove the form submit event listener to avoid conflicts
     // The button click handlers will handle form submission
 
-    // Add debugging for form elements
+    // Add debugging for form elements - only run on edit request page
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('DOM loaded, checking form elements...');
-        console.log('Form:', document.getElementById('editRequestForm'));
-        console.log('Desktop button:', document.getElementById('submitBtn'));
-        console.log('Mobile button:', document.getElementById('submitBtnMobile'));
-        console.log('Full name field:', document.getElementById('full_name'));
-        console.log('Personal number field:', document.getElementById('personal_number'));
+        // Check if we're on the edit request page by looking for the form
+        const editForm = document.getElementById('editRequestForm');
+        if (editForm) {
+            console.log('DOM loaded, checking form elements...');
+            console.log('Form:', editForm);
+            console.log('Desktop button:', document.getElementById('submitBtn'));
+            console.log('Mobile button:', document.getElementById('submitBtnMobile'));
+            console.log('Full name field:', document.getElementById('full_name'));
+            console.log('Personal number field:', document.getElementById('personal_number'));
+        }
     });
 
     console.log('Professional edit request form initialized successfully');

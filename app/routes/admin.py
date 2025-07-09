@@ -1310,15 +1310,27 @@ async def delete_file_admin(
 @router.get("/users/new", response_class=HTMLResponse)
 async def new_user_form(
     request: Request,
-    current_user: User = Depends(require_admin_cookie)
+    current_user: User = Depends(require_admin_cookie),
+    db: Session = Depends(get_db)
 ):
     """Display new user creation form"""
+    # Get user statistics for sidebar
+    all_users = UserService.get_all_users(db, limit=1000)
+    total_users = len(all_users)
+    admin_count = len([u for u in all_users if u.role == UserRole.ADMIN])
+    user_count = len([u for u in all_users if u.role == UserRole.USER])
+    active_users = len([u for u in all_users if u.is_active])
+
     return templates.TemplateResponse(
         "admin/new_user.html",
         {
             "request": request,
             "current_user": current_user,
-            "roles": [role.value for role in UserRole]
+            "roles": [role.value for role in UserRole],
+            "total_users": total_users,
+            "admin_count": admin_count,
+            "user_count": user_count,
+            "active_users": active_users
         }
     )
 
@@ -3554,5 +3566,73 @@ async def clear_activities(
         logger.error(f"Error clearing activities: {e}")
         db.rollback()
         return {"error": f"خطأ في حذف الأنشطة: {str(e)}"}
+
+
+# Debug routes for testing
+@router.get("/debug/dropdown-fix-test", response_class=HTMLResponse)
+async def dropdown_fix_test(request: Request):
+    """Debug page to test dropdown fix"""
+    return templates.TemplateResponse(
+        "debug/dropdown_fix_test.html",
+        {
+            "request": request,
+            "cache_bust": "1.0.0"
+        }
+    )
+
+@router.get("/debug/dropdown-overlap-test", response_class=HTMLResponse)
+async def dropdown_overlap_test(request: Request):
+    """Debug page to test dropdown overlap issues"""
+    return templates.TemplateResponse(
+        "debug/dropdown_overlap_test.html",
+        {
+            "request": request,
+            "cache_bust": "1.0.0"
+        }
+    )
+
+@router.get("/debug/dropdown-text-debug", response_class=HTMLResponse)
+async def dropdown_text_debug(request: Request):
+    """Debug page to analyze dropdown text visibility issues"""
+    return templates.TemplateResponse(
+        "debug/dropdown_text_debug.html",
+        {
+            "request": request,
+            "cache_bust": "1.0.0"
+        }
+    )
+
+@router.get("/debug/dropdown-deep-debug", response_class=HTMLResponse)
+async def dropdown_deep_debug(request: Request):
+    """Deep debug page to find exact cause of dropdown issues"""
+    return templates.TemplateResponse(
+        "debug/dropdown_deep_debug.html",
+        {
+            "request": request,
+            "cache_bust": "1.0.0"
+        }
+    )
+
+@router.get("/debug/dropdown-inspector", response_class=HTMLResponse)
+async def dropdown_inspector(request: Request):
+    """Advanced dropdown inspector to find exact CSS conflicts"""
+    return templates.TemplateResponse(
+        "debug/dropdown_inspector.html",
+        {
+            "request": request,
+            "cache_bust": "1.0.0"
+        }
+    )
+
+@router.get("/debug/dropdown-simple-test", response_class=HTMLResponse)
+async def dropdown_simple_test(request: Request):
+    """Simple dropdown test with multiple approaches"""
+    return templates.TemplateResponse(
+        "debug/dropdown_simple_test.html",
+        {
+            "request": request,
+            "cache_bust": "1.0.0"
+        }
+    )
 
 

@@ -318,7 +318,7 @@
                         <label for="role" class="form-label">
                             الدور <span style="color: #ef4444;">*</span>
                         </label>
-                        <select id="role" name="role" required class="form-control">
+                        <select id="role" name="role" required class="admin-form-select">
                             {% for role_option in roles %}
                             <option value="{{ role_option }}" {% if user.role.value == role_option %}selected{% endif %}>
                                 {% if role_option == 'user' %}مستخدم عادي

@@ -8,6 +8,9 @@
     <!-- Tailwind CSS -->
     <link href="/static/css/style.css?v={{ cache_bust }}" rel="stylesheet">
 
+    <!-- Form Components CSS -->
+    <link href="/static/css/form-components.css?v={{ cache_bust }}" rel="stylesheet">
+
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
@@ -268,10 +271,27 @@
             }
         }
     </style>
+
+    <!-- Additional head content from child templates -->
+    {% block head %}{% endblock %}
 </head>
 <body class="bg-gray-50 font-arabic">
     <!-- Enhanced Header Component -->
-    {% include 'components/enhanced-header.html' %}
+    {% if current_user %}
+    <header class="bg-white shadow-sm border-b border-gray-200 md:hidden">
+        <div class="flex items-center justify-between px-4 py-3">
+            <!-- Logo -->
+            <div class="flex items-center">
+                <img src="/static/logo_cmsvs.png" alt="CMSVS" class="h-8 w-auto">
+            </div>
+
+            <!-- Mobile Menu Toggle Button -->
+            <button onclick="toggleMobileMenu()" class="mobile-toggle p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Toggle mobile menu">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+        </div>
+    </header>
+    {% endif %}
 
     <!-- Main Content -->
     <div class="flex min-h-screen">
@@ -406,6 +426,20 @@
                         <i class="fas fa-chart-bar ml-3"></i>
                         <span>تقارير النشاط</span>
                     </a>
+
+                    <!-- User Profile Link for Admin -->
+                    <a href="/profile" class="mobile-nav-link" onclick="toggleMobileMenu()">
+                        <i class="fas fa-user ml-3"></i>
+                        <span>الملف الشخصي</span>
+                    </a>
+
+                    <!-- Logout Button for Admin -->
+                    <form method="post" action="/logout" class="block">
+                        <button type="submit" class="mobile-nav-link w-full text-right" onclick="toggleMobileMenu()">
+                            <i class="fas fa-sign-out-alt ml-3"></i>
+                            <span>تسجيل الخروج</span>
+                        </button>
+                    </form>
                     {% else %}
                     <a href="/dashboard" class="mobile-nav-link" onclick="toggleMobileMenu()">
                         <i class="fas fa-home ml-3"></i>
@@ -431,6 +465,14 @@
                         <i class="fas fa-user ml-3"></i>
                         <span>الملف الشخصي</span>
                     </a>
+
+                    <!-- Logout Button -->
+                    <form method="post" action="/logout" class="block">
+                        <button type="submit" class="mobile-nav-link w-full text-right" onclick="toggleMobileMenu()">
+                            <i class="fas fa-sign-out-alt ml-3"></i>
+                            <span>تسجيل الخروج</span>
+                        </button>
+                    </form>
                     {% endif %}
                 </nav>
             </div>
@@ -468,11 +510,18 @@
     <script>
         // Mobile menu toggle function
         function toggleMobileMenu() {
+            console.log('Mobile menu toggle clicked'); // Debug log
             const mobileMenu = document.getElementById('mobile-menu');
             const mobileMenuPanel = document.getElementById('mobile-menu-panel');
 
+            if (!mobileMenu || !mobileMenuPanel) {
+                console.error('Mobile menu elements not found');
+                return;
+            }
+
             if (mobileMenu.classList.contains('hidden')) {
                 // Show menu
+                console.log('Showing mobile menu');
                 mobileMenu.classList.remove('hidden');
                 setTimeout(() => {
                     mobileMenuPanel.classList.remove('translate-x-full');
@@ -480,6 +529,7 @@
                 document.body.style.overflow = 'hidden';
             } else {
                 // Hide menu
+                console.log('Hiding mobile menu');
                 mobileMenuPanel.classList.add('translate-x-full');
                 setTimeout(() => {
                     mobileMenu.classList.add('hidden');
@@ -487,6 +537,16 @@
                 }, 300);
             }
         }
+
+        // Add keyboard support for mobile menu
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const mobileMenu = document.getElementById('mobile-menu');
+                if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+                    toggleMobileMenu();
+                }
+            }
+        });
     </script>
 
     <!-- Enhanced Sidebar JavaScript -->

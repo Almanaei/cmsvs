@@ -8,6 +8,9 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 LOG_FILE="$PROJECT_ROOT/logs/deployment-$(date +%Y%m%d_%H%M%S).log"
+PRODUCTION_SERVER="91.99.118.65"
+PRODUCTION_USER="root"
+REMOTE_PROJECT_PATH="/opt/cmsvs"
 
 # Colors for output
 RED='\033[0;31m'
@@ -83,24 +86,92 @@ prepare_environment() {
     success "Environment prepared"
 }
 
-# Function to build and deploy services
-deploy_services() {
-    log "Building and deploying services..."
-    
+# Function to deploy to remote server
+deploy_to_remote_server() {
+    log "Deploying to production server: $PRODUCTION_SERVER"
+
+    # Create deployment package
+    log "Creating deployment package..."
     cd "$PROJECT_ROOT"
-    
+
+    # Create a temporary deployment directory
+    TEMP_DEPLOY_DIR="/tmp/cmsvs-deploy-$(date +%Y%m%d_%H%M%S)"
+    mkdir -p "$TEMP_DEPLOY_DIR"
+
+    # Copy deployment files
+    cp -r deployment/* "$TEMP_DEPLOY_DIR/"
+    cp scripts/deploy-production.sh "$TEMP_DEPLOY_DIR/" 2>/dev/null || true
+
+    # Create deployment archive
+    tar -czf cmsvs-deployment.tar.gz -C "$TEMP_DEPLOY_DIR" .
+
+    # Upload to server
+    log "Uploading deployment package to server..."
+    scp cmsvs-deployment.tar.gz "$PRODUCTION_USER@$PRODUCTION_SERVER:/tmp/"
+
+    # Execute deployment on remote server
+    log "Executing deployment on remote server..."
+    ssh "$PRODUCTION_USER@$PRODUCTION_SERVER" << 'EOF'
+        set -e
+
+        # Navigate to project directory
+        cd /opt/cmsvs || { echo "Creating project directory..."; mkdir -p /opt/cmsvs; cd /opt/cmsvs; }
+
+        # Backup current deployment if exists
+        if [ -d "app" ]; then
+            echo "Backing up current deployment..."
+            tar -czf "backup-$(date +%Y%m%d_%H%M%S).tar.gz" app/ docker-compose.production.yml Dockerfile 2>/dev/null || true
+        fi
+
+        # Extract new deployment
+        echo "Extracting new deployment..."
+        tar -xzf /tmp/cmsvs-deployment.tar.gz
+
+        # Stop existing services
+        echo "Stopping existing services..."
+        docker-compose -f docker-compose.production.yml down --timeout 30 2>/dev/null || true
+
+        # Build and start services
+        echo "Building and starting services..."
+        docker-compose -f docker-compose.production.yml build --no-cache
+        docker-compose -f docker-compose.production.yml up -d
+
+        # Wait for services to be ready
+        echo "Waiting for services to start..."
+        sleep 30
+
+        # Check service status
+        echo "Checking service status..."
+        docker-compose -f docker-compose.production.yml ps
+
+        echo "Deployment completed successfully!"
+EOF
+
+    # Cleanup
+    rm -f cmsvs-deployment.tar.gz
+    rm -rf "$TEMP_DEPLOY_DIR"
+
+    success "Remote deployment completed successfully"
+}
+
+# Function to build and deploy services (local)
+deploy_services() {
+    log "Building and deploying services locally..."
+
+    cd "$PROJECT_ROOT"
+
     # Stop any existing services
     log "Stopping existing services..."
     docker-compose -f docker-compose.production.yml down --timeout 30 || true
-    
+
     # Build images
     log "Building Docker images..."
     docker-compose -f docker-compose.production.yml build --no-cache
-    
+
     # Start services
     log "Starting services..."
     docker-compose -f docker-compose.production.yml up -d
-    
+
     success "Services deployed successfully"
 }
 
@@ -216,23 +287,29 @@ show_summary() {
 main() {
     echo "🚀 CMSVS Production Deployment"
     echo "=============================="
-    echo "Server: 91.99.118.65"
+    echo "Server: $PRODUCTION_SERVER (www.webtado.live)"
     echo "Started: $(date)"
     echo "=============================="
     echo ""
-    
+
     # Create logs directory
     mkdir -p "$PROJECT_ROOT/logs"
-    
-    # Run deployment steps
-    check_prerequisites
-    prepare_environment
-    deploy_services
-    wait_for_services
-    initialize_application
-    verify_deployment
+
+    # Check if we should deploy locally or remotely
+    if [[ "$1" == "--local" ]]; then
+        log "Deploying locally..."
+        check_prerequisites
+        prepare_environment
+        deploy_services
+        wait_for_services
+        initialize_application
+        verify_deployment
+    else
+        log "Deploying to remote server..."
+        deploy_to_remote_server
+    fi
+
     show_summary
-    
     success "Production deployment completed successfully!"
 }
 

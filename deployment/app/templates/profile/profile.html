@@ -5,9 +5,9 @@
 {% block content %}
 <div class="space-y-6">
     <!-- Header Section -->
-    <div class="flex justify-between items-center">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0">
         <div>
-            <h1 class="text-3xl font-bold text-gray-900">الملف الشخصي</h1>
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">الملف الشخصي</h1>
             <p class="text-gray-600 mt-1">عرض وتحديث المعلومات الشخصية</p>
         </div>
         <div class="flex items-center space-x-4 rtl:space-x-reverse">
@@ -21,7 +21,50 @@
     <!-- Profile Information Card -->
     <div class="card">
         <div class="card-body">
-            <div class="flex items-center space-x-6 rtl:space-x-reverse mb-6">
+            <!-- Mobile Layout -->
+            <div class="block sm:hidden mb-6">
+                <!-- Avatar and User Info -->
+                <div class="flex items-center space-x-4 rtl:space-x-reverse mb-4">
+                    <div class="relative">
+                        <div class="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                            {% if profile_user_avatar_url %}
+                            <img src="{{ profile_user_avatar_url }}" alt="صورة المستخدم" class="w-full h-full object-cover">
+                            {% else %}
+                            <i class="fas fa-user text-2xl text-gray-400"></i>
+                            {% endif %}
+                        </div>
+                        {% if current_user.role.value in ['admin', 'manager'] or current_user.id == profile_user.id %}
+                        <button type="button" onclick="document.getElementById('avatarInput').click()"
+                                class="absolute bottom-0 right-0 w-6 h-6 bg-primary-600 text-white rounded-full flex items-center justify-center hover:bg-primary-700 transition-colors">
+                            <i class="fas fa-camera text-xs"></i>
+                        </button>
+                        {% endif %}
+                    </div>
+                    <div class="flex-1">
+                        <h2 class="text-xl font-bold text-gray-900">{{ profile_user.full_name or profile_user.username }}</h2>
+                        <p class="text-gray-600 text-sm">{{ profile_user.email }}</p>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800 mt-1">
+                            {{ profile_user.role.value }}
+                        </span>
+                    </div>
+                </div>
+                <!-- Mobile Actions -->
+                <div class="flex flex-col space-y-2">
+                    {% if current_user.role.value in ['admin', 'manager'] or current_user.id == profile_user.id %}
+                    <button type="button" onclick="toggleEditForm()" class="btn-primary w-full justify-center">
+                        <i class="fas fa-edit"></i>
+                        تحديث المعلومات
+                    </button>
+                    {% endif %}
+                    <a href="/requests" class="btn-secondary w-full justify-center">
+                        <i class="fas fa-file-alt"></i>
+                        الطلبات
+                    </a>
+                </div>
+            </div>
+
+            <!-- Desktop Layout -->
+            <div class="hidden sm:flex items-center space-x-6 rtl:space-x-reverse mb-6">
                 <!-- Avatar -->
                 <div class="relative">
                     <div class="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
@@ -64,35 +107,35 @@
             </div>
 
             <!-- User Details Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">الاسم الكامل</label>
-                    <div class="p-3 bg-gray-50 rounded-lg border">{{ profile_user.full_name or 'غير محدد' }}</div>
+                    <div class="p-3 bg-gray-50 rounded-lg border text-sm">{{ profile_user.full_name or 'غير محدد' }}</div>
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">اسم المستخدم</label>
-                    <div class="p-3 bg-gray-50 rounded-lg border">{{ profile_user.username }}</div>
+                    <div class="p-3 bg-gray-50 rounded-lg border text-sm">{{ profile_user.username }}</div>
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">البريد الإلكتروني</label>
-                    <div class="p-3 bg-gray-50 rounded-lg border">{{ profile_user.email }}</div>
+                    <div class="p-3 bg-gray-50 rounded-lg border text-sm break-all">{{ profile_user.email }}</div>
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">الدور</label>
-                    <div class="p-3 bg-gray-50 rounded-lg border">{{ profile_user.role.value }}</div>
+                    <div class="p-3 bg-gray-50 rounded-lg border text-sm">{{ profile_user.role.value }}</div>
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">تاريخ التسجيل</label>
-                    <div class="p-3 bg-gray-50 rounded-lg border">{{ profile_user.created_at.strftime('%Y-%m-%d') if profile_user.created_at else 'غير محدد' }}</div>
+                    <div class="p-3 bg-gray-50 rounded-lg border text-sm">{{ profile_user.created_at.strftime('%Y-%m-%d') if profile_user.created_at else 'غير محدد' }}</div>
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">الحالة</label>
-                    <div class="p-3 bg-gray-50 rounded-lg border">
+                    <div class="p-3 bg-gray-50 rounded-lg border text-sm">
                         {% if profile_user.is_active %}
                         <span class="text-green-600"><i class="fas fa-check-circle"></i> نشط</span>
                         {% else %}
@@ -116,7 +159,7 @@
 
             {% if current_user.role.value in ['admin', 'manager'] or current_user.id == profile_user.id %}
             <form method="post" action="/profile/update" enctype="multipart/form-data">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <div>
                         <label for="full_name" class="block text-sm font-medium text-gray-700 mb-2">الاسم الكامل</label>
                         <input type="text" id="full_name" name="full_name"
@@ -146,11 +189,11 @@
                     </div>
                 </div>
 
-                <div class="flex justify-end space-x-3 rtl:space-x-reverse mt-6">
-                    <button type="button" onclick="toggleEditForm()" class="btn-secondary">
+                <div class="flex flex-col sm:flex-row sm:justify-end space-y-3 sm:space-y-0 sm:space-x-3 rtl:space-x-reverse mt-6">
+                    <button type="button" onclick="toggleEditForm()" class="btn-secondary w-full sm:w-auto justify-center">
                         إلغاء
                     </button>
-                    <button type="submit" class="btn-primary">
+                    <button type="submit" class="btn-primary w-full sm:w-auto justify-center">
                         <i class="fas fa-save"></i>
                         حفظ التغييرات
                     </button>
@@ -166,7 +209,7 @@
     </form>
 
     <!-- Quick Actions -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         <div class="card">
             <div class="card-body text-center">
                 <div class="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center mx-auto mb-4">
@@ -174,7 +217,7 @@
                 </div>
                 <h3 class="text-lg font-medium text-gray-900 mb-2">طلباتي</h3>
                 <p class="text-sm text-gray-600 mb-4">عرض وإدارة جميع الطلبات</p>
-                <a href="/requests" class="btn-primary">
+                <a href="/requests" class="btn-primary w-full justify-center">
                     عرض الطلبات
                 </a>
             </div>
@@ -187,7 +230,7 @@
                 </div>
                 <h3 class="text-lg font-medium text-gray-900 mb-2">طلب جديد</h3>
                 <p class="text-sm text-gray-600 mb-4">إنشاء طلب جديد</p>
-                <a href="/requests/new" class="btn-success">
+                <a href="/requests/new" class="btn-success w-full justify-center">
                     طلب جديد
                 </a>
             </div>
@@ -200,7 +243,7 @@
                 </div>
                 <h3 class="text-lg font-medium text-gray-900 mb-2">لوحة التحكم</h3>
                 <p class="text-sm text-gray-600 mb-4">العودة للوحة الرئيسية</p>
-                <a href="/dashboard" class="btn-warning">
+                <a href="/dashboard" class="btn-warning w-full justify-center">
                     لوحة التحكم
                 </a>
             </div>

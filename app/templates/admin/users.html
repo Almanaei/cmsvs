@@ -136,18 +136,54 @@
     .page-container {
         padding: 16px;
     }
+
+    .page-header {
+        padding: 20px 16px;
+    }
+
+    .page-title {
+        font-size: 24px;
+    }
+
+    .header-content {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 16px !important;
+    }
+
+    .header-buttons {
+        width: 100%;
+        flex-direction: column !important;
+        gap: 8px !important;
+    }
+
+    .header-buttons .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .card-header .flex {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 12px !important;
+    }
+
+    .card-header .btn-secondary {
+        width: 100%;
+        justify-content: center;
+    }
 }
 </style>
 
 <div class="page-container">
     <!-- Page Header -->
     <header class="page-header">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px;">
+        <div class="header-content" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px;">
             <div style="flex: 1;">
                 <h1 class="page-title">إدارة المستخدمين</h1>
                 <p class="page-subtitle">إدارة وتتبع جميع المستخدمين في النظام بسهولة وأمان</p>
             </div>
-            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <div class="header-buttons" style="display: flex; gap: 12px; flex-wrap: wrap;">
                 <a href="/admin/dashboard" class="btn btn-secondary">
                     <i class="fas fa-arrow-right"></i>
                     العودة للوحة التحكم

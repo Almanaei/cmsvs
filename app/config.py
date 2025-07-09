@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     upload_directory: str = "uploads"
 
     # Application
-    app_name: str = "CMSVS Internal System"
+    app_name: str = "إرشيف الدفاع المدني"
     app_version: str = "1.0.0"
     debug: bool = True
 

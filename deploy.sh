@@ -15,7 +15,25 @@ NC='\033[0m' # No Color
 # Configuration
 PRODUCTION_SERVER="91.99.118.65"
 SSH_KEY="$HOME/.ssh/cmsvs_deploy_key_ed25519"
+SSH_PASSWORD="Almanna3i"
 DEPLOY_PATH="/opt/cmsvs"
+
+# SSH command wrapper for automatic password authentication
+ssh_cmd() {
+    local cmd="$1"
+    if command -v plink &> /dev/null; then
+        # Windows with PuTTY plink
+        plink -ssh -batch -pw "$SSH_PASSWORD" root@$PRODUCTION_SERVER "$cmd"
+    elif command -v sshpass &> /dev/null; then
+        # Linux/Mac with sshpass
+        sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no root@$PRODUCTION_SERVER "$cmd"
+    else
+        # Fallback - manual password entry
+        echo "Connecting to $PRODUCTION_SERVER..."
+        echo "Please enter password when prompted: $SSH_PASSWORD"
+        ssh -o StrictHostKeyChecking=no root@$PRODUCTION_SERVER "$cmd"
+    fi
+}
 
 # Functions
 print_status() {
@@ -64,7 +82,7 @@ push_changes() {
 # Create backup of current production
 create_backup() {
     print_status "Creating backup of current production..."
-    ssh -i "$SSH_KEY" root@$PRODUCTION_SERVER "
+    ssh_cmd "
         cd $DEPLOY_PATH
         timestamp=\$(date +%Y%m%d_%H%M%S)
         cp .env.production .env.production.backup.\$timestamp
@@ -76,25 +94,25 @@ create_backup() {
 # Deploy to production
 deploy_to_production() {
     print_status "Deploying to production server..."
-    
-    ssh -i "$SSH_KEY" root@$PRODUCTION_SERVER "
+
+    ssh_cmd "
         cd $DEPLOY_PATH
-        
+
         echo '🔄 Pulling latest changes...'
         git pull origin main
-        
+
         echo '🛑 Stopping services...'
         docker-compose -f docker-compose.production.yml down
-        
+
         echo '🔨 Building application...'
         docker-compose -f docker-compose.production.yml build --no-cache app
-        
+
         echo '🚀 Starting services...'
         docker-compose -f docker-compose.production.yml up -d
-        
+
         echo '⏳ Waiting for services to be healthy...'
         sleep 30
-        
+
         echo '✅ Checking service status...'
         docker-compose -f docker-compose.production.yml ps
     "
@@ -103,16 +121,23 @@ deploy_to_production() {
 # Verify deployment
 verify_deployment() {
     print_status "Verifying deployment..."
-    
+
     # Check if application is responding
-    response=$(ssh -i "$SSH_KEY" root@$PRODUCTION_SERVER "curl -s -o /dev/null -w '%{http_code}' http://localhost:80/login")
-    
+    if command -v plink &> /dev/null; then
+        response=$(plink -ssh -batch -pw "$SSH_PASSWORD" root@$PRODUCTION_SERVER "curl -s -o /dev/null -w '%{http_code}' https://localhost/health")
+    elif command -v sshpass &> /dev/null; then
+        response=$(sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no root@$PRODUCTION_SERVER "curl -s -o /dev/null -w '%{http_code}' https://localhost/health")
+    else
+        print_status "Manual verification required - checking application..."
+        response=$(ssh -o StrictHostKeyChecking=no root@$PRODUCTION_SERVER "curl -s -o /dev/null -w '%{http_code}' https://localhost/health")
+    fi
+
     if [ "$response" = "200" ]; then
         print_success "✅ Application is responding correctly (HTTP $response)"
     else
         print_error "❌ Application is not responding correctly (HTTP $response)"
         print_status "Checking application logs..."
-        ssh -i "$SSH_KEY" root@$PRODUCTION_SERVER "cd $DEPLOY_PATH && docker-compose -f docker-compose.production.yml logs --tail=20 app"
+        ssh_cmd "cd $DEPLOY_PATH && docker-compose -f docker-compose.production.yml logs --tail=20 app"
         exit 1
     fi
 }
@@ -121,7 +146,7 @@ verify_deployment() {
 main() {
     echo "🚀 CMSVS Production Deployment"
     echo "=============================="
-    
+
     # Pre-deployment checks
     print_status "Running pre-deployment checks..."
     check_branch
@@ -149,7 +174,7 @@ main() {
     
     echo ""
     print_success "🎉 Deployment completed successfully!"
-    print_status "Your application is now live at: http://$PRODUCTION_SERVER"
+    print_status "Your application is now live at: https://www.webtado.live"
     
     echo ""
     print_status "Post-deployment checklist:"

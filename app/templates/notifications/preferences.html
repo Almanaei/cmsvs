@@ -177,11 +177,17 @@
                         <div class="preference-description" style="font-family: 'IBM Plex Sans Arabic', sans-serif;">
                             تلقي إشعارات فورية في المتصفح
                         </div>
+                        <div id="pushNotificationStatus" class="mt-2 text-sm"></div>
                     </div>
-                    <label class="toggle-switch">
-                        <input type="checkbox" name="push_notifications_enabled" {% if preferences and preferences.push_notifications_enabled %}checked{% endif %}>
-                        <span class="slider"></span>
-                    </label>
+                    <div class="flex items-center gap-2">
+                        <button type="button" id="enablePushBtn" class="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors" style="display: none;">
+                            تفعيل الإشعارات
+                        </button>
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="push_notifications_enabled" {% if preferences and preferences.push_notifications_enabled %}checked{% endif %}>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
                 </div>
                 
                 <div class="preference-item">
@@ -374,6 +380,72 @@
         }
     }
     
+    // Check push notification status on page load
+    function checkPushNotificationStatus() {
+        const statusDiv = document.getElementById('pushNotificationStatus');
+        const enableBtn = document.getElementById('enablePushBtn');
+
+        if (!('Notification' in window)) {
+            statusDiv.innerHTML = '<span class="text-red-600">المتصفح لا يدعم الإشعارات</span>';
+            return;
+        }
+
+        const permission = Notification.permission;
+
+        switch (permission) {
+            case 'granted':
+                statusDiv.innerHTML = '<span class="text-green-600">✓ الإشعارات مفعلة</span>';
+                enableBtn.style.display = 'none';
+                break;
+            case 'denied':
+                statusDiv.innerHTML = '<span class="text-red-600">✗ الإشعارات محجوبة - يرجى تفعيلها من إعدادات المتصفح</span>';
+                enableBtn.style.display = 'inline-block';
+                enableBtn.textContent = 'كيفية التفعيل';
+                enableBtn.onclick = showPermissionInstructions;
+                break;
+            case 'default':
+                statusDiv.innerHTML = '<span class="text-yellow-600">⚠ الإشعارات غير مفعلة</span>';
+                enableBtn.style.display = 'inline-block';
+                enableBtn.textContent = 'تفعيل الإشعارات';
+                enableBtn.onclick = requestNotificationPermission;
+                break;
+        }
+    }
+
+    function requestNotificationPermission() {
+        Notification.requestPermission().then(permission => {
+            checkPushNotificationStatus();
+
+            if (permission === 'granted') {
+                // Try to subscribe to push notifications if pushManager is available
+                if (window.pushManager) {
+                    window.pushManager.subscribeUser();
+                }
+                showNotification('تم تفعيل الإشعارات بنجاح!', 'success');
+            } else if (permission === 'denied') {
+                showNotification('تم رفض الإشعارات. يمكنك تفعيلها من إعدادات المتصفح.', 'error');
+            }
+        });
+    }
+
+    function showPermissionInstructions() {
+        const instructions = `
+            كيفية تفعيل الإشعارات:
+
+            1. انقر على أيقونة القفل 🔒 في شريط العنوان
+            2. ابحث عن "الإشعارات" أو "Notifications"
+            3. اختر "السماح" أو "Allow"
+            4. أعد تحميل الصفحة
+
+            أو امسح بيانات الموقع من إعدادات المتصفح وأعد المحاولة
+        `;
+
+        alert(instructions);
+    }
+
+    // Check status on page load
+    document.addEventListener('DOMContentLoaded', checkPushNotificationStatus);
+
     document.getElementById('preferencesForm').addEventListener('submit', function(e) {
         e.preventDefault();
         

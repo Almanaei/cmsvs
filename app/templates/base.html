@@ -916,6 +916,8 @@
                 this.isSupported = 'serviceWorker' in navigator && 'PushManager' in window;
                 this.isSubscribed = false;
                 this.registration = null;
+                this.permissionState = 'default';
+                this.notificationBanner = null;
 
                 if (this.isSupported) {
                     this.init();
@@ -928,6 +930,9 @@
                     this.registration = await navigator.serviceWorker.register('/static/js/sw.js');
                     console.log('Service Worker registered successfully');
 
+                    // Check current permission state
+                    this.permissionState = Notification.permission;
+
                     // Check if already subscribed
                     const subscription = await this.registration.pushManager.getSubscription();
                     this.isSubscribed = !(subscription === null);
@@ -935,8 +940,8 @@
                     if (this.isSubscribed) {
                         console.log('User is already subscribed to push notifications');
                     } else {
-                        // Request permission and subscribe
-                        await this.requestPermissionAndSubscribe();
+                        // Handle permission state gracefully
+                        await this.handlePermissionState();
                     }
 
                 } catch (error) {
@@ -944,17 +949,90 @@
                 }
             }
 
+            async handlePermissionState() {
+                switch (this.permissionState) {
+                    case 'granted':
+                        await this.subscribeUser();
+                        break;
+                    case 'denied':
+                        this.showPermissionBlockedMessage();
+                        break;
+                    case 'default':
+                        // Don't automatically request permission, wait for user interaction
+                        this.showNotificationPrompt();
+                        break;
+                }
+            }
+
+            showNotificationPrompt() {
+                // Only show prompt if user hasn't seen it recently
+                const lastPromptTime = localStorage.getItem('notificationPromptTime');
+                const now = Date.now();
+                const oneDay = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+                if (lastPromptTime && (now - parseInt(lastPromptTime)) < oneDay) {
+                    return; // Don't show prompt again within 24 hours
+                }
+
+                this.createNotificationBanner(
+                    'تفعيل الإشعارات',
+                    'هل تريد تفعيل الإشعارات لتلقي تحديثات الطلبات؟',
+                    [
+                        {
+                            text: 'تفعيل',
+                            action: () => this.requestPermissionAndSubscribe(),
+                            primary: true
+                        },
+                        {
+                            text: 'لاحقاً',
+                            action: () => this.dismissNotificationBanner(),
+                            primary: false
+                        }
+                    ]
+                );
+            }
+
+            showPermissionBlockedMessage() {
+                this.createNotificationBanner(
+                    'الإشعارات محجوبة',
+                    'تم حجب الإشعارات. لتفعيلها، انقر على أيقونة القفل بجانب عنوان الموقع واختر "السماح" للإشعارات.',
+                    [
+                        {
+                            text: 'فهمت',
+                            action: () => this.dismissNotificationBanner(),
+                            primary: true
+                        },
+                        {
+                            text: 'كيفية التفعيل',
+                            action: () => this.showPermissionInstructions(),
+                            primary: false
+                        }
+                    ]
+                );
+            }
+
             async requestPermissionAndSubscribe() {
                 try {
+                    // Store the time when we requested permission
+                    localStorage.setItem('notificationPromptTime', Date.now().toString());
+
                     const permission = await Notification.requestPermission();
+                    this.permissionState = permission;
 
                     if (permission === 'granted') {
                         await this.subscribeUser();
+                        this.dismissNotificationBanner();
+                        this.showSuccessMessage('تم تفعيل الإشعارات بنجاح!');
+                    } else if (permission === 'denied') {
+                        this.dismissNotificationBanner();
+                        this.showPermissionBlockedMessage();
                     } else {
-                        console.log('Push notification permission denied');
+                        this.dismissNotificationBanner();
+                        console.log('Push notification permission dismissed');
                     }
                 } catch (error) {
                     console.error('Error requesting permission:', error);
+                    this.dismissNotificationBanner();
                 }
             }
 
@@ -1068,6 +1146,231 @@
                 } catch (error) {
                     console.error('Error unsubscribing:', error);
                 }
+            }
+
+            createNotificationBanner(title, message, buttons) {
+                // Remove existing banner if any
+                this.dismissNotificationBanner();
+
+                // Create banner element
+                this.notificationBanner = document.createElement('div');
+                this.notificationBanner.className = 'notification-permission-banner';
+                this.notificationBanner.innerHTML = `
+                    <div class="banner-content">
+                        <div class="banner-icon">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5-5-5h5v-12"></path>
+                            </svg>
+                        </div>
+                        <div class="banner-text">
+                            <h4 class="banner-title">${title}</h4>
+                            <p class="banner-message">${message}</p>
+                        </div>
+                        <div class="banner-actions">
+                            ${buttons.map(button => `
+                                <button class="banner-btn ${button.primary ? 'primary' : 'secondary'}"
+                                        data-action="${button.text}">
+                                    ${button.text}
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+
+                // Add styles
+                const style = document.createElement('style');
+                style.textContent = `
+                    .notification-permission-banner {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                        z-index: 10000;
+                        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                        animation: slideDown 0.3s ease-out;
+                    }
+                    .banner-content {
+                        display: flex;
+                        align-items: center;
+                        padding: 12px 20px;
+                        max-width: 1200px;
+                        margin: 0 auto;
+                        gap: 15px;
+                    }
+                    .banner-icon {
+                        flex-shrink: 0;
+                        width: 24px;
+                        height: 24px;
+                    }
+                    .banner-text {
+                        flex: 1;
+                        min-width: 0;
+                    }
+                    .banner-title {
+                        font-weight: 600;
+                        margin: 0 0 4px 0;
+                        font-size: 14px;
+                    }
+                    .banner-message {
+                        margin: 0;
+                        font-size: 13px;
+                        opacity: 0.9;
+                        line-height: 1.4;
+                    }
+                    .banner-actions {
+                        display: flex;
+                        gap: 8px;
+                        flex-shrink: 0;
+                    }
+                    .banner-btn {
+                        padding: 6px 16px;
+                        border: none;
+                        border-radius: 4px;
+                        font-size: 13px;
+                        font-weight: 500;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                    }
+                    .banner-btn.primary {
+                        background: rgba(255,255,255,0.2);
+                        color: white;
+                        border: 1px solid rgba(255,255,255,0.3);
+                    }
+                    .banner-btn.primary:hover {
+                        background: rgba(255,255,255,0.3);
+                    }
+                    .banner-btn.secondary {
+                        background: transparent;
+                        color: rgba(255,255,255,0.8);
+                        border: 1px solid rgba(255,255,255,0.2);
+                    }
+                    .banner-btn.secondary:hover {
+                        background: rgba(255,255,255,0.1);
+                        color: white;
+                    }
+                    @keyframes slideDown {
+                        from { transform: translateY(-100%); }
+                        to { transform: translateY(0); }
+                    }
+                    @keyframes slideUp {
+                        from { transform: translateY(0); }
+                        to { transform: translateY(-100%); }
+                    }
+                    @keyframes slideInRight {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                    @keyframes slideOutRight {
+                        from { transform: translateX(0); opacity: 1; }
+                        to { transform: translateX(100%); opacity: 0; }
+                    }
+                    @media (max-width: 768px) {
+                        .banner-content {
+                            flex-direction: column;
+                            text-align: center;
+                            gap: 10px;
+                        }
+                        .banner-actions {
+                            width: 100%;
+                            justify-content: center;
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+
+                // Add event listeners
+                buttons.forEach((button, index) => {
+                    const btnElement = this.notificationBanner.querySelector(`[data-action="${button.text}"]`);
+                    if (btnElement) {
+                        btnElement.addEventListener('click', button.action);
+                    }
+                });
+
+                // Add to page
+                document.body.insertBefore(this.notificationBanner, document.body.firstChild);
+
+                // Adjust body padding to account for banner
+                document.body.style.paddingTop = this.notificationBanner.offsetHeight + 'px';
+            }
+
+            dismissNotificationBanner() {
+                if (this.notificationBanner) {
+                    this.notificationBanner.style.animation = 'slideUp 0.3s ease-out';
+                    setTimeout(() => {
+                        if (this.notificationBanner && this.notificationBanner.parentNode) {
+                            this.notificationBanner.parentNode.removeChild(this.notificationBanner);
+                            document.body.style.paddingTop = '';
+                        }
+                        this.notificationBanner = null;
+                    }, 300);
+                }
+            }
+
+            showPermissionInstructions() {
+                const instructions = `
+                    <div style="text-align: right; line-height: 1.6;">
+                        <h3>كيفية تفعيل الإشعارات:</h3>
+                        <ol style="margin: 10px 0; padding-right: 20px;">
+                            <li>انقر على أيقونة القفل 🔒 أو المعلومات ℹ️ في شريط العنوان</li>
+                            <li>ابحث عن "الإشعارات" أو "Notifications"</li>
+                            <li>اختر "السماح" أو "Allow"</li>
+                            <li>أعد تحميل الصفحة</li>
+                        </ol>
+                        <p><strong>أو:</strong> امسح بيانات الموقع من إعدادات المتصفح وأعد المحاولة</p>
+                    </div>
+                `;
+
+                // Create modal or alert
+                if (confirm('هل تريد عرض تعليمات تفعيل الإشعارات؟')) {
+                    const instructionWindow = window.open('', '_blank', 'width=500,height=400');
+                    instructionWindow.document.write(`
+                        <html dir="rtl">
+                        <head>
+                            <title>تعليمات تفعيل الإشعارات</title>
+                            <style>
+                                body { font-family: Arial, sans-serif; padding: 20px; }
+                                h3 { color: #333; }
+                                ol { color: #555; }
+                                p { color: #666; }
+                            </style>
+                        </head>
+                        <body>${instructions}</body>
+                        </html>
+                    `);
+                }
+            }
+
+            showSuccessMessage(message) {
+                // Create a temporary success notification
+                const successDiv = document.createElement('div');
+                successDiv.className = 'success-notification';
+                successDiv.textContent = message;
+                successDiv.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: #10b981;
+                    color: white;
+                    padding: 12px 20px;
+                    border-radius: 6px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                    z-index: 10001;
+                    animation: slideInRight 0.3s ease-out;
+                `;
+
+                document.body.appendChild(successDiv);
+
+                // Remove after 3 seconds
+                setTimeout(() => {
+                    successDiv.style.animation = 'slideOutRight 0.3s ease-out';
+                    setTimeout(() => {
+                        if (successDiv.parentNode) {
+                            successDiv.parentNode.removeChild(successDiv);
+                        }
+                    }, 300);
+                }, 3000);
             }
         }
 

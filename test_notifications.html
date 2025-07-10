@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار الإشعارات - إرشيف</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+            direction: rtl;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .status-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+        }
+        .status-label {
+            font-weight: bold;
+        }
+        .status-value {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .status-granted { background: #d4edda; color: #155724; }
+        .status-denied { background: #f8d7da; color: #721c24; }
+        .status-default { background: #fff3cd; color: #856404; }
+        .status-unsupported { background: #e2e3e5; color: #383d41; }
+        
+        .button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: background 0.3s;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+        .button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .button.danger {
+            background: #dc3545;
+        }
+        .button.danger:hover {
+            background: #c82333;
+        }
+        
+        .button.success {
+            background: #28a745;
+        }
+        .button.success:hover {
+            background: #218838;
+        }
+        
+        .instructions {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .instructions h3 {
+            margin-top: 0;
+            color: #0066cc;
+        }
+        
+        .instructions ol {
+            margin: 10px 0;
+            padding-right: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔔 اختبار نظام الإشعارات المحسن</h1>
+        
+        <div class="status-section">
+            <h3>حالة الإشعارات الحالية:</h3>
+            
+            <div class="status-item">
+                <span class="status-label">دعم المتصفح:</span>
+                <span id="browserSupport" class="status-value">جاري التحقق...</span>
+            </div>
+            
+            <div class="status-item">
+                <span class="status-label">صلاحية الإشعارات:</span>
+                <span id="permissionStatus" class="status-value">جاري التحقق...</span>
+            </div>
+            
+            <div class="status-item">
+                <span class="status-label">Service Worker:</span>
+                <span id="serviceWorkerStatus" class="status-value">جاري التحقق...</span>
+            </div>
+            
+            <div class="status-item">
+                <span class="status-label">اشتراك Push:</span>
+                <span id="subscriptionStatus" class="status-value">جاري التحقق...</span>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <button id="requestPermissionBtn" class="button">طلب صلاحية الإشعارات</button>
+            <button id="testNotificationBtn" class="button success">إرسال إشعار تجريبي</button>
+            <button id="resetPermissionBtn" class="button danger">إعادة تعيين الصلاحيات</button>
+        </div>
+        
+        <div class="instructions">
+            <h3>إذا كانت الإشعارات محجوبة:</h3>
+            <ol>
+                <li>انقر على أيقونة القفل 🔒 أو المعلومات ℹ️ في شريط العنوان</li>
+                <li>ابحث عن "الإشعارات" أو "Notifications"</li>
+                <li>اختر "السماح" أو "Allow"</li>
+                <li>أعد تحميل هذه الصفحة</li>
+            </ol>
+            <p><strong>أو:</strong> امسح بيانات الموقع من إعدادات المتصفح وأعد المحاولة</p>
+        </div>
+    </div>
+
+    <script>
+        // Check notification support and status
+        function checkNotificationStatus() {
+            const browserSupport = document.getElementById('browserSupport');
+            const permissionStatus = document.getElementById('permissionStatus');
+            const serviceWorkerStatus = document.getElementById('serviceWorkerStatus');
+            const subscriptionStatus = document.getElementById('subscriptionStatus');
+            
+            // Check browser support
+            if ('Notification' in window) {
+                browserSupport.textContent = 'مدعوم ✓';
+                browserSupport.className = 'status-value status-granted';
+            } else {
+                browserSupport.textContent = 'غير مدعوم ✗';
+                browserSupport.className = 'status-value status-unsupported';
+            }
+            
+            // Check permission status
+            if ('Notification' in window) {
+                const permission = Notification.permission;
+                switch (permission) {
+                    case 'granted':
+                        permissionStatus.textContent = 'مسموح ✓';
+                        permissionStatus.className = 'status-value status-granted';
+                        break;
+                    case 'denied':
+                        permissionStatus.textContent = 'محجوب ✗';
+                        permissionStatus.className = 'status-value status-denied';
+                        break;
+                    case 'default':
+                        permissionStatus.textContent = 'لم يتم السؤال ⚠';
+                        permissionStatus.className = 'status-value status-default';
+                        break;
+                }
+            }
+            
+            // Check service worker
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistration().then(registration => {
+                    if (registration) {
+                        serviceWorkerStatus.textContent = 'مسجل ✓';
+                        serviceWorkerStatus.className = 'status-value status-granted';
+                    } else {
+                        serviceWorkerStatus.textContent = 'غير مسجل ⚠';
+                        serviceWorkerStatus.className = 'status-value status-default';
+                    }
+                });
+            } else {
+                serviceWorkerStatus.textContent = 'غير مدعوم ✗';
+                serviceWorkerStatus.className = 'status-value status-unsupported';
+            }
+            
+            // Check subscription status
+            subscriptionStatus.textContent = 'غير متاح في هذا الاختبار';
+            subscriptionStatus.className = 'status-value status-default';
+        }
+        
+        // Request notification permission
+        document.getElementById('requestPermissionBtn').addEventListener('click', async () => {
+            if (!('Notification' in window)) {
+                alert('المتصفح لا يدعم الإشعارات');
+                return;
+            }
+            
+            try {
+                const permission = await Notification.requestPermission();
+                checkNotificationStatus();
+                
+                if (permission === 'granted') {
+                    alert('تم منح صلاحية الإشعارات بنجاح! ✓');
+                } else if (permission === 'denied') {
+                    alert('تم رفض صلاحية الإشعارات. يرجى تفعيلها من إعدادات المتصفح.');
+                } else {
+                    alert('لم يتم اتخاذ قرار بشأن الإشعارات.');
+                }
+            } catch (error) {
+                console.error('خطأ في طلب صلاحية الإشعارات:', error);
+                alert('حدث خطأ في طلب صلاحية الإشعارات');
+            }
+        });
+        
+        // Test notification
+        document.getElementById('testNotificationBtn').addEventListener('click', () => {
+            if (!('Notification' in window)) {
+                alert('المتصفح لا يدعم الإشعارات');
+                return;
+            }
+            
+            if (Notification.permission === 'granted') {
+                new Notification('إشعار تجريبي من إرشيف', {
+                    body: 'هذا إشعار تجريبي للتأكد من عمل النظام بشكل صحيح',
+                    icon: '/static/icons/notification-icon.png',
+                    dir: 'rtl',
+                    lang: 'ar'
+                });
+            } else {
+                alert('يجب منح صلاحية الإشعارات أولاً');
+            }
+        });
+        
+        // Reset permissions (informational)
+        document.getElementById('resetPermissionBtn').addEventListener('click', () => {
+            alert('لإعادة تعيين صلاحيات الإشعارات:\n\n1. انقر على أيقونة القفل في شريط العنوان\n2. اختر "إعادة تعيين الصلاحيات"\n3. أعد تحميل الصفحة\n\nأو امسح بيانات الموقع من إعدادات المتصفح');
+        });
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', checkNotificationStatus);
+        
+        // Update status every 2 seconds
+        setInterval(checkNotificationStatus, 2000);
+    </script>
+</body>
+</html>

@@ -2,12 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Form, Query
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
+from sqlalchemy import and_
 from typing import Optional, Dict, Any
 import logging
 
 from app.database import get_db
 from app.models.user import User, UserRole
-from app.models.notification import NotificationType, NotificationPriority
+from app.models.notification import NotificationType, NotificationPriority, Notification
 from app.services.notification_service import NotificationService
 from app.services.push_service import PushService
 from app.utils.auth import verify_token
@@ -321,6 +322,74 @@ async def unsubscribe_from_push(
         }, status_code=500)
 
 
+@router.get("/notifications/{notification_id}", response_class=HTMLResponse)
+async def notification_detail_page(
+    request: Request,
+    notification_id: int,
+    current_user: User = Depends(get_current_user_cookie),
+    db: Session = Depends(get_db)
+):
+    """View specific notification detail page"""
+    try:
+        # Get the notification
+        notification = db.query(Notification).filter(
+            and_(
+                Notification.id == notification_id,
+                Notification.user_id == current_user.id
+            )
+        ).first()
+
+        if not notification:
+            raise HTTPException(status_code=404, detail="Notification not found")
+
+        # Mark as read if not already read
+        if not notification.is_read:
+            NotificationService.mark_notification_as_read(
+                db=db,
+                notification_id=notification_id,
+                user_id=current_user.id
+            )
+            # Refresh the notification object
+            db.refresh(notification)
+
+        # Get related request if available
+        related_request = None
+        if notification.request_id:
+            from app.models.request import Request as RequestModel
+            related_request = db.query(RequestModel).filter(
+                RequestModel.id == notification.request_id
+            ).first()
+
+        # Get related user if available
+        related_user = None
+        if notification.related_user_id:
+            from app.models.user import User
+            related_user = db.query(User).filter(
+                User.id == notification.related_user_id
+            ).first()
+
+        return templates.TemplateResponse(
+            "notifications/detail.html",
+            {
+                "request": request,
+                "current_user": current_user,
+                "notification": notification,
+                "related_request": related_request,
+                "related_user": related_user
+            }
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error loading notification detail: {str(e)}")
+        return templates.TemplateResponse(
+            "errors/500.html",
+            {"request": request, "current_user": current_user},
+            status_code=500
+        )
+
+
 @router.get("/notifications/preferences", response_class=HTMLResponse)
 async def notification_preferences_page(
     request: Request,
@@ -331,7 +400,7 @@ async def notification_preferences_page(
     try:
         preferences = PushService.get_notification_preferences(db, current_user.id)
         subscriptions = PushService.get_user_subscriptions(db, current_user.id)
-        
+
         return templates.TemplateResponse(
             "notifications/preferences.html",
             {
@@ -341,7 +410,7 @@ async def notification_preferences_page(
                 "subscriptions": subscriptions
             }
         )
-        
+
     except Exception as e:
         logger.error(f"Error loading notification preferences: {str(e)}")
         return templates.TemplateResponse(

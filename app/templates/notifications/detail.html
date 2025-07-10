@@ -1,0 +1,419 @@
+{% extends "base.html" %}
+
+{% block title %}تفاصيل الإشعار - إرشيف{% endblock %}
+
+{% block extra_css %}
+<style>
+    .notification-detail-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .notification-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 12px 12px 0 0;
+        text-align: center;
+    }
+    
+    .notification-content {
+        background: white;
+        padding: 30px;
+        border-radius: 0 0 12px 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .notification-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 24px;
+    }
+    
+    .notification-title {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        font-family: 'IBM Plex Sans Arabic', sans-serif;
+    }
+    
+    .notification-message {
+        font-size: 18px;
+        line-height: 1.6;
+        margin-bottom: 20px;
+        font-family: 'IBM Plex Sans Arabic', sans-serif;
+    }
+    
+    .notification-meta {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .meta-item {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        border-right: 4px solid #667eea;
+    }
+    
+    .meta-label {
+        font-weight: bold;
+        color: #495057;
+        margin-bottom: 5px;
+        font-size: 14px;
+    }
+    
+    .meta-value {
+        color: #212529;
+        font-family: 'IBM Plex Sans Arabic', sans-serif;
+    }
+    
+    .related-content {
+        background: #e7f3ff;
+        border: 1px solid #b3d9ff;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 20px;
+    }
+    
+    .related-title {
+        font-weight: bold;
+        color: #0066cc;
+        margin-bottom: 15px;
+        font-family: 'IBM Plex Sans Arabic', sans-serif;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 30px;
+        flex-wrap: wrap;
+    }
+    
+    .btn {
+        padding: 12px 24px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s;
+        border: none;
+        cursor: pointer;
+        font-family: 'IBM Plex Sans Arabic', sans-serif;
+    }
+    
+    .btn-primary {
+        background: #667eea;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: #5a6fd8;
+        transform: translateY(-2px);
+    }
+    
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background: #5a6268;
+    }
+    
+    .btn-success {
+        background: #28a745;
+        color: white;
+    }
+    
+    .btn-success:hover {
+        background: #218838;
+    }
+    
+    .priority-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+    
+    .priority-normal {
+        background: #e3f2fd;
+        color: #1976d2;
+    }
+    
+    .priority-high {
+        background: #fff3e0;
+        color: #f57c00;
+    }
+    
+    .priority-urgent {
+        background: #ffebee;
+        color: #d32f2f;
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+    
+    .status-read {
+        background: #e8f5e8;
+        color: #2e7d32;
+    }
+    
+    .status-unread {
+        background: #fff3e0;
+        color: #f57c00;
+    }
+    
+    @media (max-width: 768px) {
+        .notification-detail-container {
+            padding: 10px;
+        }
+        
+        .notification-header,
+        .notification-content {
+            padding: 20px;
+        }
+        
+        .notification-meta {
+            grid-template-columns: 1fr;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .btn {
+            width: 100%;
+            max-width: 300px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <div class="notification-detail-container">
+        <!-- Notification Header -->
+        <div class="notification-header">
+            <div class="notification-icon">
+                {% if notification.type.value == 'request_status_change' %}
+                    <i class="fas fa-exchange-alt"></i>
+                {% elif notification.type.value == 'request_comment' %}
+                    <i class="fas fa-comment"></i>
+                {% elif notification.type.value == 'request_assignment' %}
+                    <i class="fas fa-user-tag"></i>
+                {% elif notification.type.value == 'system_announcement' %}
+                    <i class="fas fa-bullhorn"></i>
+                {% elif notification.type.value == 'reminder' %}
+                    <i class="fas fa-bell"></i>
+                {% else %}
+                    <i class="fas fa-info-circle"></i>
+                {% endif %}
+            </div>
+            
+            <h1 class="notification-title">{{ notification.title }}</h1>
+            
+            <div class="flex justify-center gap-3 mt-4">
+                <span class="priority-badge priority-{{ notification.priority.value }}">
+                    {{ notification.priority.value | title }}
+                </span>
+                <span class="status-badge status-{{ 'read' if notification.is_read else 'unread' }}">
+                    {{ 'مقروء' if notification.is_read else 'غير مقروء' }}
+                </span>
+            </div>
+        </div>
+        
+        <!-- Notification Content -->
+        <div class="notification-content">
+            <div class="notification-message">
+                {{ notification.message }}
+            </div>
+            
+            <!-- Notification Metadata -->
+            <div class="notification-meta">
+                <div class="meta-item">
+                    <div class="meta-label">تاريخ الإنشاء</div>
+                    <div class="meta-value">
+                        {{ notification.created_at.strftime('%Y-%m-%d %H:%M') if notification.created_at else 'غير محدد' }}
+                    </div>
+                </div>
+                
+                <div class="meta-item">
+                    <div class="meta-label">نوع الإشعار</div>
+                    <div class="meta-value">
+                        {% if notification.type.value == 'request_status_change' %}
+                            تغيير حالة الطلب
+                        {% elif notification.type.value == 'request_comment' %}
+                            تعليق على الطلب
+                        {% elif notification.type.value == 'request_assignment' %}
+                            تعيين الطلب
+                        {% elif notification.type.value == 'system_announcement' %}
+                            إعلان النظام
+                        {% elif notification.type.value == 'reminder' %}
+                            تذكير
+                        {% else %}
+                            {{ notification.type.value }}
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if notification.read_at %}
+                <div class="meta-item">
+                    <div class="meta-label">تاريخ القراءة</div>
+                    <div class="meta-value">
+                        {{ notification.read_at.strftime('%Y-%m-%d %H:%M') }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if notification.sent_at %}
+                <div class="meta-item">
+                    <div class="meta-label">تاريخ الإرسال</div>
+                    <div class="meta-value">
+                        {{ notification.sent_at.strftime('%Y-%m-%d %H:%M') }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Related Request Information -->
+            {% if related_request %}
+            <div class="related-content">
+                <h3 class="related-title">
+                    <i class="fas fa-file-alt ml-2"></i>
+                    الطلب المرتبط
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <strong>رقم الطلب:</strong> {{ related_request.id }}
+                    </div>
+                    <div>
+                        <strong>العنوان:</strong> {{ related_request.title }}
+                    </div>
+                    <div>
+                        <strong>الحالة:</strong> 
+                        <span class="px-2 py-1 rounded text-sm bg-blue-100 text-blue-800">
+                            {{ related_request.status.value if related_request.status else 'غير محدد' }}
+                        </span>
+                    </div>
+                    <div>
+                        <strong>تاريخ الإنشاء:</strong> 
+                        {{ related_request.created_at.strftime('%Y-%m-%d') if related_request.created_at else 'غير محدد' }}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Related User Information -->
+            {% if related_user %}
+            <div class="related-content">
+                <h3 class="related-title">
+                    <i class="fas fa-user ml-2"></i>
+                    المستخدم المرتبط
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <strong>الاسم:</strong> {{ related_user.full_name or related_user.username }}
+                    </div>
+                    <div>
+                        <strong>البريد الإلكتروني:</strong> {{ related_user.email }}
+                    </div>
+                    {% if related_user.department %}
+                    <div>
+                        <strong>القسم:</strong> {{ related_user.department }}
+                    </div>
+                    {% endif %}
+                    {% if related_user.role %}
+                    <div>
+                        <strong>الدور:</strong> {{ related_user.role.value if related_user.role else 'غير محدد' }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Additional Data -->
+            {% if notification.extra_data %}
+            <div class="related-content">
+                <h3 class="related-title">
+                    <i class="fas fa-info-circle ml-2"></i>
+                    معلومات إضافية
+                </h3>
+                <pre class="bg-gray-100 p-3 rounded text-sm overflow-auto">{{ notification.extra_data | tojson(indent=2) }}</pre>
+            </div>
+            {% endif %}
+            
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                {% if notification.action_url %}
+                <a href="{{ notification.action_url }}" class="btn btn-primary">
+                    <i class="fas fa-external-link-alt ml-2"></i>
+                    عرض المحتوى المرتبط
+                </a>
+                {% endif %}
+                
+                {% if related_request %}
+                <a href="/requests/{{ related_request.id }}" class="btn btn-success">
+                    <i class="fas fa-file-alt ml-2"></i>
+                    عرض الطلب
+                </a>
+                {% endif %}
+                
+                <a href="/notifications" class="btn btn-secondary">
+                    <i class="fas fa-arrow-right ml-2"></i>
+                    العودة للإشعارات
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Mark notification as read when page loads (if not already read)
+    document.addEventListener('DOMContentLoaded', function() {
+        // Update notification badge count
+        updateNotificationBadge();
+    });
+    
+    function updateNotificationBadge() {
+        fetch('/api/notifications/unread-count')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const badge = document.querySelector('.notification-badge');
+                    if (badge) {
+                        if (data.unread_count > 0) {
+                            badge.textContent = data.unread_count;
+                            badge.style.display = 'inline-block';
+                        } else {
+                            badge.style.display = 'none';
+                        }
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error updating notification badge:', error);
+            });
+    }
+</script>
+{% endblock %}

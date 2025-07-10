@@ -381,3 +381,32 @@ class UserService:
         return db.query(User).filter(
             User.is_active == False
         ).offset(skip).limit(limit).all()
+
+    @staticmethod
+    def update_user_mobile_settings(db: Session, user_id: int, mobile_data: dict) -> bool:
+        """Update user's mobile settings including push token"""
+        try:
+            user = db.query(User).filter(User.id == user_id).first()
+            if not user:
+                return False
+
+            # Store mobile settings in user's profile
+            # You might want to create a separate table for mobile devices
+            # For now, we'll use a simple approach with user profile
+            if not hasattr(user, 'mobile_settings'):
+                user.mobile_settings = {}
+
+            # Update mobile settings
+            user.mobile_settings = mobile_data
+
+            db.commit()
+            return True
+
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Error updating user mobile settings: {str(e)}")
+            return False
+
+    def update_user_mobile_settings(self, user_id: int, mobile_data: dict) -> bool:
+        """Instance method wrapper for updating mobile settings"""
+        return self.update_user_mobile_settings(self.db, user_id, mobile_data)

@@ -1,0 +1,116 @@
+name: Build iOS App
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type'
+        required: true
+        default: 'development'
+        type: choice
+        options:
+        - development
+        - release
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build mobile assets
+      run: npm run mobile:build
+      
+    - name: Setup iOS
+      run: |
+        if [ ! -d "ios" ]; then
+          npx cap add ios
+        fi
+        npx cap sync ios
+        
+    - name: Setup Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest-stable
+        
+    - name: Install iOS dependencies
+      run: |
+        cd ios/App
+        pod install
+        
+    - name: Build iOS App (Development)
+      if: ${{ github.event.inputs.build_type == 'development' }}
+      run: |
+        cd ios
+        xcodebuild -workspace App/App.xcworkspace \
+                   -scheme App \
+                   -configuration Debug \
+                   -destination 'generic/platform=iOS Simulator' \
+                   -archivePath App.xcarchive \
+                   archive
+                   
+    - name: Build iOS App (Release)
+      if: ${{ github.event.inputs.build_type == 'release' }}
+      env:
+        APPLE_ID: ${{ secrets.APPLE_ID }}
+        APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+        TEAM_ID: ${{ secrets.TEAM_ID }}
+      run: |
+        cd ios
+        # This requires proper code signing setup
+        xcodebuild -workspace App/App.xcworkspace \
+                   -scheme App \
+                   -configuration Release \
+                   -destination 'generic/platform=iOS' \
+                   -archivePath App.xcarchive \
+                   archive
+                   
+    - name: Export IPA (Release only)
+      if: ${{ github.event.inputs.build_type == 'release' }}
+      run: |
+        cd ios
+        xcodebuild -exportArchive \
+                   -archivePath App.xcarchive \
+                   -exportPath ./build \
+                   -exportOptionsPlist ExportOptions.plist
+                   
+    - name: Upload iOS Build Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ios-build-${{ github.event.inputs.build_type }}
+        path: |
+          ios/App.xcarchive
+          ios/build/*.ipa
+        retention-days: 30
+        
+    - name: Create Release (if release build)
+      if: ${{ github.event.inputs.build_type == 'release' }}
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ios-v${{ github.run_number }}
+        release_name: iOS Release v${{ github.run_number }}
+        body: |
+          iOS app build created automatically
+          
+          **Build Details:**
+          - Build Type: Release
+          - Commit: ${{ github.sha }}
+          - Date: ${{ github.event.head_commit.timestamp }}
+          
+          **Installation:**
+          Download the IPA file and install using Xcode or TestFlight
+        draft: false
+        prerelease: false

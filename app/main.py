@@ -11,7 +11,7 @@ import time
 
 from app.config import settings
 from app.database import create_tables, get_db, get_pool_status
-from app.routes import auth, dashboard, admin, messages, achievements, avatar, notifications
+from app.routes import auth, dashboard, admin, messages, achievements, avatar, notifications, mobile
 from app.routes import settings as settings_routes
 from app.services.user_service import UserService
 from app.models.user import UserRole
@@ -223,6 +223,7 @@ app.include_router(achievements.router, prefix="", tags=["achievements"])
 app.include_router(avatar.router, prefix="/avatar", tags=["avatar"])
 app.include_router(notifications.router, prefix="", tags=["notifications"])
 app.include_router(settings_routes.router, prefix="", tags=["settings"])
+app.include_router(mobile.router, tags=["mobile"])
 
 
 @app.on_event("startup")

@@ -7,17 +7,39 @@
     "build-css": "tailwindcss -i ./src/input.css -o ./app/static/css/style.css --watch",
     "build-css-prod": "tailwindcss -i ./src/input.css -o ./app/static/css/style.css --minify",
     "dev": "npm run build-css",
-    "build": "npm run build-css-prod"
+    "build": "npm run build-css-prod",
+    "mobile:build": "npm run build-css-prod && npm run mobile:copy",
+    "mobile:copy": "node scripts/build-mobile.js",
+    "mobile:dev": "cap run android",
+    "mobile:build-android": "cap build android",
+    "mobile:build-ios": "cap build ios",
+    "mobile:sync": "cap sync",
+    "mobile": "node scripts/mobile-dev.js"
   },
   "keywords": [
     "tailwindcss",
     "rtl",
     "arabic",
     "fastapi",
-    "htmx"
+    "htmx",
+    "capacitor",
+    "mobile"
   ],
   "author": "CMSVS Team",
   "license": "MIT",
+  "dependencies": {
+    "@capacitor/core": "^5.5.1",
+    "@capacitor/cli": "^5.5.1",
+    "@capacitor/android": "^5.5.1",
+    "@capacitor/ios": "^5.5.1",
+    "@capacitor/app": "^5.0.6",
+    "@capacitor/haptics": "^5.0.6",
+    "@capacitor/keyboard": "^5.0.6",
+    "@capacitor/status-bar": "^5.0.6",
+    "@capacitor/push-notifications": "^5.1.0",
+    "@capacitor/camera": "^5.0.7",
+    "@capacitor/filesystem": "^5.1.4"
+  },
   "devDependencies": {
     "tailwindcss": "^3.4.0",
     "@tailwindcss/forms": "^0.5.7",

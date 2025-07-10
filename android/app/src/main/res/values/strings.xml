@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">إرشيف</string>
+    <string name="title_activity_main">إرشيف - الدفاع المدني</string>
+    <string name="package_name">com.webtado.cmsvs</string>
+    <string name="custom_url_scheme">com.webtado.cmsvs</string>
+</resources>

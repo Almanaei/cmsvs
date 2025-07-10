@@ -59,8 +59,18 @@ backups/
 # Uploads (in production, you might want to backup these separately)
 uploads/request_*/
 
-# Node modules (uncomment if you want to exclude)
-# node_modules/
+# Node modules
+node_modules/
+
+# Mobile build artifacts
+android/build/
+android/app/build/
+ios/build/
+ios/App/build/
+www/
+
+# Capacitor
+.capacitor/
 
 # Build outputs
 app/static/css/output.css

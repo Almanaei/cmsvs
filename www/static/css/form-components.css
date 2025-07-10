@@ -1,0 +1,932 @@
+/* 
+ * CMSVS Form Components CSS
+ * Dedicated stylesheet for consistent form styling across the application
+ * Focuses on dropdown text visibility and cross-browser compatibility
+ */
+
+/* CSS Custom Properties for Form Components */
+:root {
+    /* Dropdown Colors */
+    --dropdown-text-color: #374151;
+    --dropdown-placeholder-color: #9ca3af;
+    --dropdown-bg-color: #ffffff;
+    --dropdown-border-color: #d1d5db;
+    --dropdown-focus-color: #3b82f6;
+    --dropdown-hover-bg: #f9fafb;
+    
+    /* Form Input Colors */
+    --input-text-color: #374151;
+    --input-bg-color: #ffffff;
+    --input-border-color: #d1d5db;
+    --input-focus-color: #3b82f6;
+    
+    /* Status Colors */
+    --success-color: #10b981;
+    --error-color: #ef4444;
+    --warning-color: #f59e0b;
+}
+
+/* Enhanced Dropdown Styling with Maximum Specificity */
+html body div form select.enhanced-dropdown,
+html body form select.enhanced-dropdown,
+body form select.enhanced-dropdown,
+form select.enhanced-dropdown,
+select.enhanced-dropdown {
+    /* Text and Background */
+    color: var(--dropdown-text-color, #374151) !important;
+    background-color: var(--dropdown-bg-color, #ffffff) !important;
+    
+    /* Cross-browser text fill */
+    -webkit-text-fill-color: var(--dropdown-text-color, #374151) !important;
+    -moz-text-fill-color: var(--dropdown-text-color, #374151) !important;
+    text-fill-color: var(--dropdown-text-color, #374151) !important;
+    
+    /* Appearance and visibility */
+    -webkit-appearance: menulist !important;
+    -moz-appearance: menulist !important;
+    appearance: menulist !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    
+    /* Typography */
+    font-size: 1rem !important;
+    line-height: 1.5rem !important;
+    font-weight: 400 !important;
+    text-indent: 0 !important;
+    text-transform: none !important;
+    
+    /* Layout */
+    display: block !important;
+    width: 100% !important;
+    padding: 0.5rem 0.75rem !important;
+    border: 1px solid var(--dropdown-border-color, #d1d5db) !important;
+    border-radius: 0.5rem !important;
+    
+    /* Transitions */
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out !important;
+}
+
+/* Enhanced Dropdown Options */
+html body div form select.enhanced-dropdown option,
+html body form select.enhanced-dropdown option,
+body form select.enhanced-dropdown option,
+form select.enhanced-dropdown option,
+select.enhanced-dropdown option {
+    color: var(--dropdown-text-color, #374151) !important;
+    background-color: var(--dropdown-bg-color, #ffffff) !important;
+    -webkit-text-fill-color: var(--dropdown-text-color, #374151) !important;
+    -moz-text-fill-color: var(--dropdown-text-color, #374151) !important;
+    text-fill-color: var(--dropdown-text-color, #374151) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    padding: 0.5rem 0.75rem !important;
+}
+
+/* Placeholder Option Styling */
+html body div form select.enhanced-dropdown option[value=""],
+html body form select.enhanced-dropdown option[value=""],
+body form select.enhanced-dropdown option[value=""],
+form select.enhanced-dropdown option[value=""],
+select.enhanced-dropdown option[value=""] {
+    color: var(--dropdown-placeholder-color, #9ca3af) !important;
+    background-color: var(--dropdown-bg-color, #ffffff) !important;
+    -webkit-text-fill-color: var(--dropdown-placeholder-color, #9ca3af) !important;
+    -moz-text-fill-color: var(--dropdown-placeholder-color, #9ca3af) !important;
+    text-fill-color: var(--dropdown-placeholder-color, #9ca3af) !important;
+    font-style: italic !important;
+}
+
+/* Focus and Interaction States */
+select.enhanced-dropdown:focus,
+select.enhanced-dropdown:active {
+    outline: none !important;
+    border-color: var(--dropdown-focus-color, #3b82f6) !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+    color: var(--dropdown-text-color, #374151) !important;
+    -webkit-text-fill-color: var(--dropdown-text-color, #374151) !important;
+}
+
+select.enhanced-dropdown:hover {
+    border-color: var(--dropdown-focus-color, #3b82f6) !important;
+    background-color: var(--dropdown-hover-bg, #f9fafb) !important;
+}
+
+/* Disabled State */
+select.enhanced-dropdown:disabled {
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+    background-color: #f3f4f6 !important;
+    color: #9ca3af !important;
+    -webkit-text-fill-color: #9ca3af !important;
+}
+
+/* Browser-Specific Fixes */
+@supports (-webkit-appearance: none) {
+    select.enhanced-dropdown {
+        -webkit-text-fill-color: var(--dropdown-text-color, #374151) !important;
+        -webkit-text-stroke: 0 !important;
+        -webkit-font-smoothing: antialiased !important;
+    }
+}
+
+@supports (-moz-appearance: none) {
+    select.enhanced-dropdown {
+        -moz-text-fill-color: var(--dropdown-text-color, #374151) !important;
+    }
+}
+
+/* Role-Specific Dropdown (for backward compatibility) */
+select#role.role-select,
+select[name="role"].role-select {
+    color: var(--dropdown-text-color, #374151) !important;
+    background-color: var(--dropdown-bg-color, #ffffff) !important;
+    -webkit-text-fill-color: var(--dropdown-text-color, #374151) !important;
+    -moz-text-fill-color: var(--dropdown-text-color, #374151) !important;
+}
+
+select#role.role-select option,
+select[name="role"].role-select option {
+    color: var(--dropdown-text-color, #374151) !important;
+    background-color: var(--dropdown-bg-color, #ffffff) !important;
+    -webkit-text-fill-color: var(--dropdown-text-color, #374151) !important;
+}
+
+select#role.role-select option[value=""],
+select[name="role"].role-select option[value=""] {
+    color: var(--dropdown-placeholder-color, #9ca3af) !important;
+    -webkit-text-fill-color: var(--dropdown-placeholder-color, #9ca3af) !important;
+}
+
+/* Enhanced Input Styling */
+.enhanced-input {
+    color: var(--input-text-color, #374151) !important;
+    background-color: var(--input-bg-color, #ffffff) !important;
+    border: 1px solid var(--input-border-color, #d1d5db) !important;
+    border-radius: 0.5rem !important;
+    padding: 0.5rem 0.75rem !important;
+    font-size: 1rem !important;
+    line-height: 1.5rem !important;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out !important;
+}
+
+.enhanced-input:focus {
+    outline: none !important;
+    border-color: var(--input-focus-color, #3b82f6) !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Form Validation States */
+.enhanced-dropdown.is-valid,
+.enhanced-input.is-valid {
+    border-color: var(--success-color, #10b981) !important;
+}
+
+.enhanced-dropdown.is-invalid,
+.enhanced-input.is-invalid {
+    border-color: var(--error-color, #ef4444) !important;
+}
+
+/* Accessibility - Screen Reader Only Content */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Skip to content link for keyboard navigation */
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 6px;
+    background: #000;
+    color: #fff;
+    padding: 8px;
+    text-decoration: none;
+    z-index: 10000;
+    border-radius: 4px;
+}
+
+.skip-link:focus {
+    top: 6px;
+}
+
+/* Focus indicators for better accessibility */
+.admin-form-input:focus,
+.admin-form-select:focus,
+.admin-btn:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .admin-form-input,
+    .admin-form-select {
+        border-width: 2px;
+        border-color: #000;
+    }
+
+    .admin-btn {
+        border: 2px solid #000;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .admin-btn,
+    .admin-form-input,
+    .admin-form-select {
+        transition: none;
+    }
+}
+
+/* Admin Form Specific Styles */
+.admin-form-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1.5rem;
+}
+
+.admin-form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.admin-form-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0;
+}
+
+.admin-form-subtitle {
+    color: #6b7280;
+    margin: 0.5rem 0 0 0;
+    font-size: 1rem;
+}
+
+.admin-form-card {
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+    padding: 2rem;
+}
+
+.admin-form-section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.admin-form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+}
+
+.admin-form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.admin-form-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+}
+
+.admin-form-input,
+.admin-form-select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    background-color: white !important;
+    color: #374151 !important;
+}
+
+.admin-form-input:focus,
+.admin-form-select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Enhanced admin form select with maximum specificity */
+html body div form select.admin-form-select,
+html body form select.admin-form-select,
+body form select.admin-form-select,
+form select.admin-form-select,
+select.admin-form-select {
+    -webkit-appearance: menulist !important;
+    -moz-appearance: menulist !important;
+    appearance: menulist !important;
+    cursor: pointer !important;
+    color: #374151 !important;
+    background-color: white !important;
+    -webkit-text-fill-color: #374151 !important;
+    -moz-text-fill-color: #374151 !important;
+    text-fill-color: #374151 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Override Tailwind's default select styles that might be causing issues */
+select.admin-form-select,
+.admin-form-select {
+    color: #374151 !important;
+    background-color: #ffffff !important;
+    -webkit-text-fill-color: #374151 !important;
+    -webkit-appearance: menulist !important;
+    -moz-appearance: menulist !important;
+    appearance: menulist !important;
+}
+
+/* Force text visibility in all browsers and states */
+select.admin-form-select *,
+.admin-form-select * {
+    color: #374151 !important;
+    background-color: #ffffff !important;
+    -webkit-text-fill-color: #374151 !important;
+}
+
+/* Enhanced admin form select options with maximum specificity */
+html body div form select.admin-form-select option,
+html body form select.admin-form-select option,
+body form select.admin-form-select option,
+form select.admin-form-select option,
+select.admin-form-select option {
+    color: #374151 !important;
+    background-color: white !important;
+    -webkit-text-fill-color: #374151 !important;
+    -moz-text-fill-color: #374151 !important;
+    text-fill-color: #374151 !important;
+    padding: 0.5rem !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Enhanced admin form select placeholder options */
+html body div form select.admin-form-select option[value=""],
+html body form select.admin-form-select option[value=""],
+body form select.admin-form-select option[value=""],
+form select.admin-form-select option[value=""],
+select.admin-form-select option[value=""] {
+    color: #9ca3af !important;
+    background-color: white !important;
+    -webkit-text-fill-color: #9ca3af !important;
+    -moz-text-fill-color: #9ca3af !important;
+    text-fill-color: #9ca3af !important;
+    font-style: italic !important;
+}
+
+.admin-form-help {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+.admin-form-error {
+    font-size: 0.75rem;
+    color: #ef4444;
+    margin-top: 0.25rem;
+}
+
+.admin-form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e5e7eb;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.admin-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+    font-size: 0.875rem;
+}
+
+.admin-btn-primary {
+    background-color: #10b981;
+    color: white;
+}
+
+.admin-btn-primary:hover {
+    background-color: #059669;
+}
+
+.admin-btn-secondary {
+    background-color: #6b7280;
+    color: white;
+}
+
+.admin-btn-secondary:hover {
+    background-color: #4b5563;
+}
+
+.admin-sidebar {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.admin-info-card {
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+    padding: 1.5rem;
+}
+
+.admin-info-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.admin-role-card {
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.admin-role-card.user {
+    background-color: #dbeafe;
+    border: 1px solid #bfdbfe;
+}
+
+.admin-role-card.admin {
+    background-color: #f3e8ff;
+    border: 1px solid #e9d5ff;
+}
+
+.admin-role-title {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.admin-role-card.user .admin-role-title {
+    color: #1e40af;
+}
+
+.admin-role-card.admin .admin-role-title {
+    color: #7c3aed;
+}
+
+.admin-role-list {
+    font-size: 0.875rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.admin-role-card.user .admin-role-list {
+    color: #1e40af;
+}
+
+.admin-role-card.admin .admin-role-list {
+    color: #7c3aed;
+}
+
+.admin-role-list li {
+    margin-bottom: 0.25rem;
+}
+
+.admin-stats-grid {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.admin-stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.admin-stat-label {
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.admin-stat-value {
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.admin-stat-value.total {
+    color: #1f2937;
+}
+
+.admin-stat-value.admin {
+    color: #7c3aed;
+}
+
+.admin-stat-value.user {
+    color: #3b82f6;
+}
+
+.admin-stat-value.active {
+    color: #10b981;
+}
+
+.admin-security-list {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.admin-security-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.admin-security-item i {
+    margin-top: 0.125rem;
+    font-size: 0.875rem;
+}
+
+.admin-security-item.success i {
+    color: #10b981;
+}
+
+.admin-security-item.warning i {
+    color: #f59e0b;
+}
+
+.admin-security-text {
+    font-size: 0.875rem;
+    color: #374151;
+}
+
+/* Responsive Design - Mobile First */
+@media (max-width: 640px) {
+    select.enhanced-dropdown,
+    .enhanced-input {
+        font-size: 16px !important; /* Prevents zoom on iOS */
+        padding: 0.75rem !important;
+    }
+
+    .admin-form-container {
+        padding: 1rem;
+        max-width: 100%;
+    }
+
+    .admin-form-header {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+        gap: 1rem;
+    }
+
+    .admin-form-title {
+        font-size: 1.5rem;
+        line-height: 1.3;
+    }
+
+    .admin-form-subtitle {
+        font-size: 0.875rem;
+    }
+
+    .admin-form-card {
+        padding: 1rem;
+        border-radius: 0.5rem;
+    }
+
+    .admin-form-section-title {
+        font-size: 1.125rem;
+        margin-bottom: 1rem;
+    }
+
+    .admin-form-grid {
+        gap: 1rem;
+    }
+
+    .admin-form-input,
+    .admin-form-select {
+        padding: 0.875rem;
+        font-size: 16px; /* Prevents zoom on iOS */
+        border-radius: 0.5rem;
+    }
+
+    .admin-form-actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+        gap: 0.75rem;
+        padding-top: 1rem;
+    }
+
+    .admin-btn {
+        justify-content: center;
+        width: 100%;
+        padding: 0.875rem 1rem;
+        font-size: 0.875rem;
+        min-height: 44px; /* iOS recommended touch target */
+    }
+
+    /* Mobile sidebar adjustments */
+    .admin-sidebar {
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .admin-info-card {
+        padding: 1rem;
+        border-radius: 0.5rem;
+    }
+
+    .admin-info-title {
+        font-size: 1rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .admin-role-card {
+        padding: 0.75rem;
+        margin-bottom: 0.75rem;
+        border-radius: 0.375rem;
+    }
+
+    .admin-role-title {
+        font-size: 0.875rem;
+        margin-bottom: 0.375rem;
+    }
+
+    .admin-role-list {
+        font-size: 0.8125rem;
+    }
+
+    .admin-role-list li {
+        margin-bottom: 0.125rem;
+    }
+
+    .admin-stats-grid {
+        gap: 0.5rem;
+    }
+
+    .admin-stat-item {
+        font-size: 0.8125rem;
+    }
+
+    .admin-security-list {
+        gap: 0.5rem;
+    }
+
+    .admin-security-item {
+        gap: 0.375rem;
+    }
+
+    .admin-security-text {
+        font-size: 0.8125rem;
+        line-height: 1.4;
+    }
+
+    /* Grid layout adjustments for mobile */
+    .grid.grid-cols-1.lg\\:grid-cols-3 {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .lg\\:col-span-2 {
+        grid-column: span 1;
+    }
+}
+
+@media (min-width: 641px) and (max-width: 767px) {
+    .admin-form-container {
+        padding: 1.25rem;
+    }
+
+    .admin-form-grid.two-cols {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+
+    .admin-form-card {
+        padding: 1.75rem;
+    }
+
+    .admin-btn {
+        width: auto;
+        min-width: 120px;
+    }
+}
+
+@media (min-width: 768px) {
+    .admin-form-grid.two-cols {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .admin-form-actions {
+        flex-direction: row;
+        justify-content: space-between;
+    }
+
+    .admin-btn {
+        width: auto;
+        min-width: 120px;
+    }
+
+    .admin-form-container {
+        padding: 1.5rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .admin-form-container {
+        padding: 2rem;
+    }
+
+    .admin-form-card {
+        padding: 2rem;
+    }
+
+    .admin-info-card {
+        padding: 1.5rem;
+    }
+}
+
+/* Touch-friendly enhancements */
+@media (hover: none) and (pointer: coarse) {
+    .admin-btn {
+        min-height: 48px; /* Larger touch targets for touch devices */
+        padding: 1rem 1.5rem;
+    }
+
+    .admin-form-input,
+    .admin-form-select {
+        min-height: 48px;
+        padding: 0.875rem 1rem;
+    }
+
+    /* Increase spacing for touch interfaces */
+    .admin-form-grid {
+        gap: 1.25rem;
+    }
+
+    .admin-form-field {
+        gap: 0.625rem;
+    }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .admin-form-input,
+    .admin-form-select {
+        border-width: 0.5px;
+    }
+}
+
+/* Landscape orientation on mobile */
+@media (max-width: 767px) and (orientation: landscape) {
+    .admin-form-header {
+        margin-bottom: 1rem;
+    }
+
+    .admin-form-title {
+        font-size: 1.25rem;
+    }
+
+    .admin-sidebar {
+        margin-top: 1rem;
+    }
+
+    .admin-info-card {
+        padding: 0.75rem;
+    }
+
+    .admin-role-card {
+        padding: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* CRITICAL FIX: Tailwind CSS doesn't set text color for select elements */
+/* This is the root cause of invisible dropdown text */
+select {
+    color: #374151 !important;
+    -webkit-text-fill-color: #374151 !important;
+    -moz-text-fill-color: #374151 !important;
+}
+
+select option {
+    color: #374151 !important;
+    background-color: #ffffff !important;
+    -webkit-text-fill-color: #374151 !important;
+    -moz-text-fill-color: #374151 !important;
+}
+
+/* Override Tailwind's form reset that doesn't include text color */
+[type='text'],input:where(:not([type])),[type='email'],[type='url'],[type='password'],[type='number'],[type='date'],[type='datetime-local'],[type='month'],[type='search'],[type='tel'],[type='time'],[type='week'],[multiple],textarea,select {
+    color: #374151 !important;
+}
+
+/* Additional fallback styles for admin form selects */
+.admin-form-select:not([multiple]):not([size]) {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
+    background-position: right 0.5rem center !important;
+    background-repeat: no-repeat !important;
+    background-size: 1.5em 1.5em !important;
+    padding-right: 2.5rem !important;
+}
+
+/* Ensure text is visible in all states */
+.admin-form-select:hover,
+.admin-form-select:focus,
+.admin-form-select:active {
+    color: #374151 !important;
+    background-color: white !important;
+    -webkit-text-fill-color: #374151 !important;
+    -moz-text-fill-color: #374151 !important;
+    text-fill-color: #374151 !important;
+}
+
+/* Force text visibility for disabled state */
+.admin-form-select:disabled {
+    color: #6b7280 !important;
+    background-color: #f9fafb !important;
+    -webkit-text-fill-color: #6b7280 !important;
+    -moz-text-fill-color: #6b7280 !important;
+    text-fill-color: #6b7280 !important;
+    opacity: 0.6 !important;
+}
+
+/* Dark Mode Support (if needed in future) */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --dropdown-text-color: #f9fafb;
+        --dropdown-placeholder-color: #9ca3af;
+        --dropdown-bg-color: #374151;
+        --dropdown-border-color: #4b5563;
+        --input-text-color: #f9fafb;
+        --input-bg-color: #374151;
+        --input-border-color: #4b5563;
+    }
+}
+
+/* Print Styles */
+@media print {
+    select.enhanced-dropdown,
+    .enhanced-input {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color: #000000 !important;
+        background-color: #ffffff !important;
+        border: 1px solid #000000 !important;
+    }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+    select.enhanced-dropdown,
+    .enhanced-input {
+        border-width: 2px !important;
+        border-color: #000000 !important;
+    }
+    
+    select.enhanced-dropdown:focus,
+    .enhanced-input:focus {
+        outline: 3px solid #000000 !important;
+        outline-offset: 2px !important;
+    }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    select.enhanced-dropdown,
+    .enhanced-input {
+        transition: none !important;
+    }
+}

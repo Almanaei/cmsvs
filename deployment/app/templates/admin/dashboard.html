@@ -306,3 +306,31 @@
     </div>
 </div>
 {% endblock %}
+
+{% block head %}
+<script>
+    // Custom refresh function for admin dashboard
+    window.customRefresh = async function() {
+        try {
+            // Fetch updated dashboard data
+            const response = await fetch('/admin/dashboard', {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            if (response.ok) {
+                // For now, just reload the page to get fresh data
+                // In a more advanced implementation, you could update specific sections
+                return Promise.resolve();
+            } else {
+                throw new Error('Failed to refresh dashboard data');
+            }
+        } catch (error) {
+            console.error('Dashboard refresh error:', error);
+            throw error;
+        }
+    };
+</script>
+{% endblock %}

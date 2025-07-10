@@ -61,6 +61,11 @@ class Settings(BaseSettings):
     rate_limit_window: int = 60
     rate_limit_burst: int = 20
 
+    # Push Notifications (VAPID)
+    vapid_private_key: Optional[str] = None
+    vapid_public_key: Optional[str] = None
+    vapid_email: str = "admin@company.com"
+
     # Session Configuration
     session_timeout: int = 1800  # 30 minutes
     remember_me_duration: int = 2592000  # 30 days

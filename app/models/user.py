@@ -42,6 +42,11 @@ class User(Base):
     sent_messages = relationship("Message", foreign_keys="Message.sender_id", back_populates="sender")
     received_messages = relationship("Message", foreign_keys="Message.recipient_id", back_populates="recipient")
 
+    # Notification relationships
+    notifications = relationship("Notification", foreign_keys="Notification.user_id", back_populates="user")
+    push_subscriptions = relationship("PushSubscription", back_populates="user")
+    notification_preferences = relationship("NotificationPreference", back_populates="user", uselist=False)
+
     @property
     def avatar_url(self):
         """Get avatar URL from separate avatar table"""

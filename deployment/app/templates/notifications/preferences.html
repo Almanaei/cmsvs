@@ -1,0 +1,440 @@
+{% extends "base.html" %}
+
+{% block title %}إعدادات الإشعارات - إرشيف{% endblock %}
+
+{% block head %}
+<style>
+    .preference-section {
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+        padding: 1.5rem;
+    }
+    
+    .preference-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 0;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .preference-item:last-child {
+        border-bottom: none;
+    }
+    
+    .preference-label {
+        flex: 1;
+        margin-left: 1rem;
+    }
+    
+    .preference-title {
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+    
+    .preference-description {
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+    
+    .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+    }
+    
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 34px;
+    }
+    
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+    
+    input:checked + .slider {
+        background-color: #3b82f6;
+    }
+    
+    input:checked + .slider:before {
+        transform: translateX(26px);
+    }
+    
+    .time-input {
+        width: 80px;
+        padding: 0.5rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.375rem;
+        text-align: center;
+    }
+    
+    .device-card {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .device-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .device-name {
+        font-weight: 600;
+        color: #1f2937;
+    }
+    
+    .device-status {
+        font-size: 0.875rem;
+        color: #10b981;
+    }
+    
+    .device-status.inactive {
+        color: #ef4444;
+    }
+    
+    .save-button {
+        background-color: #3b82f6;
+        color: white;
+        padding: 0.75rem 2rem;
+        border: none;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+    
+    .save-button:hover {
+        background-color: #2563eb;
+    }
+    
+    .save-button:disabled {
+        background-color: #9ca3af;
+        cursor: not-allowed;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-6">
+                <div class="flex items-center">
+                    <a href="/notifications" class="text-gray-500 hover:text-gray-700 ml-4">
+                        <i class="fas fa-arrow-right text-xl"></i>
+                    </a>
+                    <h1 class="text-2xl font-bold text-gray-900" style="font-family: 'IBM Plex Sans Arabic', sans-serif;">
+                        إعدادات الإشعارات
+                    </h1>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <form id="preferencesForm">
+            <!-- General Settings -->
+            <div class="preference-section">
+                <h2 class="text-xl font-bold text-gray-900 mb-4" style="font-family: 'IBM Plex Sans Arabic', sans-serif;">
+                    الإعدادات العامة
+                </h2>
+                
+                <div class="preference-item">
+                    <div class="preference-label">
+                        <div class="preference-title" style="font-family: 'IBM Plex Sans Arabic', sans-serif;">
+                            إشعارات المتصفح
+                        </div>
+                        <div class="preference-description" style="font-family: 'IBM Plex Sans Arabic', sans-serif;">
+                            تلقي إشعارات فورية في المتصفح
+                        </div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" name="push_notifications_enabled" {% if preferences and preferences.push_notifications_enabled %}checked{% endif %}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="preference-item">
+                    <div class="preference-label">
+                        <div class="preference-title" style="font-family: 'IBM Plex Sans Arabic', sans-serif;">
+                            الإشعارات داخل التطبيق
+                        </div>
+                        <div class="preference-description" style="font-family: 'IBM Plex Sans Arabic', sans-serif;">
+                            عرض الإشعارات في صفحة الإشعارات
+                        </div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" name="in_app_notifications_enabled" {% if preferences and preferences.in_app_notifications_enabled %}checked{% endif %}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="preference-item">
+                    <div class="preference-label">
+                        <div class="preference-title" style="font-family: 'IBM Plex Sans Arabic', sans-serif;">
+                            إشعارات البريد الإلكتروني
+                        </div>
+                        <div class="preference-description" style="font-family: 'IBM Plex Sans Arabic', sans-serif;">
+                            تلقي إشعارات عبر البريد الإلكتروني (قريباً)
+                        </div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" name="email_notifications_enabled" {% if preferences and preferences.email_notifications_enabled %}checked{% endif %} disabled>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Notification Types -->
+            <div class="preference-section">
+                <h2 class="text-xl font-bold text-gray-900 mb-4" style="font-family: 'IBM Plex Sans Arabic', sans-serif;">
+                    أنواع الإشعارات
+                </h2>
+                
+                <div class="preference-item">
+                    <div class="preference-label">
+                        <div class="preference-title" style="font-family: 'IBM Plex Sans Arabic', sans-serif;">
+                            تحديثات حالة الطلبات
+                        </div>
+                        <div class="preference-description" style="font-family: 'IBM Plex Sans Arabic', sans-serif;">
+                            إشعارات عند تغيير حالة طلباتك
+                        </div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" name="request_status_notifications" {% if preferences and preferences.request_status_notifications %}checked{% endif %}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="preference-item">
+                    <div class="preference-label">
+                        <div class="preference-title" style="font-family: 'IBM Plex Sans Arabic', sans-serif;">
+                            تحديثات الطلبات
+                        </div>
+                        <div class="preference-description" style="font-family: 'IBM Plex Sans Arabic', sans-serif;">
+                            إشعارات عند إنشاء أو تحديث الطلبات
+                        </div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" name="request_updates_notifications" {% if preferences and preferences.request_updates_notifications %}checked{% endif %}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="preference-item">
+                    <div class="preference-label">
+                        <div class="preference-title" style="font-family: 'IBM Plex Sans Arabic', sans-serif;">
+                            رسائل الإدارة
+                        </div>
+                        <div class="preference-description" style="font-family: 'IBM Plex Sans Arabic', sans-serif;">
+                            إشعارات من فريق الإدارة
+                        </div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" name="admin_message_notifications" {% if preferences and preferences.admin_message_notifications %}checked{% endif %}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="preference-item">
+                    <div class="preference-label">
+                        <div class="preference-title" style="font-family: 'IBM Plex Sans Arabic', sans-serif;">
+                            إعلانات النظام
+                        </div>
+                        <div class="preference-description" style="font-family: 'IBM Plex Sans Arabic', sans-serif;">
+                            إشعارات النظام والتحديثات المهمة
+                        </div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" name="system_announcement_notifications" {% if preferences and preferences.system_announcement_notifications %}checked{% endif %}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Quiet Hours -->
+            <div class="preference-section">
+                <h2 class="text-xl font-bold text-gray-900 mb-4" style="font-family: 'IBM Plex Sans Arabic', sans-serif;">
+                    ساعات الهدوء
+                </h2>
+                
+                <div class="preference-item">
+                    <div class="preference-label">
+                        <div class="preference-title" style="font-family: 'IBM Plex Sans Arabic', sans-serif;">
+                            تفعيل ساعات الهدوء
+                        </div>
+                        <div class="preference-description" style="font-family: 'IBM Plex Sans Arabic', sans-serif;">
+                            عدم إرسال إشعارات خلال فترة محددة
+                        </div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" name="quiet_hours_enabled" {% if preferences and preferences.quiet_hours_enabled %}checked{% endif %} onchange="toggleQuietHours()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div id="quietHoursSettings" style="{% if not preferences or not preferences.quiet_hours_enabled %}display: none;{% endif %}">
+                    <div class="preference-item">
+                        <div class="preference-label">
+                            <div class="preference-title" style="font-family: 'IBM Plex Sans Arabic', sans-serif;">
+                                من الساعة
+                            </div>
+                        </div>
+                        <input type="time" name="quiet_hours_start" class="time-input" value="{{ preferences.quiet_hours_start if preferences and preferences.quiet_hours_start else '22:00' }}">
+                    </div>
+                    
+                    <div class="preference-item">
+                        <div class="preference-label">
+                            <div class="preference-title" style="font-family: 'IBM Plex Sans Arabic', sans-serif;">
+                                إلى الساعة
+                            </div>
+                        </div>
+                        <input type="time" name="quiet_hours_end" class="time-input" value="{{ preferences.quiet_hours_end if preferences and preferences.quiet_hours_end else '08:00' }}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Push Subscriptions -->
+            {% if subscriptions %}
+            <div class="preference-section">
+                <h2 class="text-xl font-bold text-gray-900 mb-4" style="font-family: 'IBM Plex Sans Arabic', sans-serif;">
+                    الأجهزة المشتركة
+                </h2>
+                
+                {% for subscription in subscriptions %}
+                <div class="device-card">
+                    <div class="device-info">
+                        <div>
+                            <div class="device-name" style="font-family: 'IBM Plex Sans Arabic', sans-serif;">
+                                {{ subscription.device_name or 'جهاز غير معروف' }}
+                            </div>
+                            <div class="text-sm text-gray-500">
+                                آخر استخدام: {{ subscription.last_used.strftime('%Y-%m-%d %H:%M') if subscription.last_used else 'غير معروف' }}
+                            </div>
+                        </div>
+                        <div class="device-status {% if not subscription.is_active %}inactive{% endif %}">
+                            {% if subscription.is_active %}نشط{% else %}غير نشط{% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Save Button -->
+            <div class="text-center">
+                <button type="submit" class="save-button" style="font-family: 'IBM Plex Sans Arabic', sans-serif;">
+                    حفظ الإعدادات
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- JavaScript -->
+<script>
+    function toggleQuietHours() {
+        const checkbox = document.querySelector('input[name="quiet_hours_enabled"]');
+        const settings = document.getElementById('quietHoursSettings');
+        
+        if (checkbox.checked) {
+            settings.style.display = 'block';
+        } else {
+            settings.style.display = 'none';
+        }
+    }
+    
+    document.getElementById('preferencesForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const preferences = {};
+        
+        // Convert form data to preferences object
+        for (let [key, value] of formData.entries()) {
+            if (this.querySelector(`input[name="${key}"]`).type === 'checkbox') {
+                preferences[key] = true;
+            } else {
+                preferences[key] = value;
+            }
+        }
+        
+        // Add unchecked checkboxes as false
+        const checkboxes = this.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+            if (!checkbox.checked) {
+                preferences[checkbox.name] = false;
+            }
+        });
+        
+        // Save preferences
+        fetch('/api/notifications/preferences', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(preferences)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                showNotification('تم حفظ الإعدادات بنجاح', 'success');
+            } else {
+                showNotification('حدث خطأ في حفظ الإعدادات', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error saving preferences:', error);
+            showNotification('حدث خطأ في حفظ الإعدادات', 'error');
+        });
+    });
+    
+    function showNotification(message, type) {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `fixed top-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-lg shadow-lg z-50 ${
+            type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+        }`;
+        notification.style.fontFamily = "'IBM Plex Sans Arabic', sans-serif";
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
+    }
+</script>
+{% endblock %}

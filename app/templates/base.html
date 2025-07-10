@@ -357,13 +357,25 @@
                     <a href="/requests/create" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium ibm-plex-arabic-medium">طلب جديد</a>
                     {% endif %}
                     <a href="/profile" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium ibm-plex-arabic-medium">الملف الشخصي</a>
+                    <a href="/notifications" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium ibm-plex-arabic-medium relative">
+                        الإشعارات
+                        <span id="headerNotificationBadge" class="absolute -top-1 -left-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center hidden">0</span>
+                    </a>
                     <a href="/auth/logout" class="text-red-600 hover:text-red-800 px-3 py-2 rounded-md text-sm font-medium ibm-plex-arabic-medium">تسجيل الخروج</a>
                 </nav>
 
-                <!-- Mobile Menu Toggle Button -->
-                <button onclick="toggleMobileMenu()" class="md:hidden mobile-toggle p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Toggle mobile menu">
-                    <i class="fas fa-bars text-xl"></i>
-                </button>
+                <!-- Notifications Bell (Mobile) -->
+                <div class="md:hidden flex items-center space-x-2 space-x-reverse">
+                    <a href="/notifications" class="text-gray-600 hover:text-gray-900 focus:outline-none relative p-2">
+                        <i class="fas fa-bell text-xl"></i>
+                        <span id="mobileNotificationBadge" class="absolute -top-1 -left-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center hidden">0</span>
+                    </a>
+
+                    <!-- Mobile Menu Toggle Button -->
+                    <button onclick="toggleMobileMenu()" class="mobile-toggle p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Toggle mobile menu">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
                 {% endif %}
             </div>
         </div>
@@ -503,6 +515,13 @@
                         <span>تقارير النشاط</span>
                     </a>
 
+                    <!-- Notifications Link for Admin -->
+                    <a href="/notifications" class="mobile-nav-link relative" onclick="toggleMobileMenu()">
+                        <i class="fas fa-bell ml-3"></i>
+                        <span>الإشعارات</span>
+                        <span id="mobileMenuNotificationBadge" class="absolute top-1 left-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center hidden">0</span>
+                    </a>
+
                     <!-- User Profile Link for Admin -->
                     <a href="/profile" class="mobile-nav-link" onclick="toggleMobileMenu()">
                         <i class="fas fa-user ml-3"></i>
@@ -528,6 +547,11 @@
                     <a href="/requests/new" class="mobile-nav-link" onclick="toggleMobileMenu()">
                         <i class="fas fa-plus ml-3"></i>
                         <span>طلب جديد</span>
+                    </a>
+                    <a href="/notifications" class="mobile-nav-link relative" onclick="toggleMobileMenu()">
+                        <i class="fas fa-bell ml-3"></i>
+                        <span>الإشعارات</span>
+                        <span id="mobileMenuUserNotificationBadge" class="absolute top-1 left-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center hidden">0</span>
                     </a>
                     <a href="/messages/inbox" class="mobile-nav-link" onclick="toggleMobileMenu()">
                         <i class="fas fa-envelope ml-3"></i>
@@ -623,6 +647,474 @@
                 }
             }
         });
+    </script>
+
+    <!-- Pull to Refresh JavaScript -->
+    <script>
+        /**
+         * CMSVS Pull to Refresh Feature
+         * Implements native-like pull-to-refresh functionality for mobile devices
+         */
+        class PullToRefresh {
+            constructor() {
+                this.isEnabled = this.isMobileDevice();
+                this.isRefreshing = false;
+                this.startY = 0;
+                this.currentY = 0;
+                this.pullDistance = 0;
+                this.threshold = 80; // Minimum pull distance to trigger refresh
+                this.maxPullDistance = 120; // Maximum visual pull distance
+
+                if (this.isEnabled) {
+                    this.init();
+                }
+            }
+
+            isMobileDevice() {
+                return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                       (window.innerWidth <= 768 && 'ontouchstart' in window);
+            }
+
+            init() {
+                this.createRefreshIndicator();
+                this.attachEventListeners();
+            }
+
+            createRefreshIndicator() {
+                // Create refresh indicator element
+                this.refreshIndicator = document.createElement('div');
+                this.refreshIndicator.id = 'pull-refresh-indicator';
+                this.refreshIndicator.innerHTML = `
+                    <div class="refresh-content">
+                        <div class="refresh-spinner">
+                            <i class="fas fa-sync-alt"></i>
+                        </div>
+                        <div class="refresh-text">اسحب للتحديث</div>
+                    </div>
+                `;
+
+                // Add styles
+                const style = document.createElement('style');
+                style.textContent = `
+                    #pull-refresh-indicator {
+                        position: fixed;
+                        top: -120px;
+                        left: 0;
+                        right: 0;
+                        height: 120px;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        z-index: 9999;
+                        transition: transform 0.3s ease;
+                        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                    }
+
+                    .refresh-content {
+                        text-align: center;
+                        color: white;
+                    }
+
+                    .refresh-spinner {
+                        font-size: 24px;
+                        margin-bottom: 8px;
+                        transition: transform 0.3s ease;
+                    }
+
+                    .refresh-text {
+                        font-size: 14px;
+                        font-weight: 500;
+                        font-family: "IBM Plex Sans Arabic", sans-serif;
+                    }
+
+                    .refresh-spinning .refresh-spinner {
+                        animation: spin 1s linear infinite;
+                    }
+
+                    @keyframes spin {
+                        from { transform: rotate(0deg); }
+                        to { transform: rotate(360deg); }
+                    }
+
+                    .refresh-ready .refresh-text {
+                        content: "اتركه للتحديث";
+                    }
+
+                    .refresh-ready .refresh-spinner {
+                        transform: rotate(180deg);
+                    }
+                `;
+
+                document.head.appendChild(style);
+                document.body.appendChild(this.refreshIndicator);
+            }
+
+            attachEventListeners() {
+                // Touch events for mobile
+                document.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
+                document.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
+                document.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false });
+
+                // Mouse events for desktop testing
+                if (window.innerWidth <= 768) {
+                    document.addEventListener('mousedown', this.handleMouseDown.bind(this));
+                    document.addEventListener('mousemove', this.handleMouseMove.bind(this));
+                    document.addEventListener('mouseup', this.handleMouseUp.bind(this));
+                }
+            }
+
+            handleTouchStart(e) {
+                if (this.isRefreshing || window.scrollY > 0) return;
+
+                this.startY = e.touches[0].clientY;
+                this.currentY = this.startY;
+            }
+
+            handleTouchMove(e) {
+                if (this.isRefreshing || window.scrollY > 0 || !this.startY) return;
+
+                this.currentY = e.touches[0].clientY;
+                this.pullDistance = Math.max(0, this.currentY - this.startY);
+
+                if (this.pullDistance > 0) {
+                    e.preventDefault();
+                    this.updateIndicator();
+                }
+            }
+
+            handleTouchEnd(e) {
+                if (this.isRefreshing || !this.startY) return;
+
+                if (this.pullDistance >= this.threshold) {
+                    this.triggerRefresh();
+                } else {
+                    this.resetIndicator();
+                }
+
+                this.startY = 0;
+                this.currentY = 0;
+                this.pullDistance = 0;
+            }
+
+            // Mouse events for desktop testing
+            handleMouseDown(e) {
+                if (this.isRefreshing || window.scrollY > 0) return;
+                this.startY = e.clientY;
+                this.currentY = this.startY;
+                this.isMouseDown = true;
+            }
+
+            handleMouseMove(e) {
+                if (this.isRefreshing || window.scrollY > 0 || !this.isMouseDown) return;
+
+                this.currentY = e.clientY;
+                this.pullDistance = Math.max(0, this.currentY - this.startY);
+
+                if (this.pullDistance > 0) {
+                    e.preventDefault();
+                    this.updateIndicator();
+                }
+            }
+
+            handleMouseUp(e) {
+                if (this.isRefreshing || !this.isMouseDown) return;
+
+                this.isMouseDown = false;
+
+                if (this.pullDistance >= this.threshold) {
+                    this.triggerRefresh();
+                } else {
+                    this.resetIndicator();
+                }
+
+                this.startY = 0;
+                this.currentY = 0;
+                this.pullDistance = 0;
+            }
+
+            updateIndicator() {
+                const progress = Math.min(this.pullDistance / this.maxPullDistance, 1);
+                const translateY = Math.min(this.pullDistance * 0.5, this.maxPullDistance * 0.5);
+
+                this.refreshIndicator.style.transform = `translateY(${translateY}px)`;
+
+                if (this.pullDistance >= this.threshold) {
+                    this.refreshIndicator.classList.add('refresh-ready');
+                    this.refreshIndicator.querySelector('.refresh-text').textContent = 'اتركه للتحديث';
+                } else {
+                    this.refreshIndicator.classList.remove('refresh-ready');
+                    this.refreshIndicator.querySelector('.refresh-text').textContent = 'اسحب للتحديث';
+                }
+            }
+
+            triggerRefresh() {
+                if (this.isRefreshing) return;
+
+                this.isRefreshing = true;
+                this.refreshIndicator.style.transform = 'translateY(60px)';
+                this.refreshIndicator.classList.add('refresh-spinning');
+                this.refreshIndicator.querySelector('.refresh-text').textContent = 'جاري التحديث...';
+
+                // Trigger the actual refresh
+                this.performRefresh().then(() => {
+                    this.completeRefresh();
+                });
+            }
+
+            async performRefresh() {
+                // Add a minimum delay for better UX
+                const minDelay = new Promise(resolve => setTimeout(resolve, 1000));
+
+                try {
+                    // Check if there's a custom refresh function defined on the page
+                    if (typeof window.customRefresh === 'function') {
+                        await Promise.all([minDelay, window.customRefresh()]);
+                    } else {
+                        // Default refresh behavior - reload the page
+                        await minDelay;
+                        window.location.reload();
+                    }
+                } catch (error) {
+                    console.error('Refresh failed:', error);
+                    await minDelay;
+                    // Fallback to page reload
+                    window.location.reload();
+                }
+            }
+
+            completeRefresh() {
+                this.refreshIndicator.querySelector('.refresh-text').textContent = 'تم التحديث!';
+
+                setTimeout(() => {
+                    this.resetIndicator();
+                }, 500);
+            }
+
+            resetIndicator() {
+                this.isRefreshing = false;
+                this.refreshIndicator.style.transform = 'translateY(-120px)';
+                this.refreshIndicator.classList.remove('refresh-ready', 'refresh-spinning');
+                this.refreshIndicator.querySelector('.refresh-text').textContent = 'اسحب للتحديث';
+            }
+        }
+
+        // Initialize pull to refresh when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            new PullToRefresh();
+        });
+    </script>
+
+    <!-- Push Notifications JavaScript -->
+    <script>
+        /**
+         * CMSVS Push Notifications System
+         * Handles browser push notifications for real-time updates
+         */
+        class PushNotificationManager {
+            constructor() {
+                this.isSupported = 'serviceWorker' in navigator && 'PushManager' in window;
+                this.isSubscribed = false;
+                this.registration = null;
+
+                if (this.isSupported) {
+                    this.init();
+                }
+            }
+
+            async init() {
+                try {
+                    // Register service worker
+                    this.registration = await navigator.serviceWorker.register('/static/js/sw.js');
+                    console.log('Service Worker registered successfully');
+
+                    // Check if already subscribed
+                    const subscription = await this.registration.pushManager.getSubscription();
+                    this.isSubscribed = !(subscription === null);
+
+                    if (this.isSubscribed) {
+                        console.log('User is already subscribed to push notifications');
+                    } else {
+                        // Request permission and subscribe
+                        await this.requestPermissionAndSubscribe();
+                    }
+
+                } catch (error) {
+                    console.error('Error initializing push notifications:', error);
+                }
+            }
+
+            async requestPermissionAndSubscribe() {
+                try {
+                    const permission = await Notification.requestPermission();
+
+                    if (permission === 'granted') {
+                        await this.subscribeUser();
+                    } else {
+                        console.log('Push notification permission denied');
+                    }
+                } catch (error) {
+                    console.error('Error requesting permission:', error);
+                }
+            }
+
+            async subscribeUser() {
+                try {
+                    const applicationServerKey = this.urlB64ToUint8Array(
+                        'BEl62iUYgUivxIkv69yViEuiBIa40HI80NM9LdNnC_AQPV4dQFSWVuYQkOiMXqr5t1I-0HcmUcf3ckMiXv1pLVs'
+                    );
+
+                    const subscription = await this.registration.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: applicationServerKey
+                    });
+
+                    // Send subscription to server
+                    await this.sendSubscriptionToServer(subscription);
+
+                    this.isSubscribed = true;
+                    console.log('User subscribed to push notifications');
+
+                } catch (error) {
+                    console.error('Error subscribing user:', error);
+                }
+            }
+
+            async sendSubscriptionToServer(subscription) {
+                try {
+                    const subscriptionData = {
+                        endpoint: subscription.endpoint,
+                        p256dh: btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('p256dh')))),
+                        auth: btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('auth')))),
+                        device_name: this.getDeviceName()
+                    };
+
+                    const response = await fetch('/api/push/subscribe', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(subscriptionData)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        console.log('Subscription sent to server successfully');
+                    } else {
+                        console.error('Failed to send subscription to server:', result.error);
+                    }
+
+                } catch (error) {
+                    console.error('Error sending subscription to server:', error);
+                }
+            }
+
+            getDeviceName() {
+                const userAgent = navigator.userAgent;
+
+                if (/Android/i.test(userAgent)) {
+                    return 'Android Device';
+                } else if (/iPhone|iPad|iPod/i.test(userAgent)) {
+                    return 'iOS Device';
+                } else if (/Windows/i.test(userAgent)) {
+                    return 'Windows Device';
+                } else if (/Mac/i.test(userAgent)) {
+                    return 'Mac Device';
+                } else if (/Linux/i.test(userAgent)) {
+                    return 'Linux Device';
+                } else {
+                    return 'Unknown Device';
+                }
+            }
+
+            urlB64ToUint8Array(base64String) {
+                const padding = '='.repeat((4 - base64String.length % 4) % 4);
+                const base64 = (base64String + padding)
+                    .replace(/\-/g, '+')
+                    .replace(/_/g, '/');
+
+                const rawData = window.atob(base64);
+                const outputArray = new Uint8Array(rawData.length);
+
+                for (let i = 0; i < rawData.length; ++i) {
+                    outputArray[i] = rawData.charCodeAt(i);
+                }
+                return outputArray;
+            }
+
+            async unsubscribe() {
+                try {
+                    const subscription = await this.registration.pushManager.getSubscription();
+
+                    if (subscription) {
+                        await subscription.unsubscribe();
+
+                        // Notify server
+                        await fetch('/api/push/unsubscribe', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                endpoint: subscription.endpoint
+                            })
+                        });
+
+                        this.isSubscribed = false;
+                        console.log('User unsubscribed from push notifications');
+                    }
+
+                } catch (error) {
+                    console.error('Error unsubscribing:', error);
+                }
+            }
+        }
+
+        // Initialize push notifications when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            if ('serviceWorker' in navigator && 'PushManager' in window) {
+                window.pushManager = new PushNotificationManager();
+            }
+
+            // Initialize notification badge updates
+            updateNotificationBadges();
+
+            // Update badges every 30 seconds
+            setInterval(updateNotificationBadges, 30000);
+        });
+
+        // Function to update notification badges
+        function updateNotificationBadges() {
+            fetch('/api/notifications/unread-count')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const count = data.unread_count;
+                    const badges = [
+                        'headerNotificationBadge',
+                        'mobileNotificationBadge',
+                        'mobileMenuNotificationBadge',
+                        'mobileMenuUserNotificationBadge'
+                    ];
+
+                    badges.forEach(badgeId => {
+                        const badge = document.getElementById(badgeId);
+                        if (badge) {
+                            if (count > 0) {
+                                badge.textContent = count > 99 ? '99+' : count;
+                                badge.classList.remove('hidden');
+                            } else {
+                                badge.classList.add('hidden');
+                            }
+                        }
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error updating notification badges:', error);
+            });
+        }
     </script>
 
     <!-- Enhanced Sidebar JavaScript -->

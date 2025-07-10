@@ -52,6 +52,7 @@ class Request(Base):
     # Relationships
     user = relationship("User", back_populates="requests")
     files = relationship("File", back_populates="request", cascade="all, delete-orphan")
+    notifications = relationship("Notification", back_populates="request")
 
     def __repr__(self):
         return f"<Request(request_number='{self.request_number}', title='{self.request_title}')>"

@@ -86,6 +86,16 @@ class RequestService:
                     db.commit()
                     db.refresh(request)
 
+                    # Send notification for new request
+                    try:
+                        from app.services.notification_service import NotificationService
+                        NotificationService.create_request_created_notification(db=db, request=request)
+                    except Exception as e:
+                        # Don't fail the request creation if notification fails
+                        import logging
+                        logger = logging.getLogger(__name__)
+                        logger.error(f"Failed to send request creation notification: {str(e)}")
+
                     return request
 
             except (IntegrityError, OperationalError) as e:
@@ -1652,7 +1662,10 @@ class RequestService:
         if not request:
             raise HTTPException(status_code=404, detail="Request not found")
 
+        # Store old status for notification
         old_status = request.status
+
+        # Update request status
         request.status = new_status
         request.updated_at = datetime.utcnow()
 
@@ -1664,6 +1677,23 @@ class RequestService:
 
         db.commit()
         db.refresh(request)
+
+        # Send notification if status changed
+        if old_status != new_status:
+            try:
+                from app.services.notification_service import NotificationService
+                NotificationService.create_request_status_notification(
+                    db=db,
+                    request=request,
+                    old_status=old_status,
+                    new_status=new_status,
+                    admin_user_id=updated_by
+                )
+            except Exception as e:
+                # Don't fail the request update if notification fails
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Failed to send status change notification: {str(e)}")
 
         return request
 

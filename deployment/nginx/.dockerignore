@@ -1,9 +1,0 @@
-# Only include nginx configuration files
-*
-!nginx.conf
-!conf.d/
-!conf.d/*.conf
-!ssl/
-!ssl/*.pem
-!ssl/*.key
-!ssl/*.crt

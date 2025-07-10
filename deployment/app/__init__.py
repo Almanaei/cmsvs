@@ -1,1 +1,0 @@
-# FastAPI HTMX Internal System

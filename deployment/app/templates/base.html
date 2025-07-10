@@ -664,6 +664,8 @@
                 this.pullDistance = 0;
                 this.threshold = 80; // Minimum pull distance to trigger refresh
                 this.maxPullDistance = 120; // Maximum visual pull distance
+                this.refreshIndicator = null;
+                this.isPulling = false;
 
                 if (this.isEnabled) {
                     this.init();
@@ -671,192 +673,108 @@
             }
 
             isMobileDevice() {
-                return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-                       (window.innerWidth <= 768 && 'ontouchstart' in window);
+                // More robust mobile detection - only real mobile devices
+                const userAgent = navigator.userAgent.toLowerCase();
+                const isMobileUA = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+                const hasTouchSupport = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+                const isSmallScreen = window.innerWidth <= 768;
+
+                // Must be a mobile user agent AND have touch support
+                return isMobileUA && hasTouchSupport;
             }
 
             init() {
-                this.createRefreshIndicator();
+                // Only attach event listeners, create indicator when needed
                 this.attachEventListeners();
             }
 
             createRefreshIndicator() {
-                // Create refresh indicator element
+                // Create a hidden indicator for functionality only
+                if (this.refreshIndicator) return;
+
                 this.refreshIndicator = document.createElement('div');
                 this.refreshIndicator.id = 'pull-refresh-indicator';
-                this.refreshIndicator.innerHTML = `
-                    <div class="refresh-content">
-                        <div class="refresh-spinner">
-                            <i class="fas fa-sync-alt"></i>
-                        </div>
-                        <div class="refresh-text">اسحب للتحديث</div>
-                    </div>
-                `;
+                this.refreshIndicator.style.display = 'none'; // Completely hidden
 
-                // Add styles
-                const style = document.createElement('style');
-                style.textContent = `
-                    #pull-refresh-indicator {
-                        position: fixed;
-                        top: -120px;
-                        left: 0;
-                        right: 0;
-                        height: 120px;
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        z-index: 9999;
-                        transition: transform 0.3s ease;
-                        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                    }
-
-                    .refresh-content {
-                        text-align: center;
-                        color: white;
-                    }
-
-                    .refresh-spinner {
-                        font-size: 24px;
-                        margin-bottom: 8px;
-                        transition: transform 0.3s ease;
-                    }
-
-                    .refresh-text {
-                        font-size: 14px;
-                        font-weight: 500;
-                        font-family: "IBM Plex Sans Arabic", sans-serif;
-                    }
-
-                    .refresh-spinning .refresh-spinner {
-                        animation: spin 1s linear infinite;
-                    }
-
-                    @keyframes spin {
-                        from { transform: rotate(0deg); }
-                        to { transform: rotate(360deg); }
-                    }
-
-                    .refresh-ready .refresh-text {
-                        content: "اتركه للتحديث";
-                    }
-
-                    .refresh-ready .refresh-spinner {
-                        transform: rotate(180deg);
-                    }
-                `;
-
-                document.head.appendChild(style);
+                // Add minimal hidden element to body
                 document.body.appendChild(this.refreshIndicator);
             }
 
             attachEventListeners() {
-                // Touch events for mobile
+                // Only touch events for mobile devices - no mouse events
                 document.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
                 document.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
                 document.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false });
-
-                // Mouse events for desktop testing
-                if (window.innerWidth <= 768) {
-                    document.addEventListener('mousedown', this.handleMouseDown.bind(this));
-                    document.addEventListener('mousemove', this.handleMouseMove.bind(this));
-                    document.addEventListener('mouseup', this.handleMouseUp.bind(this));
-                }
             }
 
             handleTouchStart(e) {
+                // Only start if at top of page and not already refreshing
                 if (this.isRefreshing || window.scrollY > 0) return;
 
                 this.startY = e.touches[0].clientY;
                 this.currentY = this.startY;
+                this.isPulling = false;
             }
 
             handleTouchMove(e) {
+                // Only proceed if conditions are met
                 if (this.isRefreshing || window.scrollY > 0 || !this.startY) return;
 
                 this.currentY = e.touches[0].clientY;
                 this.pullDistance = Math.max(0, this.currentY - this.startY);
 
-                if (this.pullDistance > 0) {
-                    e.preventDefault();
-                    this.updateIndicator();
+                // Track pulling without showing visual indicator
+                if (this.pullDistance > 10) { // Small threshold to avoid accidental triggers
+                    if (!this.isPulling) {
+                        this.isPulling = true;
+                        this.createRefreshIndicator(); // Create hidden indicator for functionality
+                    }
+
+                    e.preventDefault(); // Prevent page scroll
+                    // No visual update needed since indicator is hidden
+                } else if (this.isPulling && this.pullDistance <= 0) {
+                    // User stopped pulling
+                    this.isPulling = false;
                 }
             }
 
             handleTouchEnd(e) {
                 if (this.isRefreshing || !this.startY) return;
 
-                if (this.pullDistance >= this.threshold) {
-                    this.triggerRefresh();
-                } else {
-                    this.resetIndicator();
+                if (this.isPulling) {
+                    if (this.pullDistance >= this.threshold) {
+                        this.triggerRefresh();
+                    }
+                    // No need to hide indicator since it's already hidden
                 }
 
+                // Reset state
                 this.startY = 0;
                 this.currentY = 0;
                 this.pullDistance = 0;
+                this.isPulling = false;
             }
 
-            // Mouse events for desktop testing
-            handleMouseDown(e) {
-                if (this.isRefreshing || window.scrollY > 0) return;
-                this.startY = e.clientY;
-                this.currentY = this.startY;
-                this.isMouseDown = true;
-            }
-
-            handleMouseMove(e) {
-                if (this.isRefreshing || window.scrollY > 0 || !this.isMouseDown) return;
-
-                this.currentY = e.clientY;
-                this.pullDistance = Math.max(0, this.currentY - this.startY);
-
-                if (this.pullDistance > 0) {
-                    e.preventDefault();
-                    this.updateIndicator();
+            hideIndicator() {
+                // No visual hiding needed since indicator is already hidden
+                if (this.refreshIndicator && !this.isRefreshing) {
+                    this.refreshIndicator.remove();
+                    this.refreshIndicator = null;
                 }
-            }
-
-            handleMouseUp(e) {
-                if (this.isRefreshing || !this.isMouseDown) return;
-
-                this.isMouseDown = false;
-
-                if (this.pullDistance >= this.threshold) {
-                    this.triggerRefresh();
-                } else {
-                    this.resetIndicator();
-                }
-
-                this.startY = 0;
-                this.currentY = 0;
-                this.pullDistance = 0;
             }
 
             updateIndicator() {
-                const progress = Math.min(this.pullDistance / this.maxPullDistance, 1);
-                const translateY = Math.min(this.pullDistance * 0.5, this.maxPullDistance * 0.5);
-
-                this.refreshIndicator.style.transform = `translateY(${translateY}px)`;
-
-                if (this.pullDistance >= this.threshold) {
-                    this.refreshIndicator.classList.add('refresh-ready');
-                    this.refreshIndicator.querySelector('.refresh-text').textContent = 'اتركه للتحديث';
-                } else {
-                    this.refreshIndicator.classList.remove('refresh-ready');
-                    this.refreshIndicator.querySelector('.refresh-text').textContent = 'اسحب للتحديث';
-                }
+                // No visual updates needed since indicator is hidden
+                // This method is kept for compatibility but does nothing
+                return;
             }
 
             triggerRefresh() {
                 if (this.isRefreshing) return;
 
                 this.isRefreshing = true;
-                this.refreshIndicator.style.transform = 'translateY(60px)';
-                this.refreshIndicator.classList.add('refresh-spinning');
-                this.refreshIndicator.querySelector('.refresh-text').textContent = 'جاري التحديث...';
 
-                // Trigger the actual refresh
+                // No visual feedback, just trigger the refresh silently
                 this.performRefresh().then(() => {
                     this.completeRefresh();
                 });
@@ -884,18 +802,14 @@
             }
 
             completeRefresh() {
-                this.refreshIndicator.querySelector('.refresh-text').textContent = 'تم التحديث!';
-
-                setTimeout(() => {
-                    this.resetIndicator();
-                }, 500);
+                // No visual feedback needed, just reset state
+                this.isRefreshing = false;
+                this.hideIndicator();
             }
 
             resetIndicator() {
-                this.isRefreshing = false;
-                this.refreshIndicator.style.transform = 'translateY(-120px)';
-                this.refreshIndicator.classList.remove('refresh-ready', 'refresh-spinning');
-                this.refreshIndicator.querySelector('.refresh-text').textContent = 'اسحب للتحديث';
+                // This method is now replaced by hideIndicator()
+                this.hideIndicator();
             }
         }
 

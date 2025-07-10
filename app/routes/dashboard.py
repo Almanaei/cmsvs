@@ -792,6 +792,56 @@ async def view_request(
     )
 
 
+@router.get("/requests/{request_id}/view", response_class=HTMLResponse)
+async def view_request_with_view_suffix(
+    request: Request,
+    request_id: int,
+    current_user: User = Depends(get_current_user_cookie),
+    db: Session = Depends(get_db)
+):
+    """View request details by ID with /view suffix - same as above but with /view URL pattern"""
+    # Enhanced logging for mobile debugging
+    user_agent = request.headers.get("User-Agent", "")
+    client_ip = request.client.host if request.client else "unknown"
+    is_mobile = any(mobile_indicator in user_agent.lower() for mobile_indicator in
+                   ['mobile', 'android', 'iphone', 'ipad', 'tablet'])
+
+    logger.info(f"Request access attempt (with /view) - ID: {request_id}, User: {current_user.username if current_user else 'None'}, "
+               f"IP: {client_ip}, Mobile: {is_mobile}, UA: {user_agent[:100]}...")
+
+    req = RequestService.get_request_by_id(db, request_id)
+
+    if not req:
+        logger.warning(f"Request {request_id} not found - User: {current_user.username if current_user else 'None'}, "
+                      f"Mobile: {is_mobile}, IP: {client_ip}")
+        return templates.TemplateResponse(
+            "errors/404.html",
+            {"request": request, "current_user": current_user},
+            status_code=404
+        )
+
+    # Check if user can view this request
+    if current_user.role != UserRole.ADMIN and req.user_id != current_user.id:
+        logger.warning(f"Access denied to request {request_id} - User: {current_user.username}, "
+                      f"Request Owner: {req.user_id}, Mobile: {is_mobile}")
+        return templates.TemplateResponse(
+            "errors/403.html",
+            {"request": request, "current_user": current_user},
+            status_code=403
+        )
+
+    logger.info(f"Request {request_id} accessed successfully (with /view) - User: {current_user.username}, Mobile: {is_mobile}")
+
+    return templates.TemplateResponse(
+        "requests/view_request.html",
+        {
+            "request": request,
+            "current_user": current_user,
+            "req": req
+        }
+    )
+
+
 @router.get("/request/{unique_code}", response_class=HTMLResponse)
 async def view_request_by_code(
     request: Request,

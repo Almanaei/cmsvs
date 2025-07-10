@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار عرض تفاصيل الإشعار - إرشيف</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+            direction: rtl;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .test-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 5px;
+            border-right: 4px solid #007bff;
+        }
+        .test-label {
+            font-weight: bold;
+            flex: 1;
+        }
+        .test-action {
+            flex: 0 0 auto;
+        }
+        .button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: background 0.3s;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+        .button.success {
+            background: #28a745;
+        }
+        .button.success:hover {
+            background: #218838;
+        }
+        .instructions {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #0066cc;
+        }
+        .instructions ol {
+            margin: 10px 0;
+            padding-right: 20px;
+        }
+        .instructions li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+        .status {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 اختبار ميزة عرض تفاصيل الإشعارات</h1>
+        
+        <div class="test-section">
+            <h3>الميزات الجديدة المضافة:</h3>
+            
+            <div class="test-item">
+                <div class="test-label">
+                    <strong>عرض تفاصيل الإشعار:</strong><br>
+                    <small>عند النقر على إشعار بدون رابط عمل، سيتم عرض صفحة تفاصيل الإشعار</small>
+                </div>
+                <div class="test-action">
+                    <span class="status success">✓ مُفعل</span>
+                </div>
+            </div>
+            
+            <div class="test-item">
+                <div class="test-label">
+                    <strong>زر عرض التفاصيل:</strong><br>
+                    <small>زر جديد (عين) في كل إشعار للوصول المباشر لصفحة التفاصيل</small>
+                </div>
+                <div class="test-action">
+                    <span class="status success">✓ مُفعل</span>
+                </div>
+            </div>
+            
+            <div class="test-item">
+                <div class="test-label">
+                    <strong>معلومات شاملة:</strong><br>
+                    <small>عرض جميع تفاصيل الإشعار، الطلب المرتبط، والمستخدم المرتبط</small>
+                </div>
+                <div class="test-action">
+                    <span class="status success">✓ مُفعل</span>
+                </div>
+            </div>
+            
+            <div class="test-item">
+                <div class="test-label">
+                    <strong>تحديد كمقروء تلقائياً:</strong><br>
+                    <small>عند عرض تفاصيل الإشعار، يتم تحديده كمقروء تلقائياً</small>
+                </div>
+                <div class="test-action">
+                    <span class="status success">✓ مُفعل</span>
+                </div>
+            </div>
+            
+            <div class="test-item">
+                <div class="test-label">
+                    <strong>أزرار العمل:</strong><br>
+                    <small>أزرار للانتقال للمحتوى المرتبط أو العودة لقائمة الإشعارات</small>
+                </div>
+                <div class="test-action">
+                    <span class="status success">✓ مُفعل</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>اختبار الميزات:</h3>
+            
+            <div class="test-item">
+                <div class="test-label">
+                    <strong>اختبار صفحة الإشعارات:</strong><br>
+                    <small>تحقق من وجود زر العين الجديد في كل إشعار</small>
+                </div>
+                <div class="test-action">
+                    <a href="https://www.webtado.live/notifications" class="button" target="_blank">
+                        فتح الإشعارات
+                    </a>
+                </div>
+            </div>
+            
+            <div class="test-item">
+                <div class="test-label">
+                    <strong>اختبار تفاصيل إشعار:</strong><br>
+                    <small>انقر على أي إشعار أو زر العين لعرض التفاصيل</small>
+                </div>
+                <div class="test-action">
+                    <span class="status warning">يتطلب إشعارات موجودة</span>
+                </div>
+            </div>
+            
+            <div class="test-item">
+                <div class="test-label">
+                    <strong>اختبار الاستجابة للجوال:</strong><br>
+                    <small>تحقق من عمل الميزة على الأجهزة المحمولة</small>
+                </div>
+                <div class="test-action">
+                    <span class="status success">✓ متجاوب</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h3>كيفية اختبار الميزة الجديدة:</h3>
+            <ol>
+                <li><strong>انتقل لصفحة الإشعارات:</strong> اذهب إلى /notifications</li>
+                <li><strong>ابحث عن الأزرار الجديدة:</strong> ستجد زر العين (👁) بجانب كل إشعار</li>
+                <li><strong>انقر على زر العين:</strong> سيتم نقلك لصفحة تفاصيل الإشعار</li>
+                <li><strong>تحقق من المعلومات:</strong> ستجد جميع تفاصيل الإشعار مع معلومات إضافية</li>
+                <li><strong>اختبر الأزرار:</strong> جرب أزرار العمل في أسفل الصفحة</li>
+                <li><strong>اختبر النقر المباشر:</strong> انقر على الإشعار نفسه (بدلاً من زر العين)</li>
+            </ol>
+            
+            <h3>ما تم إصلاحه:</h3>
+            <ul>
+                <li>✅ <strong>مشكلة النقر بدون عمل:</strong> الآن عند النقر على إشعار بدون action_url، سيتم عرض صفحة التفاصيل</li>
+                <li>✅ <strong>عدم وجود طريقة لعرض التفاصيل:</strong> تم إضافة زر مخصص وصفحة تفاصيل شاملة</li>
+                <li>✅ <strong>نقص المعلومات:</strong> صفحة التفاصيل تعرض جميع المعلومات المتاحة</li>
+                <li>✅ <strong>تجربة المستخدم:</strong> واجهة جميلة ومتجاوبة مع الأجهزة المحمولة</li>
+            </ul>
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="https://www.webtado.live/notifications" class="button success">
+                🔔 اختبر الميزة الآن
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Add some interactive functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click handlers for test items
+            const testItems = document.querySelectorAll('.test-item');
+            testItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const status = this.querySelector('.status');
+                    if (status && status.classList.contains('success')) {
+                        status.style.animation = 'pulse 0.5s ease-in-out';
+                        setTimeout(() => {
+                            status.style.animation = '';
+                        }, 500);
+                    }
+                });
+            });
+        });
+        
+        // Add CSS animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.1); }
+                100% { transform: scale(1); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

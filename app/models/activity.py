@@ -19,6 +19,12 @@ class ActivityType(enum.Enum):
     PASSWORD_CHANGED = "password_changed"
     DATA_EXPORTED = "data_exported"
     SYSTEM_UPDATE = "system_update"
+    # Cross-user request management activities
+    CROSS_USER_REQUEST_VIEWED = "cross_user_request_viewed"
+    CROSS_USER_REQUEST_EDITED = "cross_user_request_edited"
+    CROSS_USER_REQUEST_STATUS_UPDATED = "cross_user_request_status_updated"
+    CROSS_USER_FILE_ACCESSED = "cross_user_file_accessed"
+    CROSS_USER_FILE_DELETED = "cross_user_file_deleted"
 
 
 class Activity(Base):

@@ -42,13 +42,50 @@ def log_user_activity(
 ):
     """Helper function to log user activity with IP and user agent"""
     from app.services.activity_service import ActivityService
-    
+
     ip_address = get_client_ip(request)
     user_agent = get_user_agent(request)
-    
+
     return ActivityService.log_activity(
         db=db,
         user_id=user_id,
+        activity_type=activity_type,
+        description=description,
+        details=details,
+        ip_address=ip_address,
+        user_agent=user_agent
+    )
+
+
+def log_cross_user_activity(
+    db,
+    request_owner_id: int,
+    accessing_user_id: int,
+    accessing_user_name: str,
+    activity_type: str,
+    description: str,
+    request: Request,
+    details: Optional[dict] = None
+):
+    """Helper function to log when a user accesses another user's request"""
+    from app.services.activity_service import ActivityService
+
+    ip_address = get_client_ip(request)
+    user_agent = get_user_agent(request)
+
+    # Add accessing user info to details
+    if details is None:
+        details = {}
+
+    details.update({
+        "accessing_user_id": accessing_user_id,
+        "accessing_user_name": accessing_user_name,
+        "cross_user_access": True
+    })
+
+    return ActivityService.log_activity(
+        db=db,
+        user_id=request_owner_id,  # Log to the request owner's activity
         activity_type=activity_type,
         description=description,
         details=details,

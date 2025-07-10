@@ -1,7 +1,7 @@
 from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
+
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.utils.auth import authenticate_user, create_access_token, verify_token, verify_password
@@ -16,7 +16,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
-templates = Jinja2Templates(directory="app/templates")
+from app.utils.templates import templates
 
 
 async def get_current_user_cookie(request: Request, db: Session = Depends(get_db)) -> User:

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Request, Form, UploadFile, File as FastAPIFile, HTTPException, Query
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, StreamingResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
+
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import uuid
@@ -24,7 +24,7 @@ from app.models.file import File
 from app.config import settings
 
 router = APIRouter()
-templates = Jinja2Templates(directory="app/templates")
+from app.utils.templates import templates
 
 # Initialize logger
 logger = logging.getLogger(__name__)
@@ -771,14 +771,22 @@ async def view_request(
             status_code=404
         )
 
-    # Check if user can view this request
-    if current_user.role != UserRole.ADMIN and req.user_id != current_user.id:
-        logger.warning(f"Access denied to request {request_id} - User: {current_user.username}, "
-                      f"Request Owner: {req.user_id}, Mobile: {is_mobile}")
-        return templates.TemplateResponse(
-            "errors/403.html",
-            {"request": request, "current_user": current_user},
-            status_code=403
+    # Log cross-user access if user is viewing another user's request
+    if req.user_id != current_user.id:
+        from app.utils.request_utils import log_cross_user_activity
+        log_cross_user_activity(
+            db=db,
+            request_owner_id=req.user_id,
+            accessing_user_id=current_user.id,
+            accessing_user_name=current_user.full_name or current_user.username,
+            activity_type="cross_user_request_viewed",
+            description=f"تم عرض الطلب {req.request_number} بواسطة {current_user.full_name or current_user.username}",
+            request=request,
+            details={
+                "request_id": req.id,
+                "request_number": req.request_number,
+                "is_mobile": is_mobile
+            }
         )
 
     logger.info(f"Request {request_id} accessed successfully - User: {current_user.username}, Mobile: {is_mobile}")
@@ -820,14 +828,23 @@ async def view_request_with_view_suffix(
             status_code=404
         )
 
-    # Check if user can view this request
-    if current_user.role != UserRole.ADMIN and req.user_id != current_user.id:
-        logger.warning(f"Access denied to request {request_id} - User: {current_user.username}, "
-                      f"Request Owner: {req.user_id}, Mobile: {is_mobile}")
-        return templates.TemplateResponse(
-            "errors/403.html",
-            {"request": request, "current_user": current_user},
-            status_code=403
+    # Log cross-user access if user is viewing another user's request
+    if req.user_id != current_user.id:
+        from app.utils.request_utils import log_cross_user_activity
+        log_cross_user_activity(
+            db=db,
+            request_owner_id=req.user_id,
+            accessing_user_id=current_user.id,
+            accessing_user_name=current_user.full_name or current_user.username,
+            activity_type="cross_user_request_viewed",
+            description=f"تم عرض الطلب {req.request_number} بواسطة {current_user.full_name or current_user.username}",
+            request=request,
+            details={
+                "request_id": req.id,
+                "request_number": req.request_number,
+                "is_mobile": is_mobile,
+                "view_type": "detailed_view"
+            }
         )
 
     logger.info(f"Request {request_id} accessed successfully (with /view) - User: {current_user.username}, Mobile: {is_mobile}")
@@ -859,12 +876,23 @@ async def view_request_by_code(
             status_code=404
         )
 
-    # Check permissions
-    if current_user.role != UserRole.ADMIN and req.user_id != current_user.id:
-        return templates.TemplateResponse(
-            "errors/403.html",
-            {"request": request, "current_user": current_user},
-            status_code=403
+    # Log cross-user access if user is viewing another user's request by unique code
+    if req.user_id != current_user.id:
+        from app.utils.request_utils import log_cross_user_activity
+        log_cross_user_activity(
+            db=db,
+            request_owner_id=req.user_id,
+            accessing_user_id=current_user.id,
+            accessing_user_name=current_user.full_name or current_user.username,
+            activity_type="cross_user_request_viewed",
+            description=f"تم عرض الطلب {req.request_number} بواسطة الرمز الفريد بواسطة {current_user.full_name or current_user.username}",
+            request=request,
+            details={
+                "request_id": req.id,
+                "request_number": req.request_number,
+                "unique_code": unique_code,
+                "access_method": "unique_code"
+            }
         )
 
     return templates.TemplateResponse(
@@ -1163,13 +1191,34 @@ async def user_update_request_status(
     db: Session = Depends(get_db)
 ):
     """Update status of user's own request"""
-    # Get the request and verify ownership
+    # Get the request and verify ownership - Admin can update any request
     req = RequestService.get_request_by_id(db, request_id)
-    if not req or req.user_id != current_user.id:
+    if not req:
         return templates.TemplateResponse(
             "errors/404.html",
             {"request": request, "current_user": current_user},
             status_code=404
+        )
+
+    # Log cross-user access if user is updating another user's request status
+    is_cross_user_access = req.user_id != current_user.id
+    if is_cross_user_access:
+        from app.utils.request_utils import log_cross_user_activity
+        log_cross_user_activity(
+            db=db,
+            request_owner_id=req.user_id,
+            accessing_user_id=current_user.id,
+            accessing_user_name=current_user.full_name or current_user.username,
+            activity_type="cross_user_request_status_updated",
+            description=f"تم تحديث حالة الطلب {req.request_number} إلى {status} بواسطة {current_user.full_name or current_user.username}",
+            request=request,
+            details={
+                "request_id": req.id,
+                "request_number": req.request_number,
+                "old_status": req.status.value if req.status else None,
+                "new_status": status,
+                "notes": notes
+            }
         )
 
     try:
@@ -1304,7 +1353,7 @@ async def export_user_requests(
         # Write headers
         headers = [
             "رقم الطلب", "الكود الفريد", "الاسم الكامل", "الرقم الشخصي",
-            "رقم الهاتف", "اسم المبنى", "اسم الطريق", "رقم المبنى",
+            "رقم الهاتف", "رقم المبنى", "اسم الطريق", "المجمع",
             "رقم ملف الدفاع المدني", "رقم رخصة البناء", "الحالة",
             "تاريخ الإنشاء", "تاريخ التحديث"
         ]
@@ -1391,12 +1440,22 @@ async def edit_request_form(
             status_code=404
         )
 
-    # Check permissions
-    if current_user.role != UserRole.ADMIN and req.user_id != current_user.id:
-        return templates.TemplateResponse(
-            "errors/403.html",
-            {"request": request, "current_user": current_user},
-            status_code=403
+    # Log cross-user access if user is editing another user's request
+    if req.user_id != current_user.id:
+        from app.utils.request_utils import log_cross_user_activity
+        log_cross_user_activity(
+            db=db,
+            request_owner_id=req.user_id,
+            accessing_user_id=current_user.id,
+            accessing_user_name=current_user.full_name or current_user.username,
+            activity_type="cross_user_request_viewed",
+            description=f"تم الوصول إلى صفحة تعديل الطلب {req.request_number} بواسطة {current_user.full_name or current_user.username}",
+            request=request,
+            details={
+                "request_id": req.id,
+                "request_number": req.request_number,
+                "action": "edit_form_accessed"
+            }
         )
 
     # Allow all users to edit their own requests regardless of status
@@ -1458,12 +1517,23 @@ async def update_request(
             status_code=404
         )
 
-    # Check permissions
-    if current_user.role != UserRole.ADMIN and req.user_id != current_user.id:
-        return templates.TemplateResponse(
-            "errors/403.html",
-            {"request": request, "current_user": current_user},
-            status_code=403
+    # Log cross-user access if user is editing another user's request
+    is_cross_user_edit = req.user_id != current_user.id
+    if is_cross_user_edit:
+        from app.utils.request_utils import log_cross_user_activity
+        log_cross_user_activity(
+            db=db,
+            request_owner_id=req.user_id,
+            accessing_user_id=current_user.id,
+            accessing_user_name=current_user.full_name or current_user.username,
+            activity_type="cross_user_request_edited",
+            description=f"تم تعديل الطلب {req.request_number} بواسطة {current_user.full_name or current_user.username}",
+            request=request,
+            details={
+                "request_id": req.id,
+                "request_number": req.request_number,
+                "action": "request_edited"
+            }
         )
 
     # Allow all users to edit their own requests regardless of status
@@ -1647,11 +1717,23 @@ async def delete_request_file(
                 content={"success": False, "error": "Request not found"}
             )
 
-        # Check permissions
-        if current_user.role != UserRole.ADMIN and req.user_id != current_user.id:
-            return JSONResponse(
-                status_code=403,
-                content={"success": False, "error": "Access denied"}
+        # Log cross-user access if user is deleting files from another user's request
+        if req.user_id != current_user.id:
+            from app.utils.request_utils import log_cross_user_activity
+            log_cross_user_activity(
+                db=db,
+                request_owner_id=req.user_id,
+                accessing_user_id=current_user.id,
+                accessing_user_name=current_user.full_name or current_user.username,
+                activity_type="cross_user_file_deleted",
+                description=f"تم حذف ملف من الطلب {req.request_number} بواسطة {current_user.full_name or current_user.username}",
+                request=request,
+                details={
+                    "request_id": req.id,
+                    "request_number": req.request_number,
+                    "file_id": file_id,
+                    "action": "file_deleted"
+                }
             )
 
         # Get the file
@@ -1729,12 +1811,22 @@ async def manage_request_files(
             status_code=404
         )
 
-    # Check permissions
-    if current_user.role != UserRole.ADMIN and req.user_id != current_user.id:
-        return templates.TemplateResponse(
-            "errors/403.html",
-            {"request": request, "current_user": current_user},
-            status_code=403
+    # Log cross-user access if user is accessing files from another user's request
+    if req.user_id != current_user.id:
+        from app.utils.request_utils import log_cross_user_activity
+        log_cross_user_activity(
+            db=db,
+            request_owner_id=req.user_id,
+            accessing_user_id=current_user.id,
+            accessing_user_name=current_user.full_name or current_user.username,
+            activity_type="cross_user_file_accessed",
+            description=f"تم الوصول إلى ملفات الطلب {req.request_number} بواسطة {current_user.full_name or current_user.username}",
+            request=request,
+            details={
+                "request_id": req.id,
+                "request_number": req.request_number,
+                "action": "files_page_accessed"
+            }
         )
 
     return templates.TemplateResponse(
@@ -1766,12 +1858,22 @@ async def add_files_to_request(
             status_code=404
         )
 
-    # Check permissions
-    if current_user.role != UserRole.ADMIN and req.user_id != current_user.id:
-        return templates.TemplateResponse(
-            "errors/403.html",
-            {"request": request, "current_user": current_user},
-            status_code=403
+    # Log cross-user access if user is downloading files from another user's request
+    if req.user_id != current_user.id:
+        from app.utils.request_utils import log_cross_user_activity
+        log_cross_user_activity(
+            db=db,
+            request_owner_id=req.user_id,
+            accessing_user_id=current_user.id,
+            accessing_user_name=current_user.full_name or current_user.username,
+            activity_type="cross_user_file_accessed",
+            description=f"تم تحميل ملف من الطلب {req.request_number} بواسطة {current_user.full_name or current_user.username}",
+            request=request,
+            details={
+                "request_id": req.id,
+                "request_number": req.request_number,
+                "action": "file_download"
+            }
         )
 
     try:
@@ -1877,12 +1979,22 @@ async def delete_file_from_request(
             status_code=404
         )
 
-    # Check permissions
-    if current_user.role != UserRole.ADMIN and req.user_id != current_user.id:
-        return templates.TemplateResponse(
-            "errors/403.html",
-            {"request": request, "current_user": current_user},
-            status_code=403
+    # Log cross-user access if user is downloading files from another user's request
+    if req.user_id != current_user.id:
+        from app.utils.request_utils import log_cross_user_activity
+        log_cross_user_activity(
+            db=db,
+            request_owner_id=req.user_id,
+            accessing_user_id=current_user.id,
+            accessing_user_name=current_user.full_name or current_user.username,
+            activity_type="cross_user_file_accessed",
+            description=f"تم تحميل جميع ملفات الطلب {req.request_number} بواسطة {current_user.full_name or current_user.username}",
+            request=request,
+            details={
+                "request_id": req.id,
+                "request_number": req.request_number,
+                "action": "all_files_download"
+            }
         )
 
     # Delete file
@@ -2193,9 +2305,25 @@ async def download_file(
     if not file:
         raise HTTPException(status_code=404, detail="File not found")
 
-    # Check permissions - user must own the request or be admin
-    if current_user.role != UserRole.ADMIN and file.request.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Access denied")
+    # Log cross-user access if user is downloading file from another user's request
+    if file.request.user_id != current_user.id:
+        from app.utils.request_utils import log_cross_user_activity
+        log_cross_user_activity(
+            db=db,
+            request_owner_id=file.request.user_id,
+            accessing_user_id=current_user.id,
+            accessing_user_name=current_user.full_name or current_user.username,
+            activity_type="cross_user_file_accessed",
+            description=f"تم تحميل الملف {file.original_filename} من الطلب {file.request.request_number} بواسطة {current_user.full_name or current_user.username}",
+            request=None,  # No request object available here
+            details={
+                "request_id": file.request.id,
+                "request_number": file.request.request_number,
+                "file_id": file.id,
+                "filename": file.original_filename,
+                "action": "direct_file_download"
+            }
+        )
 
     # Check if file exists on disk
     if not os.path.exists(file.file_path):
@@ -2221,9 +2349,25 @@ async def view_file(
     if not file:
         raise HTTPException(status_code=404, detail="File not found")
 
-    # Check permissions - user must own the request or be admin
-    if current_user.role != UserRole.ADMIN and file.request.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Access denied")
+    # Log cross-user access if user is viewing file from another user's request
+    if file.request.user_id != current_user.id:
+        from app.utils.request_utils import log_cross_user_activity
+        log_cross_user_activity(
+            db=db,
+            request_owner_id=file.request.user_id,
+            accessing_user_id=current_user.id,
+            accessing_user_name=current_user.full_name or current_user.username,
+            activity_type="cross_user_file_accessed",
+            description=f"تم عرض الملف {file.original_filename} من الطلب {file.request.request_number} بواسطة {current_user.full_name or current_user.username}",
+            request=None,  # No request object available here
+            details={
+                "request_id": file.request.id,
+                "request_number": file.request.request_number,
+                "file_id": file.id,
+                "filename": file.original_filename,
+                "action": "direct_file_view"
+            }
+        )
 
     # Check if file exists on disk
     if not os.path.exists(file.file_path):

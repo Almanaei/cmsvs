@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request, Depends, HTTPException
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
+
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer
@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 import os
 import logging
 import time
+from datetime import datetime as dt, timezone, timedelta
 
 from app.config import settings
 from app.database import create_tables, get_db, get_pool_status
@@ -174,19 +175,8 @@ os.makedirs("uploads/avatars", exist_ok=True)  # Create avatars directory
 app.mount("/static/uploads", CustomStaticFiles(directory="uploads"), name="uploads")
 app.mount("/static", CustomStaticFiles(directory="app/static"), name="static")
 
-# Templates
-templates = Jinja2Templates(directory="app/templates")
-
-# Add global template variables
-templates.env.globals["cache_bust"] = str(int(time.time()))
-
-# Add simple avatar URL function for templates
-def get_avatar_url_simple(user_id: int, full_name: str) -> str:
-    """Simple template function to generate avatar URL without database access"""
-    from app.services.avatar_service import AvatarService
-    return AvatarService.generate_default_avatar_url(user_id, full_name or "User")
-
-templates.env.globals['get_avatar_url_simple'] = get_avatar_url_simple
+# Import shared templates instance
+from app.utils.templates import templates
 
 # Security
 security = HTTPBearer(auto_error=False)
@@ -224,6 +214,13 @@ app.include_router(avatar.router, prefix="/avatar", tags=["avatar"])
 app.include_router(notifications.router, prefix="", tags=["notifications"])
 app.include_router(settings_routes.router, prefix="", tags=["settings"])
 app.include_router(mobile.router, tags=["mobile"])
+
+# Test routes (disabled for production)
+# try:
+#     from app.routes import test_activity
+#     app.include_router(test_activity.router, prefix="", tags=["testing"])
+# except ImportError:
+#     pass  # Test routes not available
 
 
 @app.on_event("startup")

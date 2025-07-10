@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Form, Query
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
+
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 from typing import Optional, Dict, Any
@@ -16,7 +16,7 @@ from app.services.user_service import UserService
 from pydantic import BaseModel
 
 router = APIRouter()
-templates = Jinja2Templates(directory="app/templates")
+from app.utils.templates import templates
 logger = logging.getLogger(__name__)
 
 
@@ -284,6 +284,81 @@ async def get_unread_count(
         return JSONResponse({
             "success": True,
             "unread_count": 0
+        })
+
+
+@router.get("/api/notifications/recent")
+async def get_recent_notifications(
+    request: Request,
+    db: Session = Depends(get_db),
+    limit: int = Query(5, ge=1, le=10)
+):
+    """Get recent notifications for dropdown"""
+    try:
+        # Try to get current user from cookie without raising exceptions
+        token = request.cookies.get("access_token")
+        if not token:
+            return JSONResponse({
+                "success": True,
+                "notifications": []
+            })
+
+        # Remove 'Bearer ' prefix if present
+        if token.startswith("Bearer "):
+            token = token[7:]
+
+        payload = verify_token(token)
+        if not payload:
+            return JSONResponse({
+                "success": True,
+                "notifications": []
+            })
+
+        username = payload.get("sub")
+        if not username:
+            return JSONResponse({
+                "success": True,
+                "notifications": []
+            })
+
+        user = UserService.get_user_by_username(db, username)
+        if not user or not user.is_active:
+            return JSONResponse({
+                "success": True,
+                "notifications": []
+            })
+
+        # Get recent notifications
+        notifications_data = NotificationService.get_user_notifications(
+            db=db,
+            user_id=user.id,
+            page=1,
+            per_page=limit,
+            unread_only=False
+        )
+
+        # Format notifications for dropdown
+        formatted_notifications = []
+        for notification in notifications_data.get('notifications', []):
+            formatted_notifications.append({
+                'id': notification.id,
+                'title': notification.title,
+                'message': notification.message,
+                'is_read': notification.is_read,
+                'created_at': notification.created_at.isoformat() if notification.created_at else None,
+                'action_url': notification.action_url
+            })
+
+        return JSONResponse({
+            "success": True,
+            "notifications": formatted_notifications
+        })
+
+    except Exception as e:
+        logger.error(f"Error getting recent notifications: {str(e)}")
+        return JSONResponse({
+            "success": True,
+            "notifications": []
         })
 
 

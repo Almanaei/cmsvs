@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار تسجيل الأنشطة - CMSVS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .rtl { direction: rtl; text-align: right; }
+    </style>
+</head>
+<body class="bg-gray-50 rtl">
+    <div class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-blue-600 text-white shadow-lg">
+            <div class="container mx-auto px-4 py-4">
+                <div class="flex justify-between items-center">
+                    <h1 class="text-2xl font-bold">اختبار تسجيل الأنشطة</h1>
+                    <div class="text-sm">
+                        مرحباً، {{ current_user.full_name or current_user.username }}
+                        <a href="/dashboard" class="mr-4 bg-blue-500 px-3 py-1 rounded hover:bg-blue-400">العودة للوحة التحكم</a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="container mx-auto px-4 py-8" x-data="activityTest()">
+            <!-- Test Controls -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <!-- Cross-User Activity Test -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-bold mb-4 text-gray-800">اختبار الأنشطة المتقاطعة بين المستخدمين</h2>
+                    
+                    <form @submit.prevent="logCrossUserActivity()">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">المستخدم المستهدف</label>
+                                <select x-model="crossUserForm.targetUserId" class="w-full border border-gray-300 rounded-md px-3 py-2" required>
+                                    <option value="">اختر مستخدم...</option>
+                                    {% for user in all_users %}
+                                    <option value="{{ user.id }}">{{ user.full_name or user.username }} ({{ user.role.value }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">نوع النشاط</label>
+                                <select x-model="crossUserForm.activityType" class="w-full border border-gray-300 rounded-md px-3 py-2" required>
+                                    <option value="">اختر نوع النشاط...</option>
+                                    <option value="cross_user_request_viewed">عرض طلب مستخدم آخر</option>
+                                    <option value="cross_user_request_edited">تعديل طلب مستخدم آخر</option>
+                                    <option value="cross_user_request_status_updated">تحديث حالة طلب مستخدم آخر</option>
+                                    <option value="cross_user_file_accessed">الوصول لملفات مستخدم آخر</option>
+                                    <option value="cross_user_file_deleted">حذف ملفات مستخدم آخر</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">الطلب (اختياري)</label>
+                                <select x-model="crossUserForm.requestId" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                                    <option value="">اختر طلب...</option>
+                                    {% for request in all_requests %}
+                                    <option value="{{ request.id }}">{{ request.request_number }} - {{ request.full_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">وصف النشاط</label>
+                                <textarea x-model="crossUserForm.description" class="w-full border border-gray-300 rounded-md px-3 py-2" rows="3" required placeholder="أدخل وصف النشاط..."></textarea>
+                            </div>
+                            
+                            <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700" :disabled="loading">
+                                <span x-show="!loading">تسجيل النشاط المتقاطع</span>
+                                <span x-show="loading">جاري التسجيل...</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Regular Activity Test -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-bold mb-4 text-gray-800">اختبار الأنشطة العادية</h2>
+                    
+                    <form @submit.prevent="logRegularActivity()">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">نوع النشاط</label>
+                                <select x-model="regularForm.activityType" class="w-full border border-gray-300 rounded-md px-3 py-2" required>
+                                    <option value="">اختر نوع النشاط...</option>
+                                    {% for activity_type in activity_types %}
+                                    <option value="{{ activity_type }}">{{ activity_type }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">وصف النشاط</label>
+                                <textarea x-model="regularForm.description" class="w-full border border-gray-300 rounded-md px-3 py-2" rows="3" required placeholder="أدخل وصف النشاط..."></textarea>
+                            </div>
+                            
+                            <button type="submit" class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700" :disabled="loading">
+                                <span x-show="!loading">تسجيل النشاط العادي</span>
+                                <span x-show="loading">جاري التسجيل...</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Simulation Tools -->
+            <div class="mt-8 bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-bold mb-4 text-gray-800">محاكاة الوصول المتقاطع للطلبات</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                    {% for request in all_requests[:8] %}
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <h3 class="font-semibold text-sm">{{ request.request_number }}</h3>
+                        <p class="text-xs text-gray-600 mb-2">{{ request.full_name }}</p>
+                        <p class="text-xs text-gray-500 mb-3">
+                            {% if request.user_id == current_user.id %}
+                            <span class="text-green-600">طلبك</span>
+                            {% else %}
+                            <span class="text-orange-600">طلب مستخدم آخر</span>
+                            {% endif %}
+                        </p>
+                        <div class="space-y-1">
+                            <button @click="simulateAccess({{ request.id }}, 'view')" class="w-full text-xs bg-blue-500 text-white py-1 px-2 rounded hover:bg-blue-600">عرض</button>
+                            <button @click="simulateAccess({{ request.id }}, 'edit')" class="w-full text-xs bg-yellow-500 text-white py-1 px-2 rounded hover:bg-yellow-600">تعديل</button>
+                            <button @click="simulateAccess({{ request.id }}, 'file_access')" class="w-full text-xs bg-purple-500 text-white py-1 px-2 rounded hover:bg-purple-600">ملفات</button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Activity Viewer -->
+            <div class="mt-8 bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-bold mb-4 text-gray-800">عرض الأنشطة</h2>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">اختر مستخدم لعرض أنشطته</label>
+                    <select @change="loadUserActivities($event.target.value)" class="border border-gray-300 rounded-md px-3 py-2">
+                        <option value="">اختر مستخدم...</option>
+                        {% for user in all_users %}
+                        <option value="{{ user.id }}">{{ user.full_name or user.username }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div x-show="selectedUserActivities.length > 0" class="space-y-2">
+                    <template x-for="activity in selectedUserActivities" :key="activity.id">
+                        <div class="border border-gray-200 rounded-lg p-3">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1">
+                                    <p class="font-medium text-sm" x-text="activity.description"></p>
+                                    <p class="text-xs text-gray-500" x-text="activity.activity_type"></p>
+                                    <p class="text-xs text-gray-400" x-text="activity.created_at"></p>
+                                </div>
+                                <div class="text-xs text-gray-400">
+                                    <span x-show="activity.details && activity.details.cross_user_access" class="bg-orange-100 text-orange-800 px-2 py-1 rounded">متقاطع</span>
+                                    <span x-show="activity.details && activity.details.test_activity" class="bg-blue-100 text-blue-800 px-2 py-1 rounded">اختبار</span>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            <div x-show="message" class="fixed bottom-4 right-4 max-w-sm">
+                <div :class="messageType === 'success' ? 'bg-green-500' : 'bg-red-500'" class="text-white p-4 rounded-lg shadow-lg">
+                    <p x-text="message"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function activityTest() {
+            return {
+                loading: false,
+                message: '',
+                messageType: 'success',
+                selectedUserActivities: [],
+                crossUserForm: {
+                    targetUserId: '',
+                    activityType: '',
+                    requestId: '',
+                    description: ''
+                },
+                regularForm: {
+                    activityType: '',
+                    description: ''
+                },
+
+                async logCrossUserActivity() {
+                    this.loading = true;
+                    try {
+                        const formData = new FormData();
+                        formData.append('target_user_id', this.crossUserForm.targetUserId);
+                        formData.append('activity_type', this.crossUserForm.activityType);
+                        formData.append('description', this.crossUserForm.description);
+                        if (this.crossUserForm.requestId) {
+                            formData.append('request_id', this.crossUserForm.requestId);
+                        }
+
+                        const response = await fetch('/test/activity/log-cross-user', {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        const result = await response.json();
+                        this.showMessage(result.message || result.error, result.success ? 'success' : 'error');
+                        
+                        if (result.success) {
+                            this.crossUserForm = { targetUserId: '', activityType: '', requestId: '', description: '' };
+                        }
+                    } catch (error) {
+                        this.showMessage('حدث خطأ: ' + error.message, 'error');
+                    }
+                    this.loading = false;
+                },
+
+                async logRegularActivity() {
+                    this.loading = true;
+                    try {
+                        const formData = new FormData();
+                        formData.append('activity_type', this.regularForm.activityType);
+                        formData.append('description', this.regularForm.description);
+
+                        const response = await fetch('/test/activity/log-regular', {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        const result = await response.json();
+                        this.showMessage(result.message || result.error, result.success ? 'success' : 'error');
+                        
+                        if (result.success) {
+                            this.regularForm = { activityType: '', description: '' };
+                        }
+                    } catch (error) {
+                        this.showMessage('حدث خطأ: ' + error.message, 'error');
+                    }
+                    this.loading = false;
+                },
+
+                async simulateAccess(requestId, action) {
+                    try {
+                        const response = await fetch(`/test/activity/simulate-cross-user/${requestId}?action=${action}`);
+                        const result = await response.json();
+                        this.showMessage(result.message, result.success ? 'success' : 'error');
+                    } catch (error) {
+                        this.showMessage('حدث خطأ: ' + error.message, 'error');
+                    }
+                },
+
+                async loadUserActivities(userId) {
+                    if (!userId) {
+                        this.selectedUserActivities = [];
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch(`/test/activity/user/${userId}`);
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            this.selectedUserActivities = result.activities;
+                        } else {
+                            this.showMessage(result.error, 'error');
+                        }
+                    } catch (error) {
+                        this.showMessage('حدث خطأ: ' + error.message, 'error');
+                    }
+                },
+
+                showMessage(msg, type) {
+                    this.message = msg;
+                    this.messageType = type;
+                    setTimeout(() => {
+                        this.message = '';
+                    }, 5000);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

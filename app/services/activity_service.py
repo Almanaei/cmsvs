@@ -11,6 +11,30 @@ class ActivityService:
     _logger = logging.getLogger(__name__)
 
     @staticmethod
+    def _normalize_timestamp(timestamp: datetime) -> datetime:
+        """Normalize timestamp to UTC timezone-aware datetime"""
+        if timestamp is None:
+            return datetime.now(timezone.utc)
+
+        if timestamp.tzinfo is None:
+            # Assume naive datetime is UTC
+            return timestamp.replace(tzinfo=timezone.utc)
+        else:
+            # Convert to UTC if timezone-aware
+            return timestamp.astimezone(timezone.utc)
+
+    @staticmethod
+    def _get_status_arabic(status: str) -> str:
+        """Get Arabic translation for request status"""
+        status_map = {
+            'pending': 'قيد الانتظار',
+            'in_progress': 'قيد المعالجة',
+            'completed': 'مكتمل',
+            'rejected': 'مرفوض'
+        }
+        return status_map.get(status, status)
+
+    @staticmethod
     def get_user_activities(
         db: Session,
         user_id: int,
@@ -40,26 +64,11 @@ class ActivityService:
                 except ValueError:
                     pass
             
-            # Get request activities
-            if not activity_type or activity_type in ['request_created', 'request_updated', 'request_completed', 'request_rejected']:
-                request_activities = ActivityService._get_request_activities(
-                    db, user_id, activity_type, date_from_obj, date_to_obj
-                )
-                activities.extend(request_activities)
-
-            # Get login activities (simulated from user data)
-            if not activity_type or activity_type in ['login', 'profile_updated', 'avatar_uploaded']:
-                user_activities = ActivityService._get_user_activities(
-                    db, user_id, activity_type, date_from_obj, date_to_obj
-                )
-                activities.extend(user_activities)
-
-            # Get file upload activities
-            if not activity_type or activity_type in ['file_uploaded']:
-                file_activities = ActivityService._get_file_activities(
-                    db, user_id, activity_type, date_from_obj, date_to_obj
-                )
-                activities.extend(file_activities)
+            # Get ONLY request activities - no other activity types
+            request_activities = ActivityService._get_request_activities(
+                db, user_id, activity_type, date_from_obj, date_to_obj
+            )
+            activities.extend(request_activities)
             
             # Sort by timestamp (newest first)
             activities.sort(key=lambda x: x['timestamp'], reverse=True)
@@ -81,91 +90,133 @@ class ActivityService:
     ) -> List[Dict[str, Any]]:
         """Get request-related activities"""
         activities = []
-        
+
         try:
+            # Debug logging
+            ActivityService._logger.info(f"Getting request activities for user_id: {user_id}")
+
             # Base query for user's requests
             query = db.query(Request).filter(Request.user_id == user_id)
-            
+
             # Apply date filters
             if date_from:
                 query = query.filter(Request.created_at >= date_from)
             if date_to:
                 query = query.filter(Request.created_at <= date_to)
-            
+
             requests = query.order_by(desc(Request.created_at)).limit(50).all()
-            
+            ActivityService._logger.info(f"Found {len(requests)} requests for user_id: {user_id}")
+
+            if not requests:
+                # If no requests found, let's check if there are any requests at all for debugging
+                all_requests = db.query(Request).limit(5).all()
+                ActivityService._logger.info(f"No requests found for user {user_id}. Total requests in DB: {db.query(Request).count()}")
+                if all_requests:
+                    ActivityService._logger.info(f"Sample requests: {[(r.id, r.user_id, r.request_number) for r in all_requests]}")
+
             for req in requests:
+                ActivityService._logger.info(f"Processing request {req.id} - {req.request_number} - Status: {req.status.value}")
+
                 # Request created activity
                 if not activity_type or activity_type == 'request_created':
-                    activities.append({
+                    activity = {
                         'id': f"req_created_{req.id}",
                         'type': 'request_created',
                         'title': 'إنشاء طلب جديد',
-                        'description': f'تم إنشاء طلب رقم {req.request_number}',
+                        'description': f'تم إنشاء طلب رقم {req.request_number} للمبنى: {req.building_name or "غير محدد"}',
                         'details': {
                             'request_id': req.id,
                             'request_number': req.request_number,
+                            'building_name': req.building_name,
                             'company_name': req.company_name,
-                            'status': req.status.value
+                            'personal_number': req.personal_number,
+                            'status': req.status.value,
+                            'full_name': req.full_name or req.request_name
                         },
-                        'timestamp': req.created_at,
+                        'timestamp': ActivityService._normalize_timestamp(req.created_at),
                         'icon': 'fas fa-plus-circle',
                         'color': 'text-green-600',
                         'bg_color': 'bg-green-50'
-                    })
+                    }
+                    activities.append(activity)
+                    ActivityService._logger.info(f"Added request_created activity for request {req.id}")
                 
                 # Request updated activity (if updated_at differs from created_at)
                 if (not activity_type or activity_type == 'request_updated') and req.updated_at and req.updated_at != req.created_at:
-                    activities.append({
-                        'id': f"req_updated_{req.id}",
-                        'type': 'request_updated',
-                        'title': 'تحديث طلب',
-                        'description': f'تم تحديث طلب رقم {req.request_number}',
-                        'details': {
-                            'request_id': req.id,
-                            'request_number': req.request_number,
-                            'company_name': req.company_name,
-                            'status': req.status.value
-                        },
-                        'timestamp': req.updated_at,
-                        'icon': 'fas fa-edit',
-                        'color': 'text-blue-600',
-                        'bg_color': 'bg-blue-50'
-                    })
+                    # Calculate time difference to show meaningful updates
+                    time_diff = (req.updated_at - req.created_at).total_seconds()
+                    ActivityService._logger.info(f"Request {req.id} update check: time_diff={time_diff}, updated_at={req.updated_at}, created_at={req.created_at}")
+                    if time_diff > 60:  # Only show updates that are more than 1 minute after creation
+                        activity = {
+                            'id': f"req_updated_{req.id}",
+                            'type': 'request_updated',
+                            'title': 'تحديث طلب',
+                            'description': f'تم تحديث طلب رقم {req.request_number} - الحالة الحالية: {ActivityService._get_status_arabic(req.status.value)}',
+                            'details': {
+                                'request_id': req.id,
+                                'request_number': req.request_number,
+                                'building_name': req.building_name,
+                                'company_name': req.company_name,
+                                'status': req.status.value,
+                                'status_arabic': ActivityService._get_status_arabic(req.status.value),
+                                'update_time_diff': f'{int(time_diff / 3600)} ساعة' if time_diff > 3600 else f'{int(time_diff / 60)} دقيقة'
+                            },
+                            'timestamp': ActivityService._normalize_timestamp(req.updated_at),
+                            'icon': 'fas fa-edit',
+                            'color': 'text-blue-600',
+                            'bg_color': 'bg-blue-50'
+                        }
+                        activities.append(activity)
+                        ActivityService._logger.info(f"Added request_updated activity for request {req.id}")
 
                 # Request completed activity
                 if (not activity_type or activity_type == 'request_completed') and req.status.value == 'completed':
-                    activities.append({
+                    completion_time = req.updated_at or req.created_at
+                    processing_time = (completion_time - req.created_at).total_seconds() if req.updated_at else 0
+
+                    activity = {
                         'id': f"req_completed_{req.id}",
                         'type': 'request_completed',
                         'title': 'إكمال طلب',
-                        'description': f'تم إكمال طلب رقم {req.request_number}',
+                        'description': f'تم إكمال طلب رقم {req.request_number} للمبنى: {req.building_name or "غير محدد"}',
                         'details': {
                             'request_id': req.id,
                             'request_number': req.request_number,
+                            'building_name': req.building_name,
                             'company_name': req.company_name,
-                            'status': req.status.value
+                            'full_name': req.full_name or req.request_name,
+                            'status': req.status.value,
+                            'processing_time': f'{int(processing_time / 86400)} يوم' if processing_time > 86400 else f'{int(processing_time / 3600)} ساعة' if processing_time > 3600 else 'أقل من ساعة',
+                            'completion_date': completion_time.strftime('%Y-%m-%d %H:%M')
                         },
-                        'timestamp': req.updated_at or req.created_at,
+                        'timestamp': ActivityService._normalize_timestamp(completion_time),
                         'icon': 'fas fa-check-circle',
                         'color': 'text-green-600',
                         'bg_color': 'bg-green-50'
-                    })
+                    }
+                    activities.append(activity)
+                    ActivityService._logger.info(f"Added request_completed activity for request {req.id}")
 
                 # Request rejected activity
                 if (not activity_type or activity_type == 'request_rejected') and req.status.value == 'rejected':
+                    rejection_time = req.updated_at or req.created_at
+
                     activities.append({
                         'id': f"req_rejected_{req.id}",
                         'type': 'request_rejected',
                         'title': 'رفض طلب',
-                        'description': f'تم رفض طلب رقم {req.request_number}',
+                        'description': f'تم رفض طلب رقم {req.request_number} للمبنى: {req.building_name or "غير محدد"}',
                         'details': {
                             'request_id': req.id,
                             'request_number': req.request_number,
+                            'building_name': req.building_name,
                             'company_name': req.company_name,
-                            'status': req.status.value
+                            'full_name': req.full_name or req.request_name,
+                            'status': req.status.value,
+                            'rejection_date': rejection_time.strftime('%Y-%m-%d %H:%M'),
+                            'reason': 'لم يتم تحديد السبب'  # Could be enhanced with actual rejection reason
                         },
-                        'timestamp': req.updated_at or req.created_at,
+                        'timestamp': ActivityService._normalize_timestamp(rejection_time),
                         'icon': 'fas fa-times-circle',
                         'color': 'text-red-600',
                         'bg_color': 'bg-red-50'
@@ -173,7 +224,8 @@ class ActivityService:
             
         except Exception as e:
             ActivityService._logger.error(f"Error getting request activities: {e}")
-        
+
+        ActivityService._logger.info(f"Generated {len(activities)} request activities for user {user_id}")
         return activities
 
     @staticmethod
@@ -206,7 +258,7 @@ class ActivityService:
                                 'full_name': user.full_name,
                                 'email': user.email
                             },
-                            'timestamp': user.updated_at,
+                            'timestamp': ActivityService._normalize_timestamp(user.updated_at),
                             'icon': 'fas fa-user-edit',
                             'color': 'text-purple-600',
                             'bg_color': 'bg-purple-50'
@@ -243,7 +295,7 @@ class ActivityService:
                                     'username': user.username,
                                     'login_number': i + 1
                                 },
-                                'timestamp': login_time,
+                                'timestamp': ActivityService._normalize_timestamp(login_time),
                                 'icon': 'fas fa-sign-in-alt',
                                 'color': 'text-indigo-600',
                                 'bg_color': 'bg-indigo-50'
@@ -268,7 +320,7 @@ class ActivityService:
                                     'user_id': user.id,
                                     'avatar_url': avatar_url
                                 },
-                                'timestamp': timestamp,
+                                'timestamp': ActivityService._normalize_timestamp(timestamp),
                                 'icon': 'fas fa-camera',
                                 'color': 'text-pink-600',
                                 'bg_color': 'bg-pink-50'
@@ -309,18 +361,32 @@ class ActivityService:
                             if not date_from or timestamp >= date_from:
                                 if not date_to or timestamp <= date_to:
                                     file_count = len(files) if isinstance(files, list) else 1
+                                    # Get file types for better description
+                                    file_types = []
+                                    if isinstance(files, list):
+                                        for file_info in files:
+                                            if isinstance(file_info, dict) and 'filename' in file_info:
+                                                ext = file_info['filename'].split('.')[-1].lower()
+                                                if ext not in file_types:
+                                                    file_types.append(ext)
+
+                                    file_types_str = ', '.join(file_types) if file_types else 'متنوعة'
+
                                     activities.append({
                                         'id': f"file_uploaded_{req.id}",
                                         'type': 'file_uploaded',
-                                        'title': 'رفع ملفات',
-                                        'description': f'تم رفع {file_count} ملف مع طلب رقم {req.request_number}',
+                                        'title': 'رفع ملفات للطلب',
+                                        'description': f'تم رفع {file_count} ملف ({file_types_str}) مع طلب رقم {req.request_number} - {req.building_name or "غير محدد"}',
                                         'details': {
                                             'request_id': req.id,
                                             'request_number': req.request_number,
+                                            'building_name': req.building_name,
                                             'file_count': file_count,
-                                            'files': files
+                                            'file_types': file_types_str,
+                                            'files': files,
+                                            'upload_date': timestamp.strftime('%Y-%m-%d %H:%M')
                                         },
-                                        'timestamp': timestamp,
+                                        'timestamp': ActivityService._normalize_timestamp(timestamp),
                                         'icon': 'fas fa-file-upload',
                                         'color': 'text-orange-600',
                                         'bg_color': 'bg-orange-50'
@@ -754,7 +820,12 @@ class ActivityService:
                     'logout': ActivityType.LOGOUT,
                     'profile_updated': ActivityType.PROFILE_UPDATED,
                     'avatar_uploaded': ActivityType.AVATAR_UPLOADED,
-                    'password_changed': ActivityType.PASSWORD_CHANGED
+                    'password_changed': ActivityType.PASSWORD_CHANGED,
+                    'cross_user_request_viewed': ActivityType.CROSS_USER_REQUEST_VIEWED,
+                    'cross_user_request_edited': ActivityType.CROSS_USER_REQUEST_EDITED,
+                    'cross_user_request_status_updated': ActivityType.CROSS_USER_REQUEST_STATUS_UPDATED,
+                    'cross_user_file_accessed': ActivityType.CROSS_USER_FILE_ACCESSED,
+                    'cross_user_file_deleted': ActivityType.CROSS_USER_FILE_DELETED
                 }
 
                 activity_type_enum = activity_type_mapping.get(activity_type)

@@ -189,7 +189,13 @@
     <!-- Activities Table -->
     <div class="card">
         <div class="card-header">
-            <h3 class="text-lg font-semibold text-gray-900">سجل النشاطات</h3>
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-900">سجل النشاطات</h3>
+                <div class="flex items-center space-x-2 space-x-reverse text-sm text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
+                    <i class="fas fa-clock"></i>
+                    <span>توقيت البحرين (UTC+3)</span>
+                </div>
+            </div>
         </div>
         <div class="card-body p-0">
             {% if activities %}
@@ -201,7 +207,7 @@
                             <th class="table-header-cell">المستخدم</th>
                             <th class="table-header-cell">الوصف</th>
                             <th class="table-header-cell">عنوان IP</th>
-                            <th class="table-header-cell">التاريخ والوقت</th>
+                            <th class="table-header-cell">التاريخ والوقت (البحرين)</th>
                         </tr>
                     </thead>
                     <tbody class="table-body">
@@ -298,11 +304,28 @@
                                 {% endif %}
                             </td>
                             <td class="table-cell">
+                                {% set bahrain_time = utc_to_bahrain(activity.created_at) %}
                                 <div class="text-sm text-gray-900">
-                                    {{ activity.created_at.strftime('%Y-%m-%d') }}
+                                    {{ bahrain_time.strftime('%Y-%m-%d') if bahrain_time else 'غير محدد' }}
                                 </div>
                                 <div class="text-xs text-gray-500">
-                                    {{ activity.created_at.strftime('%H:%M:%S') }}
+                                    {{ bahrain_time.strftime('%H:%M:%S') if bahrain_time else 'غير محدد' }}
+                                </div>
+                                <div class="text-xs text-blue-600 mt-1">
+                                    {% if bahrain_time and now_bahrain %}
+                                        {% set time_diff = (now_bahrain() - bahrain_time).total_seconds() %}
+                                        {% if time_diff < 60 %}
+                                            منذ ثوانٍ قليلة
+                                        {% elif time_diff < 3600 %}
+                                            منذ {{ (time_diff / 60)|int }} دقيقة
+                                        {% elif time_diff < 86400 %}
+                                            منذ {{ (time_diff / 3600)|int }} ساعة
+                                        {% else %}
+                                            منذ {{ (time_diff / 86400)|int }} يوم
+                                        {% endif %}
+                                    {% else %}
+                                        توقيت البحرين
+                                    {% endif %}
                                 </div>
                             </td>
                         </tr>

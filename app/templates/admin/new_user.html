@@ -171,16 +171,19 @@
                             <label for="confirm_password" class="admin-form-label">
                                 تأكيد كلمة المرور <span class="text-red-500" aria-label="مطلوب">*</span>
                             </label>
-                            <input type="password"
-                                   id="confirm_password"
-                                   name="confirm_password"
-                                   required
-                                   minlength="6"
-                                   maxlength="128"
-                                   autocomplete="new-password"
-                                   aria-describedby="confirm-password-help"
-                                   aria-invalid="false"
-                                   class="admin-form-input">
+                            <div class="relative">
+                                <input type="password"
+                                       id="confirm_password"
+                                       name="confirm_password"
+                                       required
+                                       minlength="6"
+                                       maxlength="128"
+                                       autocomplete="new-password"
+                                       aria-describedby="confirm-password-help"
+                                       aria-invalid="false"
+                                       class="admin-form-input pl-10">
+                                <!-- Password toggle button will be added automatically by password-toggle.js -->
+                            </div>
                             <div id="confirm-password-help" class="admin-form-help sr-only" role="note">
                                 أعد إدخال كلمة المرور للتأكيد
                             </div>

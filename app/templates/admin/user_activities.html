@@ -10,6 +10,86 @@
         /* Modern Arabic font stack */
         body {
             font-family: 'Segoe UI', 'Tahoma', 'Geneva', 'Verdana', sans-serif, 'Arabic UI Text', 'Geeza Pro', 'Traditional Arabic', 'Simplified Arabic';
+            background: #f8fafc;
+            min-height: 100vh;
+        }
+
+        /* Page Container */
+        .page-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+            background: #f8fafc;
+            min-height: 100vh;
+        }
+
+        /* Page Header */
+        .page-header {
+            text-align: right;
+            padding: 32px 24px;
+            margin-bottom: 32px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .page-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+            color: #1f2937;
+        }
+
+        .page-subtitle {
+            font-size: 16px;
+            color: #6b7280;
+            margin: 0;
+        }
+
+        /* Button Styles */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+            border-color: #2563eb;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+            border-color: #6b7280;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+            border-color: #4b5563;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #374151;
+            border-color: #d1d5db;
+        }
+
+        .btn-outline:hover {
+            background: #f9fafb;
+            border-color: #9ca3af;
         }
 
         /* Enhanced profile avatar */
@@ -80,17 +160,7 @@
             box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
         }
 
-        .activity-badge.avatar_uploaded {
-            background: linear-gradient(135deg, #06b6d4, #0891b2);
-            color: white;
-            box-shadow: 0 2px 8px rgba(6, 182, 212, 0.3);
-        }
 
-        .activity-badge.file_uploaded {
-            background: linear-gradient(135deg, #84cc16, #65a30d);
-            color: white;
-            box-shadow: 0 2px 8px rgba(132, 204, 22, 0.3);
-        }
 
         /* Role badges */
         .role-badge {
@@ -165,17 +235,27 @@
             box-shadow: 0 6px 20px rgba(107, 114, 128, 0.4);
         }
 
-        /* Enhanced form styling */
-        .form-container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        /* Section styling */
+        .section {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
             overflow: hidden;
             border: 1px solid #e5e7eb;
         }
 
+        .form-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 24px;
+        }
+
         .form-section {
-            padding: 2rem;
+            padding: 24px;
             border-bottom: 1px solid #f1f5f9;
         }
 
@@ -183,15 +263,7 @@
             border-bottom: none;
         }
 
-        /* Header styling */
-        .page-header {
-            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
-            color: white;
-            border-radius: 20px;
-            margin-bottom: 2rem;
-            padding: 2.5rem;
-            box-shadow: 0 15px 35px rgba(6, 182, 212, 0.3);
-        }
+
 
         /* Stats cards */
         .stat-card {
@@ -309,65 +381,138 @@
                 padding: 1rem;
             }
         }
+
+        /* Mobile-specific enhancements */
+        @media (max-width: 640px) {
+            /* Touch-friendly buttons */
+            .primary-btn, .secondary-btn, button, a[class*="btn"] {
+                min-height: 44px;
+                padding: 12px 16px;
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+
+            /* Better spacing for mobile */
+            .form-container {
+                margin: 0 -1rem;
+                border-radius: 0;
+            }
+
+            /* Mobile-optimized cards */
+            .bg-white {
+                border-radius: 12px;
+                margin-bottom: 1rem;
+            }
+
+            /* Improved text readability */
+            .text-sm {
+                font-size: 14px;
+                line-height: 1.5;
+            }
+
+            /* Touch-friendly pagination */
+            .pagination a, .pagination span {
+                min-height: 44px;
+                min-width: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            /* Better form inputs */
+            input[type="date"], input[type="text"], select {
+                font-size: 16px; /* Prevents zoom on iOS */
+                min-height: 44px;
+            }
+
+            /* Improved status badges */
+            .rounded-full {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 120px;
+            }
+        }
+
+        /* Tablet optimizations */
+        @media (min-width: 641px) and (max-width: 1024px) {
+            .grid-cols-1.sm\\:grid-cols-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Enhanced touch targets */
+        @media (hover: none) and (pointer: coarse) {
+            /* Touch device specific styles */
+            button, a, input, select {
+                min-height: 44px;
+            }
+
+            .hover\\:shadow-md:hover {
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            }
+        }
     </style>
 </head>
-<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+<body>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Enhanced Header Section -->
-        <div class="page-header">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-6 space-x-reverse">
-                    <div class="profile-avatar" style="background-image: url('{{ target_user_avatar_url }}');"></div>
-                    <div>
-                        <h1 class="text-4xl font-bold mb-2">سجل أنشطة {{ target_user.full_name or target_user.username }}</h1>
-                        <p class="text-blue-100 text-lg mb-3">تتبع ومراقبة جميع أنشطة المستخدم</p>
-                        <div class="flex items-center space-x-4 space-x-reverse">
-                            <div class="flex items-center space-x-2 space-x-reverse">
-                                <i class="fas fa-envelope text-blue-300"></i>
-                                <span class="text-sm">{{ target_user.email }}</span>
-                            </div>
-                            <div class="flex items-center space-x-2 space-x-reverse">
-                                <i class="fas fa-user-tag text-blue-300"></i>
-                                <span class="role-badge {{ target_user.role.value }}">
-                                    {% if target_user.role.value == 'admin' %}
-                                        <i class="fas fa-crown mr-1"></i>
-                                        مدير النظام
-                                    {% elif target_user.role.value == 'manager' %}
-                                        <i class="fas fa-user-tie mr-1"></i>
-                                        مدير المشاريع
-                                    {% else %}
-                                        <i class="fas fa-user mr-1"></i>
-                                        عضو الفريق
-                                    {% endif %}
-                                </span>
-                            </div>
-                            <div class="flex items-center space-x-2 space-x-reverse">
-                                <i class="fas fa-chart-line text-blue-300"></i>
-                                <span class="activity-badge {{ activity_stats.activity_level|lower }}">
-                                    <i class="fas fa-circle mr-1 text-xs"></i>
-                                    {{ activity_stats.activity_level }}
-                                </span>
-                            </div>
+    <div class="page-container">
+        <!-- Page Header -->
+        <header class="page-header">
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 sm:gap-5">
+                <div class="flex-1">
+                    <div class="flex items-center space-x-3 space-x-reverse mb-3">
+                        <div class="w-12 h-12 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0 border border-gray-300">
+                            <i class="fas fa-history text-gray-600 text-xl"></i>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <h1 class="page-title">سجل أنشطة {{ target_user.full_name or target_user.username }}</h1>
+                            <p class="page-subtitle">تتبع ومراقبة جميع أنشطة وطلبات المستخدم</p>
                         </div>
                     </div>
+
+                    <!-- User Info Cards -->
+                    <div class="flex flex-wrap gap-3 mt-4">
+                        <div class="flex items-center space-x-2 space-x-reverse bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
+                            <i class="fas fa-envelope text-gray-600 text-sm"></i>
+                            <span class="text-sm text-gray-700">{{ target_user.email }}</span>
+                        </div>
+                        <div class="flex items-center space-x-2 space-x-reverse bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
+                            <i class="fas fa-user-tag text-gray-600 text-sm"></i>
+                            <span class="text-sm text-gray-700">
+                                {% if target_user.role.value == 'admin' %}
+                                    مدير النظام
+                                {% elif target_user.role.value == 'manager' %}
+                                    مدير المشاريع
+                                {% else %}
+                                    مستخدم
+                                {% endif %}
+                            </span>
+                        </div>
+                        {% if activity_stats and activity_stats.activity_level %}
+                        <div class="flex items-center space-x-2 space-x-reverse bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
+                            <i class="fas fa-chart-line text-gray-600 text-sm"></i>
+                            <span class="text-sm text-gray-700">{{ activity_stats.activity_level }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
                 </div>
-                <div class="flex space-x-3 space-x-reverse">
-                    <a href="/admin/users/{{ target_user.id }}/requests" class="inline-flex items-center px-4 py-2 bg-white bg-opacity-20 text-white rounded-lg hover:bg-opacity-30 transition-all duration-200">
+
+                <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                    <a href="/admin/users" class="btn btn-secondary">
+                        <i class="fas fa-arrow-right ml-2"></i>
+                        العودة لإدارة المستخدمين
+                    </a>
+                    <a href="/admin/users/{{ target_user.id }}/requests" class="btn btn-outline">
                         <i class="fas fa-file-alt ml-2"></i>
                         طلبات المستخدم
                     </a>
-                    <a href="/admin/users/{{ target_user.id }}/edit" class="inline-flex items-center px-4 py-2 bg-white bg-opacity-20 text-white rounded-lg hover:bg-opacity-30 transition-all duration-200">
+                    <a href="/admin/users/{{ target_user.id }}/edit" class="btn btn-primary">
                         <i class="fas fa-edit ml-2"></i>
                         تعديل المستخدم
                     </a>
-                    <a href="/admin/users/table" class="inline-flex items-center px-4 py-2 bg-white bg-opacity-20 text-white rounded-lg hover:bg-opacity-30 transition-all duration-200">
-                        <i class="fas fa-arrow-right ml-2"></i>
-                        العودة للمستخدمين
-                    </a>
                 </div>
             </div>
-        </div>
+        </header>
 
         <!-- Enhanced Statistics Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -379,8 +524,8 @@
                         <p class="text-3xl font-bold text-blue-600">{{ activity_stats.total_activities }}</p>
                         <p class="text-xs text-gray-500 mt-1">جميع الأنشطة المسجلة</p>
                     </div>
-                    <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
-                        <i class="fas fa-chart-line text-white text-xl"></i>
+                    <div class="w-14 h-14 bg-gradient-to-br from-blue-50 to-blue-100 rounded-full flex items-center justify-center border border-blue-200">
+                        <i class="fas fa-chart-line text-blue-600 text-xl"></i>
                     </div>
                 </div>
             </div>
@@ -393,8 +538,8 @@
                         <p class="text-3xl font-bold text-green-600">{{ activity_stats.daily_activities }}</p>
                         <p class="text-xs text-gray-500 mt-1">آخر 24 ساعة</p>
                     </div>
-                    <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center">
-                        <i class="fas fa-calendar-day text-white text-xl"></i>
+                    <div class="w-14 h-14 bg-gradient-to-br from-green-50 to-green-100 rounded-full flex items-center justify-center border border-green-200">
+                        <i class="fas fa-calendar-day text-green-600 text-xl"></i>
                     </div>
                 </div>
             </div>
@@ -407,8 +552,8 @@
                         <p class="text-3xl font-bold text-yellow-600">{{ activity_stats.weekly_activities }}</p>
                         <p class="text-xs text-gray-500 mt-1">آخر 7 أيام</p>
                     </div>
-                    <div class="w-14 h-14 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-full flex items-center justify-center">
-                        <i class="fas fa-calendar-week text-white text-xl"></i>
+                    <div class="w-14 h-14 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-full flex items-center justify-center border border-yellow-200">
+                        <i class="fas fa-calendar-week text-yellow-600 text-xl"></i>
                     </div>
                 </div>
             </div>
@@ -421,8 +566,8 @@
                         <p class="text-3xl font-bold text-purple-600">{{ activity_stats.recent_activities }}</p>
                         <p class="text-xs text-gray-500 mt-1">الشهر الماضي</p>
                     </div>
-                    <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
-                        <i class="fas fa-calendar-alt text-white text-xl"></i>
+                    <div class="w-14 h-14 bg-gradient-to-br from-purple-50 to-purple-100 rounded-full flex items-center justify-center border border-purple-200">
+                        <i class="fas fa-calendar-alt text-purple-600 text-xl"></i>
                     </div>
                 </div>
             </div>
@@ -433,8 +578,8 @@
             <div class="form-section">
                 <div class="flex items-center justify-between mb-6">
                     <div class="flex items-center space-x-4 space-x-reverse">
-                        <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center">
-                            <i class="fas fa-filter text-white text-lg"></i>
+                        <div class="w-12 h-12 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center border border-gray-300">
+                            <i class="fas fa-filter text-gray-600 text-lg"></i>
                         </div>
                         <div>
                             <h2 class="text-2xl font-bold text-gray-900">فلترة الأنشطة</h2>
@@ -447,34 +592,12 @@
                     </div>
                 </div>
 
-                <form method="GET" class="space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <!-- Activity Type Filter -->
-                        <div>
-                            <label for="activity_type" class="block text-sm font-medium text-gray-700 mb-2">
-                                <i class="fas fa-tags text-gray-400 mr-1"></i>
-                                نوع النشاط
-                            </label>
-                            <div class="relative">
-                                <select id="activity_type" name="activity_type" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 pl-10">
-                                    <option value="">جميع الأنشطة</option>
-                                    <option value="login" {% if current_activity_type == 'login' %}selected{% endif %}>تسجيل دخول</option>
-                                    <option value="request_created" {% if current_activity_type == 'request_created' %}selected{% endif %}>إنشاء طلب</option>
-                                    <option value="request_updated" {% if current_activity_type == 'request_updated' %}selected{% endif %}>تحديث طلب</option>
-                                    <option value="request_completed" {% if current_activity_type == 'request_completed' %}selected{% endif %}>إكمال طلب</option>
-                                    <option value="request_rejected" {% if current_activity_type == 'request_rejected' %}selected{% endif %}>رفض طلب</option>
-                                    <option value="profile_updated" {% if current_activity_type == 'profile_updated' %}selected{% endif %}>تحديث الملف الشخصي</option>
-                                    <option value="avatar_uploaded" {% if current_activity_type == 'avatar_uploaded' %}selected{% endif %}>رفع صورة شخصية</option>
-                                    <option value="file_uploaded" {% if current_activity_type == 'file_uploaded' %}selected{% endif %}>رفع ملفات</option>
-                                </select>
-                                <i class="fas fa-tags absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                            </div>
-                        </div>
-
+                <form method="GET" class="space-y-4 sm:space-y-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         <!-- Date From -->
                         <div>
                             <label for="date_from" class="block text-sm font-medium text-gray-700 mb-2">
-                                <i class="fas fa-calendar-alt text-gray-400 mr-1"></i>
+                                <i class="fas fa-calendar-alt text-gray-400 ml-1"></i>
                                 من تاريخ
                             </label>
                             <div class="relative">
@@ -482,15 +605,14 @@
                                        id="date_from"
                                        name="date_from"
                                        value="{{ current_date_from or '' }}"
-                                       class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 pl-10">
-                                <i class="fas fa-calendar-alt absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                       class="w-full px-3 py-2 sm:px-4 sm:py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
                             </div>
                         </div>
 
                         <!-- Date To -->
                         <div>
                             <label for="date_to" class="block text-sm font-medium text-gray-700 mb-2">
-                                <i class="fas fa-calendar-check text-gray-400 mr-1"></i>
+                                <i class="fas fa-calendar-check text-gray-400 ml-1"></i>
                                 إلى تاريخ
                             </label>
                             <div class="relative">
@@ -498,21 +620,20 @@
                                        id="date_to"
                                        name="date_to"
                                        value="{{ current_date_to or '' }}"
-                                       class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 pl-10">
-                                <i class="fas fa-calendar-check absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                       class="w-full px-3 py-2 sm:px-4 sm:py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
                             </div>
                         </div>
                     </div>
 
-                    <!-- Action Buttons -->
-                    <div class="flex justify-between items-center pt-4 border-t border-gray-200">
-                        <div class="flex space-x-3 space-x-reverse">
-                            <button type="submit" class="primary-btn">
-                                <i class="fas fa-search"></i>
+                    <!-- Action Buttons - Mobile optimized -->
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center pt-4 border-t border-gray-200 space-y-3 sm:space-y-0">
+                        <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 sm:space-x-reverse">
+                            <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                                <i class="fas fa-search ml-2"></i>
                                 بحث
                             </button>
-                            <a href="/admin/users/{{ target_user.id }}/activities" class="secondary-btn">
-                                <i class="fas fa-times"></i>
+                            <a href="/admin/users/{{ target_user.id }}/activities" class="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                                <i class="fas fa-times ml-2"></i>
                                 مسح الفلاتر
                             </a>
                         </div>
@@ -571,12 +692,16 @@
             <div class="form-section border-b">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-4 space-x-reverse">
-                        <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
-                            <i class="fas fa-history text-white text-lg"></i>
+                        <div class="w-12 h-12 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center border border-gray-300">
+                            <i class="fas fa-history text-gray-600 text-lg"></i>
                         </div>
                         <div>
-                            <h2 class="text-2xl font-bold text-gray-900">سجل الأنشطة</h2>
-                            <p class="text-gray-600">تسلسل زمني لجميع أنشطة المستخدم</p>
+                            <h2 class="text-2xl font-bold text-gray-900">سجل أنشطة الطلبات</h2>
+                            <p class="text-gray-600">تسلسل زمني لجميع أنشطة الطلبات المتعلقة بالمستخدم</p>
+                            <div class="flex items-center space-x-2 space-x-reverse text-sm text-blue-600 bg-blue-50 px-3 py-1 rounded-full mt-2 inline-flex">
+                                <i class="fas fa-globe"></i>
+                                <span>جميع الأوقات بتوقيت البحرين (UTC+3)</span>
+                            </div>
                         </div>
                     </div>
                     <div class="flex items-center space-x-2 space-x-reverse text-sm text-gray-500">
@@ -599,20 +724,13 @@
                             {% elif activity.type == 'request_updated' %}from-yellow-500 to-yellow-600
                             {% elif activity.type == 'request_completed' %}from-green-500 to-green-600
                             {% elif activity.type == 'request_rejected' %}from-red-500 to-red-600
-                            {% elif activity.type == 'profile_updated' %}from-purple-500 to-purple-600
-                            {% elif activity.type == 'avatar_uploaded' %}from-cyan-500 to-cyan-600
-                            {% elif activity.type == 'file_uploaded' %}from-lime-500 to-lime-600
                             {% else %}from-gray-500 to-gray-600
                             {% endif %}">
                             <i class="
-                                {% if activity.type == 'login' %}fas fa-sign-in-alt
-                                {% elif activity.type == 'request_created' %}fas fa-plus-circle
+                                {% if activity.type == 'request_created' %}fas fa-plus-circle
                                 {% elif activity.type == 'request_updated' %}fas fa-edit
                                 {% elif activity.type == 'request_completed' %}fas fa-check-circle
                                 {% elif activity.type == 'request_rejected' %}fas fa-times-circle
-                                {% elif activity.type == 'profile_updated' %}fas fa-user-edit
-                                {% elif activity.type == 'avatar_uploaded' %}fas fa-image
-                                {% elif activity.type == 'file_uploaded' %}fas fa-file-upload
                                 {% else %}fas fa-circle
                                 {% endif %} text-white"></i>
                         </div>
@@ -627,14 +745,10 @@
                                 <div class="flex items-center space-x-2 space-x-reverse">
                                     <span class="activity-badge {{ activity.type }}">
                                         <i class="fas fa-tag mr-1"></i>
-                                        {% if activity.type == 'login' %}تسجيل دخول
-                                        {% elif activity.type == 'request_created' %}إنشاء طلب
+                                        {% if activity.type == 'request_created' %}إنشاء طلب
                                         {% elif activity.type == 'request_updated' %}تحديث طلب
                                         {% elif activity.type == 'request_completed' %}إكمال طلب
                                         {% elif activity.type == 'request_rejected' %}رفض طلب
-                                        {% elif activity.type == 'profile_updated' %}تحديث الملف
-                                        {% elif activity.type == 'avatar_uploaded' %}رفع صورة
-                                        {% elif activity.type == 'file_uploaded' %}رفع ملفات
                                         {% else %}{{ activity.type }}
                                         {% endif %}
                                     </span>
@@ -645,24 +759,44 @@
                             {% if activity.details %}
                             <div class="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
                                 {% if activity.type in ['request_created', 'request_updated', 'request_completed', 'request_rejected'] %}
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                     <div class="flex items-center space-x-2 space-x-reverse">
                                         <i class="fas fa-hashtag text-gray-400"></i>
                                         <span class="text-sm font-medium text-gray-700">رقم الطلب:</span>
                                         <code class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">{{ activity.details.request_number }}</code>
                                     </div>
-                                    {% if activity.details.company_name %}
+
+                                    {% if activity.details.building_name %}
                                     <div class="flex items-center space-x-2 space-x-reverse">
                                         <i class="fas fa-building text-gray-400"></i>
-                                        <span class="text-sm font-medium text-gray-700">الشركة:</span>
-                                        <span class="text-sm text-gray-900">{{ activity.details.company_name }}</span>
+                                        <span class="text-sm font-medium text-gray-700">المبنى:</span>
+                                        <span class="text-sm text-gray-900">{{ activity.details.building_name }}</span>
                                     </div>
                                     {% endif %}
+
+                                    {% if activity.details.full_name %}
+                                    <div class="flex items-center space-x-2 space-x-reverse">
+                                        <i class="fas fa-user text-gray-400"></i>
+                                        <span class="text-sm font-medium text-gray-700">الاسم:</span>
+                                        <span class="text-sm text-gray-900">{{ activity.details.full_name }}</span>
+                                    </div>
+                                    {% endif %}
+
+                                    {% if activity.details.personal_number %}
+                                    <div class="flex items-center space-x-2 space-x-reverse">
+                                        <i class="fas fa-id-card text-gray-400"></i>
+                                        <span class="text-sm font-medium text-gray-700">الرقم الشخصي:</span>
+                                        <span class="text-sm text-gray-900 font-mono">{{ activity.details.personal_number }}</span>
+                                    </div>
+                                    {% endif %}
+
                                     <div class="flex items-center space-x-2 space-x-reverse">
                                         <i class="fas fa-info-circle text-gray-400"></i>
                                         <span class="text-sm font-medium text-gray-700">الحالة:</span>
                                         <span class="activity-badge {{ activity.details.status }}">
-                                            {% if activity.details.status == 'pending' %}قيد الانتظار
+                                            {% if activity.details.status_arabic %}
+                                                {{ activity.details.status_arabic }}
+                                            {% elif activity.details.status == 'pending' %}قيد الانتظار
                                             {% elif activity.details.status == 'in_progress' %}قيد المعالجة
                                             {% elif activity.details.status == 'completed' %}مكتمل
                                             {% elif activity.details.status == 'rejected' %}مرفوض
@@ -671,47 +805,70 @@
                                         </span>
                                     </div>
                                 </div>
-                                {% elif activity.type == 'file_uploaded' %}
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                                <!-- Additional details for completed requests -->
+                                {% if activity.type == 'request_completed' and activity.details.processing_time %}
+                                <div class="mt-3 pt-3 border-t border-gray-200">
                                     <div class="flex items-center space-x-2 space-x-reverse">
-                                        <i class="fas fa-file text-gray-400"></i>
-                                        <span class="text-sm font-medium text-gray-700">عدد الملفات:</span>
-                                        <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-sm font-semibold">{{ activity.details.file_count }}</span>
-                                    </div>
-                                    <div class="flex items-center space-x-2 space-x-reverse">
-                                        <i class="fas fa-hashtag text-gray-400"></i>
-                                        <span class="text-sm font-medium text-gray-700">رقم الطلب:</span>
-                                        <code class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">{{ activity.details.request_number }}</code>
+                                        <i class="fas fa-clock text-green-500"></i>
+                                        <span class="text-sm font-medium text-gray-700">مدة المعالجة:</span>
+                                        <span class="text-sm text-green-600 font-semibold">{{ activity.details.processing_time }}</span>
                                     </div>
                                 </div>
-                                {% elif activity.type == 'avatar_uploaded' %}
-                                <div class="flex items-center space-x-3 space-x-reverse">
-                                    <img src="{{ activity.details.avatar_url }}" alt="Avatar" class="w-12 h-12 rounded-full border-2 border-white shadow-md">
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-700">تم تحديث الصورة الشخصية</p>
-                                        <p class="text-xs text-gray-500">صورة جديدة عالية الجودة</p>
+                                {% endif %}
+
+                                <!-- Additional details for rejected requests -->
+                                {% if activity.type == 'request_rejected' and activity.details.reason %}
+                                <div class="mt-3 pt-3 border-t border-gray-200">
+                                    <div class="flex items-start space-x-2 space-x-reverse">
+                                        <i class="fas fa-exclamation-triangle text-red-500 mt-1"></i>
+                                        <div>
+                                            <span class="text-sm font-medium text-gray-700">سبب الرفض:</span>
+                                            <p class="text-sm text-red-600 mt-1">{{ activity.details.reason }}</p>
+                                        </div>
                                     </div>
                                 </div>
+                                {% endif %}
+
+                                <!-- Additional details for updated requests -->
+                                {% if activity.type == 'request_updated' and activity.details.update_time_diff %}
+                                <div class="mt-3 pt-3 border-t border-gray-200">
+                                    <div class="flex items-center space-x-2 space-x-reverse">
+                                        <i class="fas fa-history text-blue-500"></i>
+                                        <span class="text-sm font-medium text-gray-700">وقت التحديث:</span>
+                                        <span class="text-sm text-blue-600">{{ activity.details.update_time_diff }} بعد الإنشاء</span>
+                                    </div>
+                                </div>
+                                {% endif %}
+
                                 {% endif %}
                             </div>
                             {% endif %}
 
-                            <!-- Enhanced Timestamp -->
+                            <!-- Enhanced Timestamp (Bahrain Time) -->
                             <div class="mt-4 flex items-center justify-between">
                                 <div class="flex items-center space-x-2 space-x-reverse text-sm text-gray-500">
                                     <i class="fas fa-clock"></i>
+                                    {% set bahrain_time = utc_to_bahrain(activity.timestamp) %}
                                     <time datetime="{{ activity.timestamp.isoformat() }}">
-                                        {{ activity.timestamp.strftime('%Y-%m-%d') }} في {{ activity.timestamp.strftime('%H:%M') }}
+                                        {{ bahrain_time.strftime('%Y-%m-%d') if bahrain_time else 'غير محدد' }} في {{ bahrain_time.strftime('%H:%M') if bahrain_time else 'غير محدد' }}
                                     </time>
+                                    <span class="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">توقيت البحرين</span>
                                 </div>
                                 <div class="text-xs text-gray-400">
-                                    {% set time_diff = (now() - activity.timestamp).total_seconds() %}
-                                    {% if time_diff < 3600 %}
-                                        منذ {{ (time_diff / 60)|int }} دقيقة
-                                    {% elif time_diff < 86400 %}
-                                        منذ {{ (time_diff / 3600)|int }} ساعة
+                                    {% if bahrain_time and now_bahrain %}
+                                        {% set time_diff = (now_bahrain() - bahrain_time).total_seconds() %}
+                                        {% if time_diff < 60 %}
+                                            منذ ثوانٍ قليلة
+                                        {% elif time_diff < 3600 %}
+                                            منذ {{ (time_diff / 60)|int }} دقيقة
+                                        {% elif time_diff < 86400 %}
+                                            منذ {{ (time_diff / 3600)|int }} ساعة
+                                        {% else %}
+                                            منذ {{ (time_diff / 86400)|int }} يوم
+                                        {% endif %}
                                     {% else %}
-                                        منذ {{ (time_diff / 86400)|int }} يوم
+                                        توقيت البحرين
                                     {% endif %}
                                 </div>
                             </div>
@@ -730,46 +887,219 @@
             </div>
         </div>
 
-        {% else %}
-        <!-- Empty State -->
-        <div class="form-container">
-            <div class="form-section text-center py-12">
-                <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <i class="fas fa-history text-4xl text-gray-400"></i>
-                </div>
+        {% endif %}
 
-                <h3 class="text-2xl font-bold text-gray-900 mb-4">
-                    {% if current_activity_type or current_date_from or current_date_to %}
-                        لا توجد أنشطة تطابق البحث
-                    {% else %}
-                        لا توجد أنشطة لهذا المستخدم
-                    {% endif %}
-                </h3>
-
-                <p class="text-gray-600 mb-8 max-w-md mx-auto">
-                    {% if current_activity_type or current_date_from or current_date_to %}
-                        لا توجد أنشطة تطابق معايير البحث المحددة. جرب تعديل الفلاتر أو البحث بتواريخ مختلفة.
-                    {% else %}
-                        لم يقم {{ target_user.full_name or target_user.username }} بأي أنشطة حتى الآن.
-                    {% endif %}
-                </p>
-
-                <div class="flex justify-center space-x-4 space-x-reverse">
-                    {% if current_activity_type or current_date_from or current_date_to %}
-                    <a href="/admin/users/{{ target_user.id }}/activities" class="secondary-btn">
-                        <i class="fas fa-list"></i>
-                        عرض جميع الأنشطة
-                    </a>
-                    {% endif %}
-
-                    <a href="/admin/users/{{ target_user.id }}/edit" class="primary-btn">
-                        <i class="fas fa-user-edit"></i>
-                        تعديل المستخدم
-                    </a>
+        <!-- User's Latest Requests Section - Always Display -->
+        <div class="form-container mt-8">
+            <div class="form-section border-b">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+                    <div class="flex items-center space-x-3 space-x-reverse">
+                        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center flex-shrink-0 border border-gray-300">
+                            <i class="fas fa-file-alt text-gray-600 text-sm sm:text-lg"></i>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <h2 class="text-xl sm:text-2xl font-bold text-gray-900">آخر طلبات المستخدم</h2>
+                            <p class="text-sm sm:text-base text-gray-600 truncate">أحدث الطلبات المقدمة من {{ target_user.full_name or target_user.username }}</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-2 sm:space-x-reverse text-sm text-gray-500">
+                        <div class="flex items-center space-x-2 space-x-reverse">
+                            <i class="fas fa-list"></i>
+                            <span>{{ total_requests }} طلب إجمالي</span>
+                        </div>
+                        {% if total_pages > 1 %}
+                        <div class="flex items-center space-x-2 space-x-reverse">
+                            <span class="hidden sm:inline text-gray-400">|</span>
+                            <i class="fas fa-bookmark sm:hidden"></i>
+                            <span>صفحة {{ current_page }} من {{ total_pages }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
+
+            {% if user_requests %}
+            <div class="space-y-4">
+                {% for request in user_requests %}
+                <div class="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 hover:shadow-md transition-shadow">
+                    <!-- Mobile-first layout -->
+                    <div class="space-y-4">
+                        <!-- Header with name and status -->
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+                            <h3 class="text-lg font-semibold text-gray-900 truncate">{{ request.full_name }}</h3>
+                            <span class="px-3 py-1 text-xs font-medium rounded-full self-start sm:self-auto
+                                {% if request.status.value == 'pending' %}bg-yellow-100 text-yellow-800
+                                {% elif request.status.value == 'approved' or request.status.value == 'completed' %}bg-green-100 text-green-800
+                                {% elif request.status.value == 'rejected' %}bg-red-100 text-red-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {% if request.status.value == 'pending' %}قيد المراجعة
+                                {% elif request.status.value == 'approved' or request.status.value == 'completed' %}مكتمل
+                                {% elif request.status.value == 'rejected' %}مرفوض
+                                {% else %}{{ request.status.value }}{% endif %}
+                            </span>
+                        </div>
+
+                        <!-- Request details - Mobile optimized -->
+                        <div class="space-y-3 sm:space-y-2">
+                            <!-- Request number - Always visible -->
+                            <div class="flex items-center space-x-2 space-x-reverse">
+                                <i class="fas fa-hashtag text-gray-400 text-sm"></i>
+                                <span class="text-sm text-gray-600">رقم الطلب:</span>
+                                <span class="text-sm font-medium text-gray-900">{{ request.request_number }}</span>
+                            </div>
+
+                            <!-- Two-column grid for larger screens, single column for mobile -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                                <div class="flex items-center space-x-2 space-x-reverse">
+                                    <i class="fas fa-id-card text-gray-400 text-sm"></i>
+                                    <span class="text-sm text-gray-600">الرقم الشخصي:</span>
+                                    <span class="text-sm font-medium text-gray-900">{{ request.personal_number }}</span>
+                                </div>
+                                <div class="flex items-center space-x-2 space-x-reverse">
+                                    <i class="fas fa-phone text-gray-400 text-sm"></i>
+                                    <span class="text-sm text-gray-600">الهاتف:</span>
+                                    <span class="text-sm font-medium text-gray-900 dir-ltr">{{ request.phone_number }}</span>
+                                </div>
+                                <div class="flex items-center space-x-2 space-x-reverse">
+                                    <i class="fas fa-calendar text-gray-400 text-sm"></i>
+                                    <span class="text-sm text-gray-600">تاريخ الإنشاء:</span>
+                                    <span class="text-sm font-medium text-gray-900">{{ request.created_at.strftime('%Y-%m-%d') }}</span>
+                                </div>
+                                {% if request.building_name %}
+                                <div class="flex items-center space-x-2 space-x-reverse">
+                                    <i class="fas fa-building text-gray-400 text-sm"></i>
+                                    <span class="text-sm text-gray-600">رقم المبنى:</span>
+                                    <span class="text-sm font-medium text-gray-900">{{ request.building_name }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Action button - Full width on mobile -->
+                        <div class="pt-3 border-t border-gray-100">
+                            <a href="/admin/requests/{{ request.id }}" class="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                                <i class="fas fa-eye text-sm ml-2"></i>
+                                عرض التفاصيل
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-file-alt text-2xl text-gray-400"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">لا توجد طلبات</h3>
+                <p class="text-gray-600">لم يقم {{ target_user.full_name or target_user.username }} بتقديم أي طلبات حتى الآن.</p>
+            </div>
+            {% endif %}
+
+            <!-- Pagination -->
+            {% if total_pages > 1 %}
+            <div class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 mt-6">
+                <div class="flex flex-1 justify-between sm:hidden">
+                    {% if has_prev %}
+                    <a href="?page={{ prev_page }}{% if current_date_from %}&date_from={{ current_date_from }}{% endif %}{% if current_date_to %}&date_to={{ current_date_to }}{% endif %}"
+                       class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        السابق
+                    </a>
+                    {% else %}
+                    <span class="relative inline-flex items-center rounded-md border border-gray-300 bg-gray-100 px-4 py-2 text-sm font-medium text-gray-400 cursor-not-allowed">
+                        السابق
+                    </span>
+                    {% endif %}
+
+                    {% if has_next %}
+                    <a href="?page={{ next_page }}{% if current_date_from %}&date_from={{ current_date_from }}{% endif %}{% if current_date_to %}&date_to={{ current_date_to }}{% endif %}"
+                       class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        التالي
+                    </a>
+                    {% else %}
+                    <span class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-gray-100 px-4 py-2 text-sm font-medium text-gray-400 cursor-not-allowed">
+                        التالي
+                    </span>
+                    {% endif %}
+                </div>
+
+                <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                    <div>
+                        <p class="text-sm text-gray-700">
+                            عرض
+                            <span class="font-medium">{{ ((current_page - 1) * per_page) + 1 }}</span>
+                            إلى
+                            <span class="font-medium">{{ ((current_page - 1) * per_page) + user_requests|length }}</span>
+                            من
+                            <span class="font-medium">{{ total_requests }}</span>
+                            طلب
+                        </p>
+                    </div>
+
+                    <div>
+                        <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                            <!-- Previous button -->
+                            {% if has_prev %}
+                            <a href="?page={{ prev_page }}{% if current_date_from %}&date_from={{ current_date_from }}{% endif %}{% if current_date_to %}&date_to={{ current_date_to }}{% endif %}"
+                               class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
+                                <span class="sr-only">السابق</span>
+                                <i class="fas fa-chevron-right h-5 w-5" aria-hidden="true"></i>
+                            </a>
+                            {% else %}
+                            <span class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-300 ring-1 ring-inset ring-gray-300 cursor-not-allowed">
+                                <span class="sr-only">السابق</span>
+                                <i class="fas fa-chevron-right h-5 w-5" aria-hidden="true"></i>
+                            </span>
+                            {% endif %}
+
+                            <!-- Page numbers -->
+                            {% set start_page = [1, current_page - 2]|max %}
+                            {% set end_page = [total_pages, current_page + 2]|min %}
+
+                            {% if start_page > 1 %}
+                            <a href="?page=1{% if current_date_from %}&date_from={{ current_date_from }}{% endif %}{% if current_date_to %}&date_to={{ current_date_to }}{% endif %}"
+                               class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">1</a>
+                            {% if start_page > 2 %}
+                            <span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300">...</span>
+                            {% endif %}
+                            {% endif %}
+
+                            {% for page_num in range(start_page, end_page + 1) %}
+                            {% if page_num == current_page %}
+                            <span aria-current="page" class="relative z-10 inline-flex items-center bg-indigo-600 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">{{ page_num }}</span>
+                            {% else %}
+                            <a href="?page={{ page_num }}{% if current_date_from %}&date_from={{ current_date_from }}{% endif %}{% if current_date_to %}&date_to={{ current_date_to }}{% endif %}"
+                               class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">{{ page_num }}</a>
+                            {% endif %}
+                            {% endfor %}
+
+                            {% if end_page < total_pages %}
+                            {% if end_page < total_pages - 1 %}
+                            <span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300">...</span>
+                            {% endif %}
+                            <a href="?page={{ total_pages }}{% if current_date_from %}&date_from={{ current_date_from }}{% endif %}{% if current_date_to %}&date_to={{ current_date_to }}{% endif %}"
+                               class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">{{ total_pages }}</a>
+                            {% endif %}
+
+                            <!-- Next button -->
+                            {% if has_next %}
+                            <a href="?page={{ next_page }}{% if current_date_from %}&date_from={{ current_date_from }}{% endif %}{% if current_date_to %}&date_to={{ current_date_to }}{% endif %}"
+                               class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
+                                <span class="sr-only">التالي</span>
+                                <i class="fas fa-chevron-left h-5 w-5" aria-hidden="true"></i>
+                            </a>
+                            {% else %}
+                            <span class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-300 ring-1 ring-inset ring-gray-300 cursor-not-allowed">
+                                <span class="sr-only">التالي</span>
+                                <i class="fas fa-chevron-left h-5 w-5" aria-hidden="true"></i>
+                            </span>
+                            {% endif %}
+                        </nav>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
         </div>
-        {% endif %}
     </div>
 
     <script>

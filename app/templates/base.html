@@ -142,6 +142,82 @@
 
     <!-- Enhanced Sidebar Styles -->
     <style>
+        /* Mobile Notification Dropdown Responsive Design */
+        @media (max-width: 640px) {
+            #mobileNotificationDropdown {
+                /* Responsive width with proper positioning */
+                width: calc(100vw - 1rem) !important;
+                max-width: 320px !important;
+                /* Position from right edge */
+                right: 0.5rem !important;
+                left: auto !important;
+                /* Prevent horizontal scrolling */
+                overflow-x: hidden;
+                /* Ensure proper z-index for mobile */
+                z-index: 9999 !important;
+            }
+
+            #mobileDropdownNotificationsList {
+                /* Ensure content doesn't overflow */
+                overflow-x: hidden;
+                word-wrap: break-word;
+                /* Responsive height for mobile screens */
+                max-height: 60vh;
+                overflow-y: auto;
+            }
+
+            .mobile-dropdown-notification-item {
+                /* Prevent text overflow */
+                word-wrap: break-word;
+                overflow-wrap: break-word;
+                /* Responsive padding for mobile */
+                padding: 0.75rem 1rem;
+                /* Ensure proper touch targets */
+                min-height: 3rem;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+
+            .mobile-dropdown-notification-item .truncate {
+                /* Better text truncation on mobile */
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 100%;
+            }
+
+            /* Ensure notification content fits */
+            .mobile-dropdown-notification-item p {
+                max-width: 100%;
+                word-break: break-word;
+                margin: 0;
+                line-height: 1.4;
+            }
+
+            /* Improve notification time display on mobile */
+            .mobile-dropdown-notification-item .text-xs {
+                font-size: 0.75rem;
+                margin-top: 0.25rem;
+            }
+        }
+
+        /* Extra small mobile screens */
+        @media (max-width: 480px) {
+            #mobileNotificationDropdown {
+                width: calc(100vw - 0.5rem) !important;
+                right: 0.25rem !important;
+                max-width: none !important;
+            }
+        }
+
+        /* Desktop Notification Dropdown */
+        @media (min-width: 641px) {
+            #notificationDropdown {
+                /* Ensure desktop dropdown doesn't overflow */
+                max-width: calc(100vw - 2rem);
+            }
+        }
         /* IBM Plex Sans Arabic Font Classes */
         .ibm-plex-arabic-thin {
             font-family: "IBM Plex Sans Arabic", sans-serif;
@@ -357,19 +433,88 @@
                     <a href="/requests/create" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium ibm-plex-arabic-medium">طلب جديد</a>
                     {% endif %}
                     <a href="/profile" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium ibm-plex-arabic-medium">الملف الشخصي</a>
-                    <a href="/notifications" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium ibm-plex-arabic-medium relative">
-                        الإشعارات
-                        <span id="headerNotificationBadge" class="absolute -top-1 -left-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center hidden">0</span>
-                    </a>
+                    <!-- Notification Bell Dropdown -->
+                    <div class="relative">
+                        <button id="notificationBell" class="text-gray-700 hover:text-blue-600 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 relative">
+                            <i class="fas fa-bell text-lg"></i>
+                            <span id="headerNotificationBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center hidden">0</span>
+                        </button>
+
+                        <!-- Dropdown Menu -->
+                        <div id="notificationDropdown" class="hidden absolute left-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                            <!-- Dropdown Header -->
+                            <div class="px-4 py-3 border-b border-gray-200">
+                                <h3 class="text-sm font-medium text-gray-900 ibm-plex-arabic-medium">الإشعارات</h3>
+                            </div>
+
+                            <!-- Notifications List -->
+                            <div id="dropdownNotificationsList" class="max-h-64 overflow-y-auto">
+                                <!-- Loading state -->
+                                <div id="notificationsLoading" class="px-4 py-3 text-center text-gray-500">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    جاري التحميل...
+                                </div>
+
+                                <!-- Empty state -->
+                                <div id="notificationsEmpty" class="hidden px-4 py-6 text-center text-gray-500">
+                                    <i class="fas fa-bell-slash text-2xl mb-2"></i>
+                                    <p class="text-sm">لا توجد إشعارات جديدة</p>
+                                </div>
+
+                                <!-- Notifications will be loaded here -->
+                            </div>
+
+                            <!-- Dropdown Footer -->
+                            <div class="px-4 py-3 border-t border-gray-200">
+                                <a href="/notifications" class="block text-center text-blue-600 hover:text-blue-800 text-sm font-medium ibm-plex-arabic-medium">
+                                    جميع الإشعارات
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                     <a href="/auth/logout" class="text-red-600 hover:text-red-800 px-3 py-2 rounded-md text-sm font-medium ibm-plex-arabic-medium">تسجيل الخروج</a>
                 </nav>
 
                 <!-- Notifications Bell (Mobile) -->
                 <div class="md:hidden flex items-center space-x-2 space-x-reverse">
-                    <a href="/notifications" class="text-gray-600 hover:text-gray-900 focus:outline-none relative p-2">
-                        <i class="fas fa-bell text-xl"></i>
-                        <span id="mobileNotificationBadge" class="absolute -top-1 -left-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center hidden">0</span>
-                    </a>
+                    <div class="relative">
+                        <button id="mobileNotificationBell" class="text-gray-600 hover:text-gray-900 focus:outline-none relative p-2">
+                            <i class="fas fa-bell text-xl"></i>
+                            <span id="mobileNotificationBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center hidden">0</span>
+                        </button>
+
+                        <!-- Mobile Dropdown Menu -->
+                        <div id="mobileNotificationDropdown" class="hidden absolute right-0 mt-2 w-80 max-w-[calc(100vw-1rem)] bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                            <!-- Dropdown Header -->
+                            <div class="px-4 py-3 border-b border-gray-200">
+                                <h3 class="text-sm font-medium text-gray-900 ibm-plex-arabic-medium">الإشعارات</h3>
+                            </div>
+
+                            <!-- Notifications List -->
+                            <div id="mobileDropdownNotificationsList" class="max-h-64 overflow-y-auto">
+                                <!-- Loading state -->
+                                <div id="mobileNotificationsLoading" class="px-4 py-3 text-center text-gray-500">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    جاري التحميل...
+                                </div>
+
+                                <!-- Empty state -->
+                                <div id="mobileNotificationsEmpty" class="hidden px-4 py-6 text-center text-gray-500">
+                                    <i class="fas fa-bell-slash text-2xl mb-2"></i>
+                                    <p class="text-sm">لا توجد إشعارات جديدة</p>
+                                </div>
+
+                                <!-- Notifications will be loaded here -->
+                            </div>
+
+                            <!-- Dropdown Footer -->
+                            <div class="px-4 py-3 border-t border-gray-200">
+                                <a href="/notifications" class="block text-center text-blue-600 hover:text-blue-800 text-sm font-medium ibm-plex-arabic-medium">
+                                    جميع الإشعارات
+                                </a>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- Mobile Menu Toggle Button -->
                     <button onclick="toggleMobileMenu()" class="mobile-toggle p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Toggle mobile menu">
@@ -423,9 +568,10 @@
                     <a href="/admin/user-activity-report" class="enhanced-nav-link group">
                         <div class="flex items-center">
                             <i class="fas fa-chart-bar text-gray-500 group-hover:text-blue-600 transition-colors duration-200 ml-3"></i>
-                            <span>تقارير النشاط</span>
+                            <span>حركة المستخدمين</span>
                         </div>
                     </a>
+
                     {% else %}
                     <a href="/dashboard" class="enhanced-nav-link group">
                         <div class="flex items-center">
@@ -512,8 +658,9 @@
                     </a>
                     <a href="/admin/user-activity-report" class="mobile-nav-link" onclick="toggleMobileMenu()">
                         <i class="fas fa-chart-bar ml-3"></i>
-                        <span>تقارير النشاط</span>
+                        <span>حركة المستخدمين</span>
                     </a>
+
 
                     <!-- Notifications Link for Admin -->
                     <a href="/notifications" class="mobile-nav-link relative" onclick="toggleMobileMenu()">
@@ -1299,6 +1446,9 @@
 
             // Update badges every 30 seconds
             setInterval(updateNotificationBadges, 30000);
+
+            // Initialize notification dropdown
+            initializeNotificationDropdown();
         });
 
         // Function to update notification badges
@@ -1340,6 +1490,376 @@
                     console.error('Error updating notification badges:', error);
                 }
             });
+        }
+
+        // Notification Dropdown Functions
+        function initializeNotificationDropdown() {
+            // Desktop notification bell
+            const bell = document.getElementById('notificationBell');
+            const dropdown = document.getElementById('notificationDropdown');
+
+            // Mobile notification bell
+            const mobileBell = document.getElementById('mobileNotificationBell');
+            const mobileDropdown = document.getElementById('mobileNotificationDropdown');
+
+            // Initialize desktop dropdown
+            if (bell && dropdown) {
+                // Toggle dropdown on bell click
+                bell.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    // Close mobile dropdown if open
+                    if (mobileDropdown && !mobileDropdown.classList.contains('hidden')) {
+                        hideMobileNotificationDropdown();
+                    }
+
+                    if (dropdown.classList.contains('hidden')) {
+                        showNotificationDropdown();
+                    } else {
+                        hideNotificationDropdown();
+                    }
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!bell.contains(e.target) && !dropdown.contains(e.target)) {
+                        hideNotificationDropdown();
+                    }
+                });
+            }
+
+            // Initialize mobile dropdown
+            if (mobileBell && mobileDropdown) {
+                // Toggle dropdown on mobile bell click/touch
+                mobileBell.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    // Close desktop dropdown if open
+                    if (dropdown && !dropdown.classList.contains('hidden')) {
+                        hideNotificationDropdown();
+                    }
+
+                    if (mobileDropdown.classList.contains('hidden')) {
+                        showMobileNotificationDropdown();
+                    } else {
+                        hideMobileNotificationDropdown();
+                    }
+                });
+
+                // Add touch event for better mobile responsiveness
+                mobileBell.addEventListener('touchend', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    // Trigger click event
+                    mobileBell.click();
+                });
+
+                // Close dropdown when clicking/touching outside
+                document.addEventListener('click', function(e) {
+                    if (!mobileBell.contains(e.target) && !mobileDropdown.contains(e.target)) {
+                        hideMobileNotificationDropdown();
+                    }
+                });
+
+                document.addEventListener('touchend', function(e) {
+                    if (!mobileBell.contains(e.target) && !mobileDropdown.contains(e.target)) {
+                        hideMobileNotificationDropdown();
+                    }
+                });
+
+                // Reposition dropdown on window resize/orientation change
+                window.addEventListener('resize', function() {
+                    if (!mobileDropdown.classList.contains('hidden')) {
+                        positionMobileNotificationDropdown(mobileBell, mobileDropdown);
+                    }
+                });
+
+                window.addEventListener('orientationchange', function() {
+                    setTimeout(function() {
+                        if (!mobileDropdown.classList.contains('hidden')) {
+                            positionMobileNotificationDropdown(mobileBell, mobileDropdown);
+                        }
+                    }, 100);
+                });
+            }
+
+            // Close dropdowns on escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    hideNotificationDropdown();
+                    hideMobileNotificationDropdown();
+                }
+            });
+        }
+
+        function showNotificationDropdown() {
+            const dropdown = document.getElementById('notificationDropdown');
+            dropdown.classList.remove('hidden');
+            loadDropdownNotifications();
+        }
+
+        function hideNotificationDropdown() {
+            const dropdown = document.getElementById('notificationDropdown');
+            dropdown.classList.add('hidden');
+        }
+
+        // Mobile Notification Dropdown Functions
+        function showMobileNotificationDropdown() {
+            const dropdown = document.getElementById('mobileNotificationDropdown');
+            const bell = document.getElementById('mobileNotificationBell');
+
+            // Position dropdown properly on mobile
+            positionMobileNotificationDropdown(bell, dropdown);
+
+            dropdown.classList.remove('hidden');
+            loadMobileDropdownNotifications();
+        }
+
+        function hideMobileNotificationDropdown() {
+            const dropdown = document.getElementById('mobileNotificationDropdown');
+            dropdown.classList.add('hidden');
+        }
+
+        function positionMobileNotificationDropdown(bell, dropdown) {
+            if (!bell || !dropdown) return;
+
+            // Get viewport dimensions
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            const bellRect = bell.getBoundingClientRect();
+
+            // Reset positioning
+            dropdown.style.position = 'fixed';
+            dropdown.style.top = '';
+            dropdown.style.bottom = '';
+            dropdown.style.left = '';
+            dropdown.style.right = '';
+
+            // Calculate positioning
+            const dropdownWidth = Math.min(320, viewportWidth - 16); // Max 320px or viewport - 16px margin
+            const margin = 8;
+
+            // Position horizontally (align to right edge of bell)
+            let rightPosition = viewportWidth - bellRect.right;
+
+            // Ensure dropdown doesn't go off-screen
+            if (rightPosition + dropdownWidth > viewportWidth - margin) {
+                rightPosition = margin;
+            }
+
+            dropdown.style.right = rightPosition + 'px';
+            dropdown.style.width = dropdownWidth + 'px';
+
+            // Position vertically (below bell with margin)
+            const topPosition = bellRect.bottom + 8;
+            const maxHeight = viewportHeight - topPosition - margin;
+
+            dropdown.style.top = topPosition + 'px';
+            dropdown.style.maxHeight = Math.min(maxHeight, viewportHeight * 0.6) + 'px';
+
+            // Update the notifications list max height
+            const notificationsList = document.getElementById('mobileDropdownNotificationsList');
+            if (notificationsList) {
+                notificationsList.style.maxHeight = (Math.min(maxHeight, viewportHeight * 0.6) - 120) + 'px'; // Account for header/footer
+            }
+        }
+
+        function loadDropdownNotifications() {
+            const loadingEl = document.getElementById('notificationsLoading');
+            const emptyEl = document.getElementById('notificationsEmpty');
+            const listEl = document.getElementById('dropdownNotificationsList');
+
+            // Show loading state
+            loadingEl.classList.remove('hidden');
+            emptyEl.classList.add('hidden');
+
+            // Clear existing notifications (except loading and empty states)
+            const existingNotifications = listEl.querySelectorAll('.dropdown-notification-item');
+            existingNotifications.forEach(item => item.remove());
+
+            // Fetch recent notifications
+            fetch('/api/notifications/recent?limit=5')
+                .then(response => response.json())
+                .then(data => {
+                    loadingEl.classList.add('hidden');
+
+                    if (data.success && data.notifications && data.notifications.length > 0) {
+                        data.notifications.forEach(notification => {
+                            const notificationEl = createDropdownNotificationItem(notification);
+                            listEl.appendChild(notificationEl);
+                        });
+                    } else {
+                        emptyEl.classList.remove('hidden');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading notifications:', error);
+                    loadingEl.classList.add('hidden');
+                    emptyEl.classList.remove('hidden');
+                });
+        }
+
+        function loadMobileDropdownNotifications() {
+            const loadingEl = document.getElementById('mobileNotificationsLoading');
+            const emptyEl = document.getElementById('mobileNotificationsEmpty');
+            const listEl = document.getElementById('mobileDropdownNotificationsList');
+
+            // Show loading state
+            loadingEl.classList.remove('hidden');
+            emptyEl.classList.add('hidden');
+
+            // Clear existing notifications (except loading and empty states)
+            const existingNotifications = listEl.querySelectorAll('.mobile-dropdown-notification-item');
+            existingNotifications.forEach(item => item.remove());
+
+            // Fetch recent notifications
+            fetch('/api/notifications/recent?limit=5')
+                .then(response => response.json())
+                .then(data => {
+                    loadingEl.classList.add('hidden');
+
+                    if (data.success && data.notifications && data.notifications.length > 0) {
+                        data.notifications.forEach(notification => {
+                            const notificationEl = createMobileDropdownNotificationItem(notification);
+                            listEl.appendChild(notificationEl);
+                        });
+                    } else {
+                        emptyEl.classList.remove('hidden');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading mobile notifications:', error);
+                    loadingEl.classList.add('hidden');
+                    emptyEl.classList.remove('hidden');
+                });
+        }
+
+        function createMobileDropdownNotificationItem(notification) {
+            const item = document.createElement('div');
+            item.className = `mobile-dropdown-notification-item px-4 py-3 border-b border-gray-100 hover:bg-gray-50 active:bg-gray-100 cursor-pointer transition-colors duration-150 ${!notification.is_read ? 'bg-blue-50' : ''}`;
+
+            const timeAgo = getTimeAgo(notification.created_at);
+            const isUnread = !notification.is_read;
+
+            item.innerHTML = `
+                <div class="flex items-start space-x-3 space-x-reverse">
+                    <div class="flex-shrink-0">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                            <i class="fas fa-bell text-blue-600 text-sm"></i>
+                        </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 ${isUnread ? 'font-semibold' : ''}" style="line-height: 1.4; word-break: break-word;">
+                            ${notification.title}
+                        </p>
+                        <p class="text-xs text-gray-500 mt-1" style="line-height: 1.3; word-break: break-word; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                            ${notification.message}
+                        </p>
+                        <p class="text-xs text-gray-400 mt-2">
+                            ${timeAgo}
+                        </p>
+                    </div>
+                    ${isUnread ? '<div class="flex-shrink-0 mt-1"><div class="w-3 h-3 bg-blue-600 rounded-full"></div></div>' : ''}
+                </div>
+            `;
+
+            // Add touch-friendly click handler
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                // Add visual feedback
+                item.style.backgroundColor = '#e5e7eb';
+
+                setTimeout(() => {
+                    // Close mobile dropdown
+                    hideMobileNotificationDropdown();
+
+                    if (notification.action_url) {
+                        window.location.href = notification.action_url;
+                    } else {
+                        window.location.href = `/notifications/${notification.id}`;
+                    }
+                }, 150);
+            });
+
+            // Add touch event for better mobile responsiveness
+            item.addEventListener('touchstart', function(e) {
+                item.style.backgroundColor = '#f3f4f6';
+            });
+
+            item.addEventListener('touchend', function(e) {
+                setTimeout(() => {
+                    if (item.style.backgroundColor === 'rgb(243, 244, 246)') {
+                        item.style.backgroundColor = '';
+                    }
+                }, 100);
+            });
+
+            return item;
+        }
+
+        function createDropdownNotificationItem(notification) {
+            const item = document.createElement('div');
+            item.className = `dropdown-notification-item px-4 py-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${!notification.is_read ? 'bg-blue-50' : ''}`;
+
+            const timeAgo = getTimeAgo(notification.created_at);
+            const isUnread = !notification.is_read;
+
+            item.innerHTML = `
+                <div class="flex items-start space-x-3 space-x-reverse">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                            <i class="fas fa-bell text-blue-600 text-sm"></i>
+                        </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 truncate ${isUnread ? 'font-semibold' : ''}">
+                            ${notification.title}
+                        </p>
+                        <p class="text-xs text-gray-500 truncate">
+                            ${notification.message}
+                        </p>
+                        <p class="text-xs text-gray-400 mt-1">
+                            ${timeAgo}
+                        </p>
+                    </div>
+                    ${isUnread ? '<div class="flex-shrink-0"><div class="w-2 h-2 bg-blue-600 rounded-full"></div></div>' : ''}
+                </div>
+            `;
+
+            // Add click handler
+            item.addEventListener('click', function() {
+                if (notification.action_url) {
+                    window.location.href = notification.action_url;
+                } else {
+                    window.location.href = `/notifications/${notification.id}`;
+                }
+            });
+
+            return item;
+        }
+
+        function getTimeAgo(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffInSeconds = Math.floor((now - date) / 1000);
+
+            if (diffInSeconds < 60) {
+                return 'الآن';
+            } else if (diffInSeconds < 3600) {
+                const minutes = Math.floor(diffInSeconds / 60);
+                return `منذ ${minutes} دقيقة`;
+            } else if (diffInSeconds < 86400) {
+                const hours = Math.floor(diffInSeconds / 3600);
+                return `منذ ${hours} ساعة`;
+            } else {
+                const days = Math.floor(diffInSeconds / 86400);
+                return `منذ ${days} يوم`;
+            }
         }
     </script>
 
@@ -1388,5 +1908,8 @@
             });
         });
     </script>
+
+    <!-- Password Toggle Functionality -->
+    <script src="{{ url_for('static', path='js/password-toggle.js') }}"></script>
 </body>
 </html>

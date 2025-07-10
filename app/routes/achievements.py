@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Request, Form, HTTPException, Query
 from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi.templating import Jinja2Templates
+
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from typing import Optional
@@ -14,7 +14,7 @@ from app.models.user import User, UserRole
 from app.models.achievement import AchievementType, CompetitionStatus, Competition, CompetitionParticipant
 
 router = APIRouter()
-templates = Jinja2Templates(directory="app/templates")
+from app.utils.templates import templates
 
 
 async def get_current_user_cookie(request: Request, db: Session = Depends(get_db)) -> User:

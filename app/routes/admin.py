@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, Request, Form, HTTPException, UploadFile, File as FastAPIFile, Query
 from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse, RedirectResponse, Response
-from fastapi.templating import Jinja2Templates
+
 from sqlalchemy.orm import Session
 from typing import Optional, List
 import logging
+from datetime import datetime as dt, timezone, timedelta
 from app.database import get_db
 from app.utils.auth import verify_token
 from app.services.user_service import UserService
@@ -19,7 +20,7 @@ from app.models.activity import Activity, ActivityType
 from app.utils.file_handler import FileHandler
 import pandas as pd
 import io
-from datetime import datetime
+# datetime already imported as dt above
 import csv
 
 # PDF generation imports
@@ -35,7 +36,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
 
 router = APIRouter(prefix="/admin")
-templates = Jinja2Templates(directory="app/templates")
+from app.utils.templates import templates
 
 
 async def require_admin_cookie(request: Request, db: Session = Depends(get_db)) -> User:
@@ -656,9 +657,10 @@ async def create_request_for_user(
 async def user_activities(
     request: Request,
     user_id: int,
-    activity_type: Optional[str] = None,
     date_from: Optional[str] = None,
     date_to: Optional[str] = None,
+    page: int = Query(1, ge=1),
+    per_page: int = Query(15, ge=10, le=50),
     db: Session = Depends(get_db)
 ):
     """View activity log for a specific user"""
@@ -673,15 +675,32 @@ async def user_activities(
             {"request": request, "current_user": current_user}
         )
 
-    # Get user activities
+    logger.info(f"Getting activities for user {user_id} ({target_user.username})")
+
+    # Get user activities (automatically filtered to request activities only)
     activities = ActivityService.get_user_activities(
         db,
         user_id=user_id,
-        activity_type=activity_type,
+        activity_type=None,  # No filtering needed - service already filters to request activities
         date_from=date_from,
         date_to=date_to,
         limit=100
     )
+
+    # Calculate pagination for requests
+    skip = (page - 1) * per_page
+
+    # Get user's latest requests with pagination
+    user_requests = RequestService.get_requests_by_user_id(
+        db,
+        user_id=user_id,
+        limit=per_page,
+        skip=skip
+    )
+
+    # Get total count of user requests for pagination
+    total_requests = RequestService.get_user_requests_count(db, user_id)
+    total_pages = (total_requests + per_page - 1) // per_page
 
     # Get activity statistics
     activity_stats = ActivityService.get_user_activity_statistics(db, user_id)
@@ -698,17 +717,25 @@ async def user_activities(
             "target_user": target_user,
             "target_user_avatar_url": target_user_avatar_url,
             "activities": activities,
+            "user_requests": user_requests,
             "activity_stats": activity_stats,
-            "current_activity_type": activity_type,
             "current_date_from": date_from,
             "current_date_to": date_to,
-            "activity_types": [
-                "login", "logout", "request_created", "request_updated",
-                "request_completed", "request_rejected", "profile_updated",
-                "avatar_uploaded", "file_uploaded"
-            ]
+            "now": dt.now(timezone.utc),
+            # Pagination data
+            "current_page": page,
+            "total_pages": total_pages,
+            "total_requests": total_requests,
+            "per_page": per_page,
+            "has_prev": page > 1,
+            "has_next": page < total_pages,
+            "prev_page": page - 1 if page > 1 else None,
+            "next_page": page + 1 if page < total_pages else None
         }
     )
+
+
+
 
 
 @router.get("/users/{user_id}/requests", response_class=HTMLResponse)
@@ -720,56 +747,143 @@ async def user_requests(
     db: Session = Depends(get_db)
 ):
     """View requests for a specific user"""
-    # Verify access permissions
-    current_user = await require_user_access_or_admin(request, user_id, db)
+    try:
+        logger.info(f"Accessing user requests page for user_id: {user_id}")
 
-    # Get the target user
-    target_user = UserService.get_user_by_id(db, user_id)
-    if not target_user:
-        return templates.TemplateResponse(
-            "errors/404.html",
-            {"request": request, "current_user": current_user}
+        # Verify access permissions
+        current_user = await require_user_access_or_admin(request, user_id, db)
+        logger.info(f"Access granted for user: {current_user.username} (role: {current_user.role.value})")
+
+        # Get the target user
+        target_user = UserService.get_user_by_id(db, user_id)
+        if not target_user:
+            logger.warning(f"Target user not found: {user_id}")
+            return templates.TemplateResponse(
+                "errors/404.html",
+                {"request": request, "current_user": current_user}
+            )
+
+        logger.info(f"Target user found: {target_user.username}")
+
+        # Parse status filter
+        status_filter = None
+        if status:
+            try:
+                status_filter = RequestStatus(status)
+                logger.info(f"Status filter applied: {status_filter}")
+            except ValueError:
+                logger.warning(f"Invalid status filter: {status}")
+                pass
+
+        # Get user's requests
+        user_requests = RequestService.get_requests_by_user_id(
+            db,
+            user_id=user_id,
+            status=status_filter,
+            search_query=search,
+            limit=100
         )
 
-    # Parse status filter
-    status_filter = None
-    if status:
-        try:
-            status_filter = RequestStatus(status)
-        except ValueError:
-            pass
+        logger.info(f"Found {len(user_requests)} requests for user {user_id}")
 
-    # Get user's requests
-    user_requests = RequestService.get_requests_by_user_id(
-        db,
-        user_id=user_id,
-        status=status_filter,
-        search_query=search,
-        limit=100
-    )
+        # Get user's request statistics
+        user_request_stats = RequestService.get_user_request_statistics(db, user_id)
+        logger.info(f"User request statistics: {user_request_stats}")
 
-    # Get user's request statistics
-    user_request_stats = RequestService.get_user_request_statistics(db, user_id)
+        # Get user avatar URL
+        from app.services.avatar_service import AvatarService
+        target_user_avatar_url = AvatarService.get_avatar_url(target_user.id, target_user.full_name, db)
 
-    # Get user avatar URL
-    from app.services.avatar_service import AvatarService
-    target_user_avatar_url = AvatarService.get_avatar_url(target_user.id, target_user.full_name, db)
+        return templates.TemplateResponse(
+            "admin/user_requests.html",
+            {
+                "request": request,
+                "current_user": current_user,
+                "target_user": target_user,
+                "target_user_avatar_url": target_user_avatar_url,
+                "user_requests": user_requests,
+                "requests": user_requests,       # Keep both for compatibility
+                "request_stats": user_request_stats,
+                "current_status": status,
+                "current_search": search,
+                "statuses": [s.value for s in RequestStatus]
+            }
+        )
 
-    return templates.TemplateResponse(
-        "admin/user_requests.html",
-        {
-            "request": request,
-            "current_user": current_user,
-            "target_user": target_user,
-            "target_user_avatar_url": target_user_avatar_url,
-            "user_requests": user_requests,  # Fixed: template expects 'user_requests'
-            "requests": user_requests,       # Keep both for compatibility
-            "request_stats": user_request_stats,
-            "current_status": status,
-            "current_search": search,
-            "statuses": [s.value for s in RequestStatus]
-        }
-    )
+    except Exception as e:
+        logger.error(f"Error in user_requests route: {str(e)}")
+        return templates.TemplateResponse(
+            "errors/500.html",
+            {"request": request, "error": str(e)},
+            status_code=500
+        )
+
+
+@router.get("/users/{user_id}/requests/debug")
+async def debug_user_requests(
+    user_id: int,
+    current_user: User = Depends(require_admin_cookie),
+    db: Session = Depends(get_db)
+):
+    """Debug endpoint to check user requests data"""
+    try:
+        # Get the target user
+        target_user = UserService.get_user_by_id(db, user_id)
+        if not target_user:
+            return JSONResponse({
+                "success": False,
+                "error": "User not found"
+            })
+
+        # Get user's requests
+        user_requests = RequestService.get_requests_by_user_id(
+            db,
+            user_id=user_id,
+            limit=100
+        )
+
+        # Get user's request statistics
+        user_request_stats = RequestService.get_user_request_statistics(db, user_id)
+
+        # Format requests for JSON response
+        formatted_requests = []
+        for req in user_requests:
+            formatted_requests.append({
+                "id": req.id,
+                "request_number": req.request_number,
+                "unique_code": req.unique_code,
+                "status": req.status.value,
+                "full_name": req.full_name,
+                "personal_number": req.personal_number,
+                "building_name": req.building_name,
+                "created_at": req.created_at.isoformat() if req.created_at else None,
+                "files_count": len(req.files) if req.files else 0
+            })
+
+        return JSONResponse({
+            "success": True,
+            "target_user": {
+                "id": target_user.id,
+                "username": target_user.username,
+                "full_name": target_user.full_name,
+                "role": target_user.role.value
+            },
+            "requests_count": len(user_requests),
+            "requests": formatted_requests[:5],  # Show first 5 for debugging
+            "statistics": user_request_stats,
+            "route_info": {
+                "route": f"/admin/users/{user_id}/requests",
+                "accessing_user": current_user.username,
+                "accessing_user_role": current_user.role.value
+            }
+        })
+
+    except Exception as e:
+        logger.error(f"Error in debug_user_requests: {str(e)}")
+        return JSONResponse({
+            "success": False,
+            "error": f"Error: {str(e)}"
+        })
 
 
 @router.get("/users/table", response_class=HTMLResponse)
@@ -784,7 +898,7 @@ async def users_table_new(
     # Get avatar URLs and request counts for all users
     from app.services.avatar_service import AvatarService
     from app.models.activity import Activity
-    from datetime import datetime
+    # datetime already imported as dt above
     users_with_data = []
     for user in users:
         avatar_url = AvatarService.get_avatar_url(user.id, user.full_name, db)
@@ -808,7 +922,7 @@ async def users_table_new(
                 last_activity_time = last_activity_time.astimezone(timezone.utc).replace(tzinfo=None)
 
             # Use timezone-aware current time
-            current_time = datetime.now(timezone.utc).replace(tzinfo=None)
+            current_time = dt.now(timezone.utc).replace(tzinfo=None)
             time_diff = current_time - last_activity_time
 
             # Handle negative time differences (future dates)
@@ -902,11 +1016,22 @@ async def get_request_files_api(
                 content={"error": "Request not found"}
             )
 
-        # Check permissions - user must own the request or be admin
-        if current_user.role != UserRole.ADMIN and req.user_id != current_user.id:
-            return JSONResponse(
-                status_code=403,
-                content={"error": "Access denied"}
+        # Log cross-user access if user is accessing files from another user's request
+        if req.user_id != current_user.id:
+            from app.utils.request_utils import log_cross_user_activity
+            log_cross_user_activity(
+                db=db,
+                request_owner_id=req.user_id,
+                accessing_user_id=current_user.id,
+                accessing_user_name=current_user.full_name or current_user.username,
+                activity_type="cross_user_file_accessed",
+                description=f"تم الوصول إلى ملفات الطلب {req.request_number} عبر API بواسطة {current_user.full_name or current_user.username}",
+                request=request,
+                details={
+                    "request_id": req.id,
+                    "request_number": req.request_number,
+                    "action": "api_files_access"
+                }
             )
 
         # Get files
@@ -1168,7 +1293,7 @@ async def update_request_admin(
 
         # Update building information
         if req.building_name != building_name:
-            changes.append(f"اسم المبنى: {req.building_name} → {building_name}")
+            changes.append(f"رقم المبنى: {req.building_name} → {building_name}")
             req.building_name = building_name
 
         if req.road_name != road_name:
@@ -2452,7 +2577,7 @@ async def debug_data(
 async def generate_pdf_report(report_data: dict, period: int) -> Response:
     """Generate PDF report with Arabic language support"""
     try:
-        from datetime import datetime
+        # datetime already imported as dt above
 
         # Create a BytesIO buffer to hold the PDF
         buffer = io.BytesIO()
@@ -2597,7 +2722,7 @@ async def generate_pdf_report(report_data: dict, period: int) -> Response:
 async def generate_html_report(report_data: dict, period: int) -> Response:
     """Generate HTML report with proper Arabic language support"""
     try:
-        from datetime import datetime
+        # datetime already imported as dt above
 
         # Generate HTML content for the report
         html_content = f"""
@@ -2606,7 +2731,7 @@ async def generate_html_report(report_data: dict, period: int) -> Response:
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>تقرير نشاط المستخدمين</title>
+            <title>حركة المستخدمين</title>
             <style>
                 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700&display=swap');
 
@@ -2751,9 +2876,9 @@ async def generate_html_report(report_data: dict, period: int) -> Response:
 
             <div class="container">
                 <div class="header">
-                    <div class="title">تقرير نشاط المستخدمين</div>
+                    <div class="title">حركة المستخدمين</div>
                     <div class="subtitle">فترة التقرير: {period} أشهر</div>
-                    <div class="subtitle">تاريخ الإنشاء: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</div>
+                    <div class="subtitle">تاريخ الإنشاء: {dt.now().strftime('%Y-%m-%d %H:%M:%S')}</div>
                 </div>
         """
 
@@ -3285,7 +3410,7 @@ async def view_activities(
         if total_activities == 0 and not activity_type and not user_search:
             logger.info("No activities found, creating sample activities...")
             try:
-                from datetime import datetime, timezone
+                # datetime and timezone already imported as dt and timezone above
 
                 # Create sample activities with a default user_id (assuming user 1 exists)
                 # If user 1 doesn't exist, this will be handled gracefully
@@ -3294,13 +3419,13 @@ async def view_activities(
                         user_id=1,  # Use a default user ID
                         activity_type=ActivityType.LOGIN,
                         description="تسجيل دخول المستخدم",
-                        created_at=datetime.now(timezone.utc)
+                        created_at=dt.now(timezone.utc)
                     ),
                     Activity(
                         user_id=1,  # Use a default user ID
                         activity_type=ActivityType.PROFILE_UPDATED,
                         description="تحديث الملف الشخصي",
-                        created_at=datetime.now(timezone.utc)
+                        created_at=dt.now(timezone.utc)
                     )
                 ]
 
@@ -3643,7 +3768,7 @@ async def seed_activities(
 ):
     """Seed some sample activities for testing"""
     try:
-        from datetime import datetime, timedelta
+        # datetime and timedelta already imported as dt and timedelta above
         import random
 
         # Get all users
@@ -3694,7 +3819,7 @@ async def seed_activities(
             hours_ago = random.randint(0, 23)
             minutes_ago = random.randint(0, 59)
 
-            activity_time = datetime.now() - timedelta(days=days_ago, hours=hours_ago, minutes=minutes_ago)
+            activity_time = dt.now() - timedelta(days=days_ago, hours=hours_ago, minutes=minutes_ago)
 
             # Create activity record
             new_activity = Activity(

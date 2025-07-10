@@ -10,12 +10,12 @@ from app.database import get_db
 from app.models.user import User
 from app.services.message_service import MessageService
 from app.utils.auth import verify_token
-from fastapi.templating import Jinja2Templates
+
 from pydantic import BaseModel
 
 
 router = APIRouter()
-templates = Jinja2Templates(directory="app/templates")
+from app.utils.templates import templates
 
 
 async def get_current_user_cookie(request: Request, db: Session = Depends(get_db)) -> User:

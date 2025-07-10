@@ -49,9 +49,6 @@ check_branch() {
 check_uncommitted_changes() {
     if ! git diff-index --quiet HEAD --; then
         print_error "You have uncommitted changes. Please commit or stash them first."
-        echo "Debug: git diff-index output:"
-        git diff-index HEAD --
-        echo "Debug: git status output:"
         git status --short
         exit 1
     fi

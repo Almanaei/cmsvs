@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     database_url: str = "postgresql://username:password@localhost:5432/cmsvs_db"
     db_password: Optional[str] = None  # For Docker environment
     redis_password: Optional[str] = None  # For Docker environment
+    redis_url: Optional[str] = None  # Redis connection URL
 
     # Database Pool Settings
     db_pool_size: int = 20

@@ -169,7 +169,7 @@ async def get_notifications_api(
         logger.error(f"Error getting notifications via API: {str(e)}")
         return JSONResponse({
             "success": False,
-            "error": "Failed to load notifications"
+            "error": "فشل في تحميل الإشعارات"
         }, status_code=500)
 
 
@@ -190,19 +190,19 @@ async def mark_notification_read(
         if success:
             return JSONResponse({
                 "success": True,
-                "message": "Notification marked as read"
+                "message": "تم تحديد الإشعار كمقروء"
             })
         else:
             return JSONResponse({
                 "success": False,
-                "error": "Notification not found or already read"
+                "error": "الإشعار غير موجود أو مقروء بالفعل"
             }, status_code=404)
             
     except Exception as e:
         logger.error(f"Error marking notification as read: {str(e)}")
         return JSONResponse({
             "success": False,
-            "error": "Failed to mark notification as read"
+            "error": "فشل في تحديد الإشعار كمقروء"
         }, status_code=500)
 
 
@@ -220,7 +220,7 @@ async def mark_all_notifications_read(
         
         return JSONResponse({
             "success": True,
-            "message": f"Marked {updated_count} notifications as read",
+            "message": f"تم تحديد {updated_count} إشعار كمقروء",
             "updated_count": updated_count
         })
         
@@ -228,30 +228,63 @@ async def mark_all_notifications_read(
         logger.error(f"Error marking all notifications as read: {str(e)}")
         return JSONResponse({
             "success": False,
-            "error": "Failed to mark notifications as read"
+            "error": "فشل في تحديد الإشعارات كمقروءة"
         }, status_code=500)
 
 
 @router.get("/api/notifications/unread-count")
 async def get_unread_count(
-    current_user: User = Depends(get_current_user_cookie),
+    request: Request,
     db: Session = Depends(get_db)
 ):
     """Get unread notifications count"""
     try:
-        unread_count = NotificationService.get_unread_count(db, current_user.id)
-        
+        # Try to get current user from cookie without raising exceptions
+        token = request.cookies.get("access_token")
+        if not token:
+            return JSONResponse({
+                "success": True,
+                "unread_count": 0
+            })
+
+        # Remove 'Bearer ' prefix if present
+        if token.startswith("Bearer "):
+            token = token[7:]
+
+        payload = verify_token(token)
+        if not payload:
+            return JSONResponse({
+                "success": True,
+                "unread_count": 0
+            })
+
+        username = payload.get("sub")
+        if not username:
+            return JSONResponse({
+                "success": True,
+                "unread_count": 0
+            })
+
+        user = UserService.get_user_by_username(db, username)
+        if not user or not user.is_active:
+            return JSONResponse({
+                "success": True,
+                "unread_count": 0
+            })
+
+        unread_count = NotificationService.get_unread_count(db, user.id)
+
         return JSONResponse({
             "success": True,
             "unread_count": unread_count
         })
-        
+
     except Exception as e:
         logger.error(f"Error getting unread count: {str(e)}")
         return JSONResponse({
-            "success": False,
-            "error": "Failed to get unread count"
-        }, status_code=500)
+            "success": True,
+            "unread_count": 0
+        })
 
 
 @router.post("/api/push/subscribe")
@@ -277,7 +310,7 @@ async def subscribe_to_push(
         
         return JSONResponse({
             "success": True,
-            "message": "Successfully subscribed to push notifications",
+            "message": "تم الاشتراك في الإشعارات بنجاح",
             "subscription_id": subscription.id
         })
         
@@ -285,7 +318,7 @@ async def subscribe_to_push(
         logger.error(f"Error subscribing to push notifications: {str(e)}")
         return JSONResponse({
             "success": False,
-            "error": "Failed to subscribe to push notifications"
+            "error": "فشل في الاشتراك في الإشعارات"
         }, status_code=500)
 
 
@@ -319,6 +352,69 @@ async def unsubscribe_from_push(
         return JSONResponse({
             "success": False,
             "error": "Failed to unsubscribe from push notifications"
+        }, status_code=500)
+
+
+@router.get("/notifications/preferences", response_class=HTMLResponse)
+async def notification_preferences_page(
+    request: Request,
+    current_user: User = Depends(get_current_user_cookie),
+    db: Session = Depends(get_db)
+):
+    """Notification preferences page"""
+    try:
+        preferences = PushService.get_notification_preferences(db, current_user.id)
+        subscriptions = PushService.get_user_subscriptions(db, current_user.id)
+
+        return templates.TemplateResponse(
+            "notifications/preferences.html",
+            {
+                "request": request,
+                "current_user": current_user,
+                "preferences": preferences,
+                "subscriptions": subscriptions
+            }
+        )
+
+    except Exception as e:
+        logger.error(f"Error loading notification preferences: {str(e)}")
+        return templates.TemplateResponse(
+            "errors/500.html",
+            {"request": request, "current_user": current_user},
+            status_code=500
+        )
+
+
+@router.post("/api/notifications/preferences")
+async def update_notification_preferences(
+    preferences_data: NotificationPreferencesData,
+    current_user: User = Depends(get_current_user_cookie),
+    db: Session = Depends(get_db)
+):
+    """Update notification preferences"""
+    try:
+        preferences = PushService.update_notification_preferences(
+            db=db,
+            user_id=current_user.id,
+            preferences=preferences_data.dict()
+        )
+
+        if preferences:
+            return JSONResponse({
+                "success": True,
+                "message": "تم تحديث إعدادات الإشعارات بنجاح"
+            })
+        else:
+            return JSONResponse({
+                "success": False,
+                "error": "فشل في تحديث الإعدادات"
+            }, status_code=400)
+
+    except Exception as e:
+        logger.error(f"Error updating notification preferences: {str(e)}")
+        return JSONResponse({
+            "success": False,
+            "error": "فشل في تحديث إعدادات الإشعارات"
         }, status_code=500)
 
 
@@ -390,64 +486,75 @@ async def notification_detail_page(
         )
 
 
-@router.get("/notifications/preferences", response_class=HTMLResponse)
-async def notification_preferences_page(
+@router.get("/debug/notifications", response_class=HTMLResponse)
+async def notification_debug_page(
     request: Request,
     current_user: User = Depends(get_current_user_cookie),
     db: Session = Depends(get_db)
 ):
-    """Notification preferences page"""
+    """Debug page for testing notification system"""
     try:
+        # Get user's notification preferences
         preferences = PushService.get_notification_preferences(db, current_user.id)
         subscriptions = PushService.get_user_subscriptions(db, current_user.id)
 
+        # Get recent notifications
+        recent_notifications = NotificationService.get_user_notifications(
+            db=db,
+            user_id=current_user.id,
+            page=1,
+            per_page=5
+        )
+
+        # Check VAPID configuration
+        from app.config import settings
+        vapid_configured = bool(settings.vapid_private_key and settings.vapid_public_key)
+
         return templates.TemplateResponse(
-            "notifications/preferences.html",
+            "debug/notification_test.html",
             {
                 "request": request,
                 "current_user": current_user,
                 "preferences": preferences,
-                "subscriptions": subscriptions
+                "subscriptions": subscriptions,
+                "recent_notifications": recent_notifications,
+                "vapid_configured": vapid_configured,
+                "vapid_public_key": settings.vapid_public_key if vapid_configured else None
             }
         )
 
     except Exception as e:
-        logger.error(f"Error loading notification preferences: {str(e)}")
-        return templates.TemplateResponse(
-            "errors/500.html",
-            {"request": request, "current_user": current_user},
-            status_code=500
-        )
+        logger.error(f"Error loading notification debug page: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to load debug page")
 
 
-@router.post("/api/notifications/preferences")
-async def update_notification_preferences(
-    preferences_data: NotificationPreferencesData,
+@router.post("/api/debug/test-notification")
+async def test_notification(
     current_user: User = Depends(get_current_user_cookie),
     db: Session = Depends(get_db)
 ):
-    """Update notification preferences"""
+    """Create a test notification for debugging"""
     try:
-        preferences = PushService.update_notification_preferences(
+        # Create a test notification
+        notification = NotificationService.create_notification(
             db=db,
             user_id=current_user.id,
-            preferences=preferences_data.dict()
+            notification_type=NotificationType.SYSTEM_ANNOUNCEMENT,
+            title="إشعار تجريبي",
+            message="هذا إشعار تجريبي لاختبار النظام",
+            priority=NotificationPriority.NORMAL,
+            action_url="/notifications"
         )
-        
-        if preferences:
-            return JSONResponse({
-                "success": True,
-                "message": "Notification preferences updated successfully"
-            })
-        else:
-            return JSONResponse({
-                "success": False,
-                "error": "Failed to update preferences"
-            }, status_code=400)
-            
+
+        return JSONResponse({
+            "success": True,
+            "message": "تم إنشاء إشعار تجريبي بنجاح",
+            "notification_id": notification.id
+        })
+
     except Exception as e:
-        logger.error(f"Error updating notification preferences: {str(e)}")
+        logger.error(f"Error creating test notification: {str(e)}")
         return JSONResponse({
             "success": False,
-            "error": "Failed to update notification preferences"
+            "error": "فشل في إنشاء إشعار تجريبي"
         }, status_code=500)

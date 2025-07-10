@@ -12,9 +12,6 @@
     padding: 12px;
     background: #f8fafc;
     min-height: 100vh;
-}
-
-@media (min-width: 640px) {
     .page-container {
         padding: 16px;
     }
@@ -888,7 +885,7 @@
 }
 
 /* Fix dropdown section headers */
-.dropdown-menu .px-3.py-1\\.5 {
+.dropdown-menu .dropdown-header {
     color: #6b7280 !important;
     opacity: 1 !important;
     visibility: visible !important;
@@ -897,7 +894,7 @@
     font-weight: 500 !important;
 }
 
-.dropdown-menu .px-3.py-1\\.5 i {
+.dropdown-menu .dropdown-header i {
     color: #9ca3af !important;
     opacity: 1 !important;
     visibility: visible !important;
@@ -2028,18 +2025,7 @@
                                                     </form>
                                                     {% endif %}
 
-                                                    {% if req.status.value != 'rejected' %}
-                                                    <form method="post" action="/admin/requests/{{ req.id }}/update-status" class="block">
-                                                        <input type="hidden" name="status" value="rejected">
-                                                        <button type="submit"
-                                                                class="dropdown-item group flex items-center w-full text-right px-3 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 transition-all duration-150"
-                                                                role="menuitem"
-                                                                tabindex="-1">
-                                                            <i class="fas fa-times-circle text-red-600 group-hover:text-red-700 ml-2 w-4 text-center"></i>
-                                                            <span class="font-medium">مرفوض</span>
-                                                        </button>
-                                                    </form>
-                                                    {% endif %}
+
                                                 </div>
 
                                                 <!-- Divider -->
@@ -2074,7 +2060,7 @@
             <!-- Mobile Card View -->
             <div class="lg:hidden">
                 {% for req in requests %}
-                <div class="mobile-table-card border-r-4 border-r-{{ 'green' if req.status.value == 'approved' else 'yellow' if req.status.value == 'pending' else 'red' if req.status.value == 'rejected' else 'blue' }}-500">
+                <div class="mobile-table-card border-r-4 border-r-{{ 'green' if req.status.value == 'completed' else 'yellow' if req.status.value == 'pending' else 'red' if req.status.value == 'rejected' else 'blue' }}-500">
                     <!-- Request Header -->
                     <div class="flex justify-between items-start mb-3">
                         <div>
@@ -2084,8 +2070,8 @@
                         <div class="text-right">
                             {% if req.status.value == 'pending' %}
                             <span class="badge-warning">قيد المراجعة</span>
-                            {% elif req.status.value == 'approved' %}
-                            <span class="badge-success">مقبول</span>
+                            {% elif req.status.value == 'completed' %}
+                            <span class="badge-success">مكتمل</span>
                             {% elif req.status.value == 'rejected' %}
                             <span class="badge-danger">مرفوض</span>
                             {% elif req.status.value == 'in_progress' %}
@@ -2150,15 +2136,11 @@
                         </a>
                         {% endif %}
 
-                        <!-- Status Update Buttons -->
-                        {% if req.status.value == 'pending' %}
-                        <button onclick="updateStatus({{ req.id }}, 'approved')" class="btn-success text-xs px-3 py-2">
+                        <!-- Status Update Button -->
+                        {% if req.status.value in ['pending', 'in_progress'] %}
+                        <button onclick="updateStatus({{ req.id }}, 'completed')" class="btn-success text-xs px-3 py-2">
                             <i class="fas fa-check ml-1"></i>
-                            قبول
-                        </button>
-                        <button onclick="updateStatus({{ req.id }}, 'rejected')" class="btn-danger text-xs px-3 py-2">
-                            <i class="fas fa-times ml-1"></i>
-                            رفض
+                            مكتمل
                         </button>
                         {% endif %}
 
@@ -2290,7 +2272,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const icon = document.getElementById('searchToggleIcon');
 
     // Check if there are active filters - if so, keep expanded
-    const hasActiveFilters = {{ 'true' if current_search or current_status else 'false' }};
+    const hasActiveFilters = {% if current_search or current_status %}true{% else %}false{% endif %};
 
     // Get saved state from localStorage, default to collapsed if no active filters
     const isExpanded = hasActiveFilters || localStorage.getItem('searchSectionExpanded') === 'true';
@@ -2985,7 +2967,7 @@ function updateStatus(requestId, status) {
     }
 
     // Show confirmation dialog
-    const statusText = status === 'approved' ? 'قبول' : status === 'rejected' ? 'رفض' : status === 'completed' ? 'إكمال' : 'تحديث';
+    const statusText = status === 'completed' ? 'إكمال' : status === 'rejected' ? 'رفض' : status === 'in_progress' ? 'تحديث إلى قيد التنفيذ' : 'تحديث';
     const confirmMessage = `هل أنت متأكد من ${statusText} هذا الطلب؟`;
 
     if (!confirm(confirmMessage)) {

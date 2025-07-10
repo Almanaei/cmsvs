@@ -164,6 +164,69 @@
             }
         }
 
+        /* Mobile responsive header and action buttons */
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 16px;
+            }
+
+            .page-header > div:first-child {
+                width: 100%;
+            }
+
+            .page-header > div:last-child {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .page-header a {
+                width: 100%;
+                justify-content: center;
+                padding: 12px 16px;
+                font-size: 16px;
+            }
+
+            /* Form action buttons mobile responsive */
+            .form-section .flex.items-center.justify-between {
+                flex-direction: column-reverse !important;
+                gap: 12px;
+                align-items: stretch !important;
+            }
+
+            .form-section .flex.items-center.justify-between a,
+            .form-section .flex.items-center.justify-between button {
+                width: 100% !important;
+                justify-content: center !important;
+                padding: 14px 20px !important;
+                font-size: 16px !important;
+                min-height: 48px;
+            }
+        }
+
+        /* Extra mobile responsive adjustments */
+        @media (max-width: 480px) {
+            .page-header {
+                padding: 12px 0;
+            }
+
+            .page-header h1 {
+                font-size: 20px;
+            }
+
+            .form-section {
+                padding: 16px !important;
+            }
+
+            .form-section .flex.items-center.justify-between a,
+            .form-section .flex.items-center.justify-between button {
+                padding: 16px 20px !important;
+                font-size: 16px !important;
+                min-height: 52px;
+            }
+        }
+
         /* Ensure Font Awesome icons are visible */
         .fas, .far, .fab {
             font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands" !important;

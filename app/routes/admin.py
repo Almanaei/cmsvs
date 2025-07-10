@@ -975,6 +975,42 @@ async def view_request_admin(
     )
 
 
+@router.get("/requests/{request_id}/files", response_class=HTMLResponse)
+async def manage_request_files_admin(
+    request: Request,
+    request_id: int,
+    current_user: User = Depends(require_admin_cookie),
+    db: Session = Depends(get_db)
+):
+    """Manage files for a specific request in admin panel"""
+    # Get the request
+    req = RequestService.get_request_by_id(db, request_id)
+    if not req:
+        return templates.TemplateResponse(
+            "errors/404.html",
+            {"request": request, "current_user": current_user},
+            status_code=404
+        )
+
+    # Get request owner
+    request_owner = UserService.get_user_by_id(db, req.user_id)
+
+    # Get request statistics
+    request_stats = RequestService.get_user_request_statistics(db, req.user_id)
+
+    return templates.TemplateResponse(
+        "admin/manage_files.html",
+        {
+            "request": request,
+            "current_user": current_user,
+            "req": req,
+            "request_owner": request_owner,
+            "request_stats": request_stats,
+            "is_admin_view": True
+        }
+    )
+
+
 @router.get("/requests/{request_id}/edit", response_class=HTMLResponse)
 async def edit_request_admin(
     request: Request,
@@ -1334,14 +1370,14 @@ async def approve_user_from_users_page(
         user = UserService.get_user_by_id(db, user_id)
         if not user:
             return RedirectResponse(
-                url="/admin/users?error=User not found",
+                url="/admin/users?error=المستخدم غير موجود",
                 status_code=303
             )
 
         # Check if user is pending approval
         if user.approval_status != UserStatus.PENDING:
             return RedirectResponse(
-                url="/admin/users?error=User is not pending approval",
+                url="/admin/users?error=المستخدم ليس في انتظار الموافقة",
                 status_code=303
             )
 
@@ -1349,6 +1385,18 @@ async def approve_user_from_users_page(
         user.approval_status = UserStatus.APPROVED
         user.is_active = True
         db.commit()
+
+        # Create approval notification for the user
+        from app.services.notification_service import NotificationService
+        try:
+            NotificationService.create_user_approval_notification(
+                db=db,
+                user_id=user.id,
+                admin_user_id=current_user.id,
+                approved=True
+            )
+        except Exception as e:
+            logger.warning(f"Failed to create approval notification for user {user.id}: {e}")
 
         # Log activity
         from app.utils.request_utils import log_user_activity
@@ -1361,14 +1409,14 @@ async def approve_user_from_users_page(
         )
 
         return RedirectResponse(
-            url="/admin/users?success=User approved successfully",
+            url="/admin/users?success=تم قبول المستخدم بنجاح",
             status_code=303
         )
 
     except Exception as e:
         logger.error(f"Error approving user {user_id}: {e}")
         return RedirectResponse(
-            url="/admin/users?error=Failed to approve user",
+            url="/admin/users?error=فشل في قبول المستخدم",
             status_code=303
         )
 
@@ -1386,14 +1434,14 @@ async def reject_user_from_users_page(
         user = UserService.get_user_by_id(db, user_id)
         if not user:
             return RedirectResponse(
-                url="/admin/users?error=User not found",
+                url="/admin/users?error=المستخدم غير موجود",
                 status_code=303
             )
 
         # Check if user is pending approval
         if user.approval_status != UserStatus.PENDING:
             return RedirectResponse(
-                url="/admin/users?error=User is not pending approval",
+                url="/admin/users?error=المستخدم ليس في انتظار الموافقة",
                 status_code=303
             )
 
@@ -1401,6 +1449,18 @@ async def reject_user_from_users_page(
         user.approval_status = UserStatus.REJECTED
         user.is_active = False
         db.commit()
+
+        # Create rejection notification for the user
+        from app.services.notification_service import NotificationService
+        try:
+            NotificationService.create_user_approval_notification(
+                db=db,
+                user_id=user.id,
+                admin_user_id=current_user.id,
+                approved=False
+            )
+        except Exception as e:
+            logger.warning(f"Failed to create rejection notification for user {user.id}: {e}")
 
         # Log activity
         from app.utils.request_utils import log_user_activity
@@ -1413,14 +1473,14 @@ async def reject_user_from_users_page(
         )
 
         return RedirectResponse(
-            url="/admin/users?success=User rejected successfully",
+            url="/admin/users?success=تم رفض المستخدم بنجاح",
             status_code=303
         )
 
     except Exception as e:
         logger.error(f"Error rejecting user {user_id}: {e}")
         return RedirectResponse(
-            url="/admin/users?error=Failed to reject user",
+            url="/admin/users?error=فشل في رفض المستخدم",
             status_code=303
         )
 

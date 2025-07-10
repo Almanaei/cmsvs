@@ -188,9 +188,56 @@ class NotificationService:
                 action_url=action_url,
                 related_user_id=admin_user_id
             )
-            
+
         except Exception as e:
             logger.error(f"Error creating admin message notification: {str(e)}")
+            return None
+
+    @staticmethod
+    def create_user_approval_notification(
+        db: Session,
+        user_id: int,
+        admin_user_id: int,
+        approved: bool = True
+    ) -> Optional[Notification]:
+        """Create notification for user account approval or rejection"""
+        try:
+            # Check if user wants these notifications
+            if not NotificationService._should_send_notification(
+                db, user_id, "admin_message_notifications"
+            ):
+                return None
+
+            if approved:
+                title = "تم قبول حسابك! 🎉"
+                message = "مرحباً بك! تم قبول حسابك من قبل الإدارة. يمكنك الآن تسجيل الدخول والبدء في استخدام النظام."
+                priority = NotificationPriority.HIGH
+                action_url = "/login"
+            else:
+                title = "تم رفض حسابك"
+                message = "نأسف لإبلاغك أنه تم رفض طلب إنشاء حسابك من قبل الإدارة. يرجى التواصل مع الإدارة للمزيد من المعلومات."
+                priority = NotificationPriority.HIGH
+                action_url = "/login"
+
+            extra_data = {
+                "approval_status": "approved" if approved else "rejected",
+                "admin_user_id": admin_user_id
+            }
+
+            return NotificationService.create_notification(
+                db=db,
+                user_id=user_id,
+                notification_type=NotificationType.ADMIN_MESSAGE,
+                title=title,
+                message=message,
+                priority=priority,
+                action_url=action_url,
+                related_user_id=admin_user_id,
+                extra_data=extra_data
+            )
+
+        except Exception as e:
+            logger.error(f"Error creating user approval notification: {str(e)}")
             return None
 
     @staticmethod

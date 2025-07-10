@@ -349,7 +349,7 @@
                 <!-- Desktop Navigation -->
                 <nav class="hidden md:flex space-x-8 space-x-reverse">
                     {% if current_user.role.value == 'admin' %}
-                    <a href="/admin/dashboard" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium ibm-plex-arabic-medium">لوحة الإدارة</a>
+                    <a href="/admin/dashboard" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium ibm-plex-arabic-medium">لوحة التحكم</a>
                     <a href="/admin/users" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium ibm-plex-arabic-medium">المستخدمون</a>
                     <a href="/admin/requests" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium ibm-plex-arabic-medium">الطلبات</a>
                     {% else %}
@@ -393,7 +393,7 @@
                     <a href="/admin/dashboard" class="enhanced-nav-link group">
                         <div class="flex items-center">
                             <i class="fas fa-tachometer-alt text-gray-500 group-hover:text-blue-600 transition-colors duration-200 ml-3"></i>
-                            <span>لوحة الإدارة</span>
+                            <span>لوحة التحكم</span>
                         </div>
                     </a>
                     <a href="/admin/users" class="enhanced-nav-link group">
@@ -496,7 +496,7 @@
                     {% if current_user.role.value == 'admin' %}
                     <a href="/admin/dashboard" class="mobile-nav-link" onclick="toggleMobileMenu()">
                         <i class="fas fa-tachometer-alt ml-3"></i>
-                        <span>لوحة الإدارة</span>
+                        <span>لوحة التحكم</span>
                     </a>
                     <a href="/admin/users" class="mobile-nav-link" onclick="toggleMobileMenu()">
                         <i class="fas fa-users ml-3"></i>
@@ -1304,10 +1304,15 @@
         // Function to update notification badges
         function updateNotificationBadges() {
             fetch('/api/notifications/unread-count')
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
-                    const count = data.unread_count;
+                    const count = data.unread_count || 0;
                     const badges = [
                         'headerNotificationBadge',
                         'mobileNotificationBadge',
@@ -1329,7 +1334,11 @@
                 }
             })
             .catch(error => {
-                console.error('Error updating notification badges:', error);
+                // Silently handle errors to avoid console spam
+                // Only log if it's not a common authentication error
+                if (!error.message.includes('403') && !error.message.includes('401')) {
+                    console.error('Error updating notification badges:', error);
+                }
             });
         }
     </script>

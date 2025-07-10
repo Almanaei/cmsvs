@@ -13,7 +13,43 @@
             </div>
 
             <div class="card-body">
-                <form method="post" action="/login" class="space-y-6">
+                <!-- Display success message if present -->
+                {% if success %}
+                <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-md">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div class="mr-3">
+                            <p class="text-sm text-green-800" style="font-family: 'IBM Plex Sans Arabic', sans-serif;">
+                                {{ success }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Display error message if present -->
+                {% if error %}
+                <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div class="mr-3">
+                            <p class="text-sm text-red-800" style="font-family: 'IBM Plex Sans Arabic', sans-serif;">
+                                {{ error }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <form method="post" action="/login" class="space-y-6" id="loginForm">
                     <div class="form-group">
                         <label for="username" class="form-label">
                             اسم المستخدم أو البريد الإلكتروني
@@ -24,7 +60,8 @@
                                    name="username"
                                    required
                                    class="form-input pr-10"
-                                   placeholder="أدخل اسم المستخدم أو البريد الإلكتروني">
+                                   placeholder="أدخل اسم المستخدم أو البريد الإلكتروني"
+                                   value="{{ form_data.username if form_data else '' }}">
                             <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                                 <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -71,4 +108,45 @@
 
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('loginForm');
+    const usernameField = document.getElementById('username');
+
+    // Load saved username from localStorage if no server-side data is present
+    {% if not form_data %}
+    const savedUsername = localStorage.getItem('login_username');
+    if (savedUsername && usernameField && !usernameField.value) {
+        usernameField.value = savedUsername;
+    }
+    {% endif %}
+
+    // Save username to localStorage on input (but not password for security)
+    if (usernameField) {
+        usernameField.addEventListener('input', function() {
+            localStorage.setItem('login_username', this.value);
+        });
+    }
+
+    // Clear localStorage on successful form submission
+    form.addEventListener('submit', function() {
+        // Add a small delay to allow form submission to complete
+        setTimeout(() => {
+            // Only clear if login was successful (no error on page)
+            if (!document.querySelector('.bg-red-50')) {
+                localStorage.removeItem('login_username');
+            }
+        }, 100);
+    });
+
+    // Clear localStorage when navigating to register page
+    const registerLink = document.querySelector('a[href="/register"]');
+    if (registerLink) {
+        registerLink.addEventListener('click', function() {
+            localStorage.removeItem('login_username');
+        });
+    }
+});
+</script>
 {% endblock %}

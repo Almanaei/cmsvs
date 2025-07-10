@@ -78,6 +78,9 @@ async def login(
     db: Session = Depends(get_db)
 ):
     """Authenticate user and create session"""
+    # Preserve username for potential re-display (but not password for security)
+    form_data = {"username": username}
+
     # First check if user exists and password is correct
     user = db.query(User).filter(
         (User.username == username) | (User.email == username)
@@ -88,7 +91,8 @@ async def login(
             "auth/login.html",
             {
                 "request": request,
-                "error": "Incorrect username or password"
+                "error": "اسم المستخدم أو كلمة المرور غير صحيحة",
+                "form_data": form_data
             },
             status_code=400
         )
@@ -100,7 +104,8 @@ async def login(
                 "auth/login.html",
                 {
                     "request": request,
-                    "error": "Your account is pending admin approval. Please wait for approval before logging in."
+                    "error": "حسابك في انتظار موافقة الإدارة. يرجى انتظار الموافقة قبل تسجيل الدخول.",
+                    "form_data": form_data
                 },
                 status_code=403
             )
@@ -109,7 +114,8 @@ async def login(
                 "auth/login.html",
                 {
                     "request": request,
-                    "error": "Your account has been rejected. Please contact the administrator."
+                    "error": "تم رفض حسابك. يرجى التواصل مع الإدارة.",
+                    "form_data": form_data
                 },
                 status_code=403
             )
@@ -118,7 +124,8 @@ async def login(
                 "auth/login.html",
                 {
                     "request": request,
-                    "error": "Your account is inactive. Please contact the administrator."
+                    "error": "حسابك غير نشط. يرجى التواصل مع الإدارة.",
+                    "form_data": form_data
                 },
                 status_code=403
             )
@@ -129,7 +136,8 @@ async def login(
                 "auth/login.html",
                 {
                     "request": request,
-                    "error": "Your admin account is inactive. Please contact the system administrator."
+                    "error": "حساب الإدارة غير نشط. يرجى التواصل مع مدير النظام.",
+                    "form_data": form_data
                 },
                 status_code=403
             )
@@ -199,27 +207,98 @@ async def register(
     db: Session = Depends(get_db)
 ):
     """Register new user"""
+    # Preserve form data for potential re-display
+    form_data = {
+        "username": username,
+        "email": email,
+        "full_name": full_name
+        # Note: We don't preserve passwords for security reasons
+    }
+
     # Validate password confirmation
     if password != confirm_password:
         return templates.TemplateResponse(
             "auth/register.html",
             {
                 "request": request,
-                "error": "Passwords do not match"
+                "error": "كلمات المرور غير متطابقة",
+                "form_data": form_data
             },
             status_code=400
         )
-    
+
+    # Validate password strength
+    if len(password) < 6:
+        return templates.TemplateResponse(
+            "auth/register.html",
+            {
+                "request": request,
+                "error": "كلمة المرور يجب أن تكون 6 أحرف على الأقل",
+                "form_data": form_data
+            },
+            status_code=400
+        )
+
+    # Validate username format
+    import re
+    if not re.match(r'^[a-zA-Z0-9_]+$', username):
+        return templates.TemplateResponse(
+            "auth/register.html",
+            {
+                "request": request,
+                "error": "اسم المستخدم يجب أن يحتوي على أحرف وأرقام وشرطة سفلية فقط",
+                "form_data": form_data
+            },
+            status_code=400
+        )
+
+    if len(username) < 3 or len(username) > 20:
+        return templates.TemplateResponse(
+            "auth/register.html",
+            {
+                "request": request,
+                "error": "اسم المستخدم يجب أن يكون بين 3 و 20 حرف",
+                "form_data": form_data
+            },
+            status_code=400
+        )
+
+    # Validate email format
+    import re
+    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    if not re.match(email_pattern, email):
+        return templates.TemplateResponse(
+            "auth/register.html",
+            {
+                "request": request,
+                "error": "صيغة البريد الإلكتروني غير صحيحة",
+                "form_data": form_data
+            },
+            status_code=400
+        )
+
+    # Validate full name
+    if len(full_name.strip()) < 2:
+        return templates.TemplateResponse(
+            "auth/register.html",
+            {
+                "request": request,
+                "error": "الاسم الكامل يجب أن يكون حرفين على الأقل",
+                "form_data": form_data
+            },
+            status_code=400
+        )
+
     try:
         # Create user
         user = UserService.create_user(
             db=db,
             username=username,
             email=email,
-            full_name=full_name,
+            full_name=full_name.strip(),
             password=password
         )
-        
+
         # Log registration activity
         from app.utils.request_utils import log_user_activity
         log_user_activity(
@@ -229,21 +308,29 @@ async def register(
             description="تسجيل مستخدم جديد",
             request=request
         )
-        
+
         return templates.TemplateResponse(
             "auth/login.html",
             {
                 "request": request,
-                "success": "Registration successful! Your account is pending admin approval. You will be able to log in once your account is approved."
+                "success": "تم إنشاء الحساب بنجاح! حسابك في انتظار موافقة الإدارة. ستتمكن من تسجيل الدخول بمجرد الموافقة على حسابك."
             }
         )
-        
+
     except HTTPException as e:
+        # Translate common error messages to Arabic
+        error_message = e.detail
+        if "Username already registered" in error_message:
+            error_message = "اسم المستخدم مُستخدم بالفعل"
+        elif "Email already registered" in error_message:
+            error_message = "البريد الإلكتروني مُستخدم بالفعل"
+
         return templates.TemplateResponse(
             "auth/register.html",
             {
                 "request": request,
-                "error": e.detail
+                "error": error_message,
+                "form_data": form_data
             },
             status_code=400
         )

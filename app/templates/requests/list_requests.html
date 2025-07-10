@@ -1,53 +1,227 @@
 {% extends "base.html" %}
 
-{% block title %}{% if is_admin %}جميع الطلبات{% else %}طلباتي{% endif %} - CMSVS{% endblock %}
+{% block title %}{% if is_admin %}جميع الطلبات{% else %}طلباتي{% endif %} - إرشيف{% endblock %}
 
 {% block content %}
 <style>
-/* Dropdown positioning fixes */
-.table-dropdown {
-    position: relative;
+/* Mobile-First Professional User Requests Styling */
+.page-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 12px;
+    background: #f8fafc;
+    min-height: 100vh;
 }
 
-.table-dropdown .dropdown-menu {
-    position: fixed;
-    z-index: 999999;
-    min-width: 14rem;
-    max-width: 16rem;
-    background-color: #ffffff !important;
-    background: #ffffff !important;
-    opacity: 1 !important;
+@media (min-width: 640px) {
+    .page-container {
+        padding: 16px;
+    }
 }
 
-/* Support for upward dropdown positioning */
-.table-dropdown .dropdown-menu.mb-2 {
-    bottom: 100%;
-    top: auto;
-    margin-bottom: 0.5rem;
-    margin-top: 0;
+@media (min-width: 768px) {
+    .page-container {
+        padding: 24px;
+    }
 }
 
-.table-dropdown .dropdown-menu.mt-2 {
-    top: 100%;
-    bottom: auto;
-    margin-top: 0.5rem;
-    margin-bottom: 0;
+.page-header {
+    text-align: right;
+    padding: 16px;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    color: white;
 }
 
-/* Prevent horizontal scroll when dropdown is open */
-.overflow-x-auto {
-    overflow-x: auto;
-    overflow-y: visible;
+@media (min-width: 640px) {
+    .page-header {
+        padding: 24px;
+        margin-bottom: 24px;
+        border-radius: 12px;
+    }
 }
 
-/* Ensure dropdowns don't cause horizontal scrolling */
-.table-container {
-    position: relative;
-    overflow-x: auto;
-    max-width: 100%;
+@media (min-width: 768px) {
+    .page-header {
+        padding: 32px 24px;
+        margin-bottom: 32px;
+    }
 }
 
-/* Ensure table rows can contain positioned dropdowns */
+.page-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 4px 0;
+    color: white;
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+}
+
+@media (min-width: 640px) {
+    .page-title {
+        font-size: 24px;
+        margin-bottom: 6px;
+    }
+}
+
+@media (min-width: 768px) {
+    .page-title {
+        font-size: 32px;
+        margin-bottom: 8px;
+    }
+}
+
+.page-subtitle {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0;
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+}
+
+@media (min-width: 640px) {
+    .page-subtitle {
+        font-size: 15px;
+    }
+}
+
+@media (min-width: 768px) {
+    .page-subtitle {
+        font-size: 16px;
+    }
+}
+
+/* Card and Section Styling */
+.card {
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-bottom: 16px;
+    overflow: hidden;
+}
+
+@media (min-width: 640px) {
+    .card {
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+}
+
+@media (min-width: 768px) {
+    .card {
+        margin-bottom: 24px;
+    }
+}
+
+.card-header {
+    background: #f8fafc;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+@media (min-width: 640px) {
+    .card-header {
+        padding: 16px 20px;
+    }
+}
+
+@media (min-width: 768px) {
+    .card-header {
+        padding: 20px 24px;
+    }
+}
+
+.card-body {
+    padding: 16px;
+}
+
+@media (min-width: 640px) {
+    .card-body {
+        padding: 20px;
+    }
+}
+
+@media (min-width: 768px) {
+    .card-body {
+        padding: 24px;
+    }
+}
+
+/* Button Styling */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+}
+
+@media (min-width: 640px) {
+    .btn {
+        padding: 8px 16px;
+        font-size: 13px;
+    }
+}
+
+@media (min-width: 768px) {
+    .btn {
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+}
+
+.btn-primary {
+    background: #3b82f6;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2563eb;
+}
+
+.btn-secondary {
+    background: #6b7280;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #4b5563;
+}
+
+.btn-outline {
+    background: transparent;
+    color: #6b7280;
+    border: 1px solid #d1d5db;
+}
+
+.btn-outline:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+}
+
+.btn-success {
+    background: #10b981;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #059669;
+}
+
+.btn-danger {
+    background: #ef4444;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+}
 .table tbody tr {
     position: relative;
     z-index: 1;
@@ -410,38 +584,95 @@ body {
 
 </style>
 
-<div class="w-full max-w-full overflow-hidden">
-<div class="space-y-6">
-    <!-- Header -->
-    <div class="text-center">
-        {% if is_admin %}
-        <h4 class="text-3xl font-bold text-gray-900">جميع الطلبات</h4>
-        <p class="text-gray-600 mt-1">إدارة ومراقبة جميع طلبات المستخدمين في النظام</p>
-        {% else %}
-        <h4 class="text-3xl font-bold text-gray-900">طلباتي</h4>
-        <p class="text-gray-600 mt-1">إدارة وتتبع جميع طلباتك الشخصية</p>
-        {% endif %}
-    </div>
-
-    <!-- Status Filter Tabs -->
-    <div class="card">
-        <div class="card-body">
-            <div class="flex flex-wrap gap-2">
-                <a href="/requests" class="btn-secondary {% if not current_status %}btn-primary{% endif %}">
-                    الكل
+<div class="page-container">
+    <!-- Page Header -->
+    <header class="page-header">
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 sm:gap-5">
+            <div class="flex-1">
+                {% if is_admin %}
+                <h1 class="page-title">جميع الطلبات</h1>
+                <p class="page-subtitle">إدارة ومراقبة جميع طلبات المستخدمين في النظام</p>
+                {% else %}
+                <h1 class="page-title">طلباتي</h1>
+                <p class="page-subtitle">إدارة وتتبع جميع طلباتك الشخصية</p>
+                {% endif %}
+            </div>
+            <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                {% if not is_admin %}
+                <a href="/dashboard" class="btn btn-secondary">
+                    <i class="fas fa-arrow-right ml-2"></i>
+                    العودة للوحة التحكم
                 </a>
-                {% for status in statuses %}
-                <a href="/requests?status={{ status }}" class="btn-secondary {% if current_status == status %}btn-primary{% endif %}">
-                    {% if status == 'pending' %}قيد المراجعة
-                    {% elif status == 'in_progress' %}قيد التنفيذ
-                    {% elif status == 'completed' %}مكتملة
-                    {% elif status == 'rejected' %}مرفوضة
-                    {% endif %}
+                {% endif %}
+                <a href="/requests/new" class="btn btn-outline">
+                    <i class="fas fa-plus ml-2"></i>
+                    إنشاء طلب جديد
                 </a>
-                {% endfor %}
             </div>
         </div>
-    </div>
+    </header>
+
+    <!-- Search and Filter Section -->
+    <div class="card">
+        <div class="card-header">
+            <div class="flex items-center justify-between">
+                <h5 class="text-lg font-semibold text-gray-900" style="font-family: 'IBM Plex Sans Arabic', sans-serif;">البحث والتصفية</h5>
+                <button type="button" onclick="toggleSearchSection()" class="{% if current_search or current_status %}text-blue-600 hover:text-blue-700{% else %}text-gray-500 hover:text-gray-700{% endif %} focus:outline-none p-1 rounded-md hover:bg-gray-100" id="searchToggleBtn">
+                    {% if current_search or current_status %}
+                    <div class="flex items-center space-x-1 rtl:space-x-reverse">
+                        <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                        <svg class="w-5 h-5 transform transition-transform duration-200" id="searchToggleIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                    {% else %}
+                    <svg class="w-5 h-5 transform transition-transform duration-200" id="searchToggleIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                    {% endif %}
+                </button>
+            </div>
+            <!-- Quick info when collapsed -->
+            <div id="searchQuickInfo" class="mt-2 text-sm text-gray-600 hidden">
+                {% if current_search or current_status %}
+                <div class="flex flex-wrap gap-2">
+                    {% if current_search %}
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                        البحث: {{ current_search }}
+                    </span>
+                    {% endif %}
+                    {% if current_status %}
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                        الحالة:
+                        {% if current_status == 'pending' %}قيد المراجعة
+                        {% elif current_status == 'in_progress' %}قيد التنفيذ
+                        {% elif current_status == 'completed' %}مكتملة
+                        {% elif current_status == 'rejected' %}مرفوضة
+                        {% endif %}
+                    </span>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card-body" id="searchSectionContent">
+            <!-- Quick Status Filter Tabs -->
+            <div class="mb-4">
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:flex lg:flex-wrap gap-2">
+                    <a href="/requests" class="btn btn-secondary {% if not current_status %}btn-primary{% endif %} text-center">
+                        الكل
+                    </a>
+                    {% for status in statuses %}
+                    <a href="/requests?status={{ status }}" class="btn btn-secondary {% if current_status == status %}btn-primary{% endif %} text-center">
+                        {% if status == 'pending' %}قيد المراجعة
+                        {% elif status == 'in_progress' %}قيد التنفيذ
+                        {% elif status == 'completed' %}مكتملة
+                        {% elif status == 'rejected' %}مرفوضة
+                        {% endif %}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
 
     <!-- Search Section -->
     <div class="card">

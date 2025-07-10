@@ -13,7 +13,25 @@
             </div>
 
             <div class="card-body">
-                <form method="post" action="/register" class="space-y-6">
+                <!-- Display error message if present -->
+                {% if error %}
+                <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div class="mr-3">
+                            <p class="text-sm text-red-800" style="font-family: 'IBM Plex Sans Arabic', sans-serif;">
+                                {{ error }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <form method="post" action="/register" class="space-y-6" id="registerForm">
                     <div class="form-group">
                         <label for="username" class="form-label">اسم المستخدم</label>
                         <div class="relative">
@@ -25,7 +43,8 @@
                                    maxlength="20"
                                    pattern="[a-zA-Z0-9_]+"
                                    class="form-input pr-10"
-                                   placeholder="أدخل اسم المستخدم">
+                                   placeholder="أدخل اسم المستخدم"
+                                   value="{{ form_data.username if form_data else '' }}">
                             <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                                 <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -45,7 +64,8 @@
                                    name="email"
                                    required
                                    class="form-input pr-10"
-                                   placeholder="أدخل البريد الإلكتروني">
+                                   placeholder="أدخل البريد الإلكتروني"
+                                   value="{{ form_data.email if form_data else '' }}">
                             <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                                 <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
@@ -62,7 +82,8 @@
                                    name="full_name"
                                    required
                                    class="form-input pr-10"
-                                   placeholder="أدخل الاسم الكامل">
+                                   placeholder="أدخل الاسم الكامل"
+                                   value="{{ form_data.full_name if form_data else '' }}">
                             <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                                 <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -128,4 +149,110 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('registerForm');
+    const formFields = ['username', 'email', 'full_name'];
+
+    // Load saved form data from localStorage if no server-side data is present
+    {% if not form_data %}
+    formFields.forEach(fieldName => {
+        const field = document.getElementById(fieldName);
+        const savedValue = localStorage.getItem(`register_${fieldName}`);
+        if (savedValue && field && !field.value) {
+            field.value = savedValue;
+        }
+    });
+    {% endif %}
+
+    // Save form data to localStorage on input
+    formFields.forEach(fieldName => {
+        const field = document.getElementById(fieldName);
+        if (field) {
+            field.addEventListener('input', function() {
+                localStorage.setItem(`register_${fieldName}`, this.value);
+            });
+        }
+    });
+
+    // Clear localStorage on successful form submission
+    form.addEventListener('submit', function() {
+        // Add a small delay to allow form submission to complete
+        setTimeout(() => {
+            formFields.forEach(fieldName => {
+                localStorage.removeItem(`register_${fieldName}`);
+            });
+        }, 100);
+    });
+
+    // Clear localStorage when navigating to login page
+    const loginLink = document.querySelector('a[href="/login"]');
+    if (loginLink) {
+        loginLink.addEventListener('click', function() {
+            formFields.forEach(fieldName => {
+                localStorage.removeItem(`register_${fieldName}`);
+            });
+        });
+    }
+
+    // Add real-time validation feedback
+    const usernameField = document.getElementById('username');
+    const emailField = document.getElementById('email');
+    const fullNameField = document.getElementById('full_name');
+    const passwordField = document.getElementById('password');
+    const confirmPasswordField = document.getElementById('confirm_password');
+
+    // Username validation
+    if (usernameField) {
+        usernameField.addEventListener('blur', function() {
+            const value = this.value;
+            const isValid = /^[a-zA-Z0-9_]+$/.test(value) && value.length >= 3 && value.length <= 20;
+
+            if (value && !isValid) {
+                this.classList.add('border-red-500');
+                this.classList.remove('border-gray-300');
+            } else {
+                this.classList.remove('border-red-500');
+                this.classList.add('border-gray-300');
+            }
+        });
+    }
+
+    // Email validation
+    if (emailField) {
+        emailField.addEventListener('blur', function() {
+            const value = this.value;
+            const isValid = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value);
+
+            if (value && !isValid) {
+                this.classList.add('border-red-500');
+                this.classList.remove('border-gray-300');
+            } else {
+                this.classList.remove('border-red-500');
+                this.classList.add('border-gray-300');
+            }
+        });
+    }
+
+    // Password confirmation validation
+    if (confirmPasswordField && passwordField) {
+        function validatePasswordMatch() {
+            const password = passwordField.value;
+            const confirmPassword = confirmPasswordField.value;
+
+            if (confirmPassword && password !== confirmPassword) {
+                confirmPasswordField.classList.add('border-red-500');
+                confirmPasswordField.classList.remove('border-gray-300');
+            } else {
+                confirmPasswordField.classList.remove('border-red-500');
+                confirmPasswordField.classList.add('border-gray-300');
+            }
+        }
+
+        passwordField.addEventListener('input', validatePasswordMatch);
+        confirmPasswordField.addEventListener('input', validatePasswordMatch);
+    }
+});
+</script>
 {% endblock %}
